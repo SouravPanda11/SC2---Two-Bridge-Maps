@@ -13,7 +13,7 @@ This repo contains agents trained on the 2-Bridge map.
 
 ---
 
-## Working On
+## In Progress
 
 - Limiting episode time duration
 - Reward shaping
