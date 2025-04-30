@@ -1,0 +1,9 @@
+# Exclude environment files
+.env
+TBMsc2
+
+# Exclude specific zip file
+two_bridge_ppo.zip
+
+# Exclude Python cache directories
+__pycache__/
