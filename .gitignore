@@ -10,3 +10,6 @@ __pycache__/
 
 # Exclude log files and TensorBoard logs
 tb_logs/
+
+# Exclude saved models and checkpoints
+saved_model/
