@@ -12,4 +12,4 @@ __pycache__/
 tb_logs/
 
 # Exclude saved models and checkpoints
-saved_model/
+saved_models/
