@@ -1,5 +1,6 @@
 from absl import flags ; flags.FLAGS([''])      # silence PySC2 flags
-import gymnasium as gym, two_bridge_env                   # just import env.py once
+import gymnasium as gym
+import Environments.TB_env_NSF as two_bridge_env
 
 two_bridge_env = gym.make("TwoBridge-v0", visualize=False)
 obs, _ = two_bridge_env.reset()

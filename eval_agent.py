@@ -3,7 +3,7 @@ Run trained agent for N episodes, collect win/loss stats and plot.
 """
 import numpy as np, matplotlib.pyplot as plt, torch
 import stable_baselines3 as sb3
-from two_bridge_env import TwoBridgeEnv
+from Environments.TB_env_NSF import TwoBridgeEnv
 
 MODEL_PATH   = "two_bridge_ppo.zip"
 EPISODES     = 3            # evaluation batch size

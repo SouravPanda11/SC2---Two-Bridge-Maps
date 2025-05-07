@@ -1,6 +1,6 @@
 import torch
 import stable_baselines3 as sb3
-from two_bridge_env import TwoBridgeEnv
+from Environments.TB_env_NSF import TwoBridgeEnv
 
 # Check if GPU is available (optional)
 if torch.cuda.is_available():
