@@ -30,12 +30,12 @@ model = sb3.PPO(
 )
 
 # Train the model and save at intervals
-total_timesteps = 10
-save_interval = 3
+total_timesteps = 1_000_000  # 1 million timesteps
+save_interval = 3_000  # Save every 3K timesteps
 for i in range(0, total_timesteps, save_interval):
     model.learn(total_timesteps=save_interval, reset_num_timesteps=False)
-    # model.save(f"{save_dir}{agent_name}_{(i + save_interval) // 1000}K")
-    model.save(f"{save_dir}{agent_name}_{(i + save_interval)}K")
+    model.save(f"{save_dir}{agent_name}_{(i + save_interval) // 1000}K")
+    # model.save(f"{save_dir}{agent_name}_{(i + save_interval)}K")
 
 # Save the final model
 model.save(f"{save_dir}{agent_name}_final")
