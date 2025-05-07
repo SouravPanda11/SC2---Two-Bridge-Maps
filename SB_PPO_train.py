@@ -9,7 +9,7 @@ else:
     print("GPU not available. Using CPU.")
 
 # Initialize the environment and model
-env = TwoBridgeEnv()
+env = TwoBridgeEnv(visualize=True)
 model = sb3.PPO(
     "MlpPolicy",
     env,
@@ -17,6 +17,6 @@ model = sb3.PPO(
     verbose=1,
     tensorboard_log="./tb_logs/"
 )
-model.learn(10000)
+model.learn(1000)
 model.save("two_bridge_ppo")
 env.close()
