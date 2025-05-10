@@ -26,8 +26,8 @@ model = sb3.PPO(
 )
 
 # Training loop with interval saving
-total_timesteps = 1_000_000  # 1 million timesteps
-save_interval = 300_000  # Save every 300K timesteps
+total_timesteps = 2_000_000  # 2 million timesteps
+save_interval = 400_000  # Save every 400K timesteps
 for i in range(0, total_timesteps, save_interval):
     model.learn(total_timesteps=save_interval, reset_num_timesteps=False)
     # model.save(f"{save_dir}{agent_name}_{(i + save_interval) // 1000}K")
