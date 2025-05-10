@@ -1,16 +1,11 @@
 from absl import flags ; flags.FLAGS([''])      # silence PySC2 flags
 import gymnasium as gym
-import Environments.TB_env_NSF as two_bridge_env
+from Environments.TB_env_AS20 import TwoBridgeEnv
 
-two_bridge_env = gym.make("TwoBridge-v0", visualize=False)
-obs, _ = two_bridge_env.reset()
-
-total_r = 0
-while True:
-    action = two_bridge_env.action_space.sample()
-    obs, r, done, tr, _ = two_bridge_env.step(action)
-    total_r += r
-    if done: break
-
-print("episode reward:", total_r)
-two_bridge_env.close()
+env = TwoBridgeEnv(obs_type="vector", visualize=False)
+obs = env.reset()
+print("Initial observation:", obs)
+action = env.action_space.sample()
+obs, reward, done, _, info = env.step(action)
+print("Step result:", obs, reward, done, info)
+env.close()

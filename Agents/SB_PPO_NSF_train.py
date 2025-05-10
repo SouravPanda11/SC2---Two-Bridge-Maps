@@ -4,7 +4,7 @@ sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 
 import torch
 import stable_baselines3 as sb3
-from Environments.TB_env_NSF import TwoBridgeEnv
+from Environments.TB_env_NSF_AS14 import TwoBridgeEnv
 
 # Check if GPU is available (optional)
 if torch.cuda.is_available():

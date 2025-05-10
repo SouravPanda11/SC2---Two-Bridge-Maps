@@ -7,7 +7,7 @@ sys.path.insert(0, project_root)
 
 import numpy as np, matplotlib.pyplot as plt, torch
 import stable_baselines3 as sb3
-from Environments.TB_env_NSF import TwoBridgeEnv
+from Environments.TB_env_NSF_AS14 import TwoBridgeEnv
 
 # Absolute model path
 MODEL_PATH = os.path.join(project_root, "Agents", "saved_models", "SB_PPO_NSF", "SB_PPO_NSF_final.zip")
