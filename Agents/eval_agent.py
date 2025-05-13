@@ -78,6 +78,10 @@ plt.ylabel("# episodes out of " + str(EPISODES))
 plt.title("Agent performance")
 plt.xticks(rotation=30)
 plt.tight_layout()
-# Save the plot with the number of episodes in the filename
-plt.savefig(f"{AGENT_NAME}_performance_{EPISODES}_ep.png")
+
+# Save the plot in the Agent Performance Charts folder
+performance_folder = os.path.join(project_root, "Agents", "Agent Performance Charts")
+os.makedirs(performance_folder, exist_ok=True)  # Ensure the folder exists
+plot_path = os.path.join(performance_folder, f"{AGENT_NAME}_performance_{EPISODES}_ep.png")
+plt.savefig(plot_path)
 plt.show()
