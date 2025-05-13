@@ -7,11 +7,16 @@ sys.path.insert(0, project_root)
 
 import numpy as np, matplotlib.pyplot as plt, torch
 import stable_baselines3 as sb3
+# from Environments.TB_env_SF_AS14 import TwoBridgeEnv
 from Environments.TB_env_NSF_AS14 import TwoBridgeEnv
 
+AGENT_NAME = "SB_PPO_NSF"
+# AGENT_NAME = "SB_PPO_SF_AS14"
+
 # Absolute model path
-MODEL_PATH = os.path.join(project_root, "Agents", "saved_models", "SB_PPO_NSF", "SB_PPO_NSF_final.zip")
-EPISODES = 100
+MODEL_PATH = os.path.join(project_root, "Agents", "saved_models", AGENT_NAME, f"{AGENT_NAME}_final.zip")
+# MODEL_PATH = os.path.join(project_root, "Agents", "saved_models", AGENT_NAME, f"{AGENT_NAME}_1600000.zip")
+EPISODES = 200
 RENDER = False
 
 # Initialize environment
@@ -72,5 +77,5 @@ plt.title("Agent performance")
 plt.xticks(rotation=30)
 plt.tight_layout()
 # Save the plot with the number of episodes in the filename
-plt.savefig(f"agent_performance_{EPISODES}_ep.png")
+plt.savefig(f"{AGENT_NAME}_performance_{EPISODES}_ep.png")
 plt.show()
