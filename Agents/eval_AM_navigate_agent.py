@@ -14,18 +14,18 @@ from sb3_contrib import MaskablePPO
 from sb3_contrib.common.wrappers import ActionMasker
 
 # ─────────────────── env + wrapper ────────────────
-from Environments.TB_env_SF_AM import TwoBridgeEnv
+from Environments.TB_env_SF_AM import (
+    TwoBridgeEnv, N_FRIEND, N_ENEMY
+)
 
 class FlattenActionWrapper(Wrapper):
     """Dict(verb, who, dir, enemy_idx) → flat MultiDiscrete; expands mask."""
     def __init__(self, env):
         super().__init__(env)
-        # MultiDiscrete([3,2,2,2,2,2,9,6])
-        self.action_space = spaces.MultiDiscrete([3] + [2]*5 + [9] + [6])
-
-        # template of always-legal bits (28-3 = 25)
-        self._mask_template = np.ones(sum(self.action_space.nvec) - 3,
-                                      dtype=np.int8)
+        self.action_space = spaces.MultiDiscrete(
+            [3] + [2]*N_FRIEND + [9] + [N_ENEMY + 1]
+        )
+        self._mask_template = np.ones(sum(self.action_space.nvec) - 3, np.int8)
 
         # correct mask length (26)
         obs_spaces = dict(env.observation_space.spaces)
@@ -38,8 +38,8 @@ class FlattenActionWrapper(Wrapper):
     def _unflatten(vec):
         return {
             "verb":      int(vec[0]),
-            "who":       np.asarray(vec[1 : 1 + 5], np.int8),
-            "direction": int(vec[1 + 5]),
+            "who":       np.asarray(vec[1 : 1 + N_FRIEND], np.int8),
+            "direction": int(vec[1 + N_FRIEND]),
             "enemy_idx": int(vec[-1]),
         }
 
@@ -66,7 +66,7 @@ mask_fn = lambda e: e.action_masks()
 # ─────────────────── user-config ──────────────────
 AGENT_NAME = "SB_MaskPPO_SF_AM"
 MODEL_PATH = os.path.join(project_root, "Agents", "saved_models",
-                          AGENT_NAME, f"{AGENT_NAME}_800K.zip")
+                          AGENT_NAME, f"{AGENT_NAME}_final.zip")
 
 EPISODES = 200
 RENDER   = False
