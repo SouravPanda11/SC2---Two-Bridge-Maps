@@ -7,17 +7,19 @@ sys.path.insert(0, project_root)
 
 import numpy as np, matplotlib.pyplot as plt, torch
 import stable_baselines3 as sb3
-from Environments.TB_env_SF_AS14 import TwoBridgeEnv
+# from Environments.TB_env_SF_AS14 import TwoBridgeEnv
 # from Environments.TB_env_NSF_AS14 import TwoBridgeEnv
+from Environments.TB_env_SF_AM import TwoBridgeEnv
 
 # AGENT_NAME = "SB_PPO_NSF"
 # AGENT_NAME = "SB_PPO_SF_AS14"
-AGENT_NAME = "SB_A2C_SF_AS14"
+# AGENT_NAME = "SB_A2C_SF_AS14"
 # AGENT_NAME = "SB_A2C_NSF_AS14"
+AGENT_NAME = "SB_MaskPPO_SF_AM"
 
 # Absolute model path
-MODEL_PATH = os.path.join(project_root, "Agents", "saved_models", AGENT_NAME, f"{AGENT_NAME}_final.zip")
-# MODEL_PATH = os.path.join(project_root, "Agents", "saved_models", AGENT_NAME, f"{AGENT_NAME}_1600000.zip")
+# MODEL_PATH = os.path.join(project_root, "Agents", "saved_models", AGENT_NAME, f"{AGENT_NAME}_final.zip")
+MODEL_PATH = os.path.join(project_root, "Agents", "saved_models", AGENT_NAME, f"{AGENT_NAME}_400k.zip")
 EPISODES = 200
 RENDER = False
 
