@@ -8,5 +8,3 @@ two_bridge_ppo.zip
 # Exclude Python cache directories
 __pycache__/
 
-# Exclude log files and TensorBoard logs
-tb_logs/
