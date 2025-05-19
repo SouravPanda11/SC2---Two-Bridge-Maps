@@ -11,14 +11,14 @@ from pysc2.maps import lib
 from absl       import flags
 
 # ─────────────────────────────────────────  map registration  ───────────
-class TwoBridgeMap_V2_L1(lib.Map):
-    name      = "TwoBridgeMap_V2_L1"
+class TwoBridgeMap_V2_Base(lib.Map):
+    name      = "TwoBridgeMap_V2_Base"
     directory = r"C:/Program Files (x86)/StarCraft II/Maps/Strategy Maps"
-    filename  = "TwoBridgeMap_V2_L1.SC2Map"
+    filename  = "TwoBridgeMap_V2_Base.SC2Map"
     players   = 2                     # agent vs bot
 
-lib.get_maps().pop("TwoBridgeMap_V2_L1", None)
-lib.get_maps()["TwoBridgeMap_V2_L1"] = TwoBridgeMap_V2_L1()
+lib.get_maps().pop("TwoBridgeMap_V2_Base", None)
+lib.get_maps()["TwoBridgeMap_V2_Base"] = TwoBridgeMap_V2_Base()
 
 # ────────────────────────────────────────────── constants  ──────────────
 FLAGS = flags.FLAGS
@@ -29,7 +29,7 @@ RAW             = actions.RAW_FUNCTIONS
 MARINE_HP       = 45
 BEACON_TYPE_ID  = 317
 BEACON_RADIUS = 2.0           # ←  match the trigger radius
-MAP_NAME        = "TwoBridgeMap_V2_L1"
+MAP_NAME        = "TwoBridgeMap_V2_Base"
 
 FIVE_MIN_LOOPS  = 5 * 60 * 16         # 300 s × 16 loops/s = 4800
 STEP_MUL        = 8                   # env.step advances 8 loops

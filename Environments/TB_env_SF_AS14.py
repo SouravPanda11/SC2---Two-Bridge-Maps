@@ -20,14 +20,14 @@ from pysc2.maps  import lib
 from absl        import flags
 
 # ───────────────────── Map registration ──────────────────────────────
-class TwoBridgeMap_V2_L1(lib.Map):
-    name      = "TwoBridgeMap_V2_L1"
+class TwoBridgeMap_V2_Base(lib.Map):
+    name      = "TwoBridgeMap_V2_Base"
     directory = r"C:/Program Files (x86)/StarCraft II/Maps/Strategy Maps"
-    filename  = "TwoBridgeMap_V2_L1.SC2Map"
+    filename  = "TwoBridgeMap_V2_Base.SC2Map"
     players   = 2                     # agent vs bot
 
-lib.get_maps().pop("TwoBridgeMap_V2_L1", None)
-lib.get_maps()["TwoBridgeMap_V2_L1"] = TwoBridgeMap_V2_L1()
+lib.get_maps().pop("TwoBridgeMap_V2_Base", None)
+lib.get_maps()["TwoBridgeMap_V2_Base"] = TwoBridgeMap_V2_Base()
 
 # ────────────────────────── constants ────────────────────────────────
 FLAGS = flags.FLAGS
@@ -61,7 +61,7 @@ class TwoBridgeEnv(gym.Env):
     def __init__(self, visualize=False):
         super().__init__()
         self._env = sc2_env.SC2Env(
-            map_name="TwoBridgeMap_V2_L1",
+            map_name="TwoBridgeMap_V2_Base",
             players=[sc2_env.Agent(sc2_env.Race.terran),
                     sc2_env.Bot  (sc2_env.Race.terran,
                                 sc2_env.Difficulty.easy)],
