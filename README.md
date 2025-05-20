@@ -5,20 +5,20 @@ This repository accompanies the paper(will be added after review cycle) by provi
 
 ```
 SC2-Two-Bridge-Maps/
-├── Agents/                   # Training / evaluation entry-points
-│   ├── *train.py                 # SB3 scripts (A2C, PPO, Maskable-PPO …)
-│   ├── Agent Performance Charts/ # PNG win-rate curves
-│   └── saved_models/             # model checkpoints & “final.zip”
+├── Agents/                         # Training / evaluation entry-points
+│   ├── *train.py                   # SB3 scripts (A2C, PPO, Maskable-PPO …)
+│   ├── Agent Performance Charts/   # PNG win-rate curves
+│   └── saved_models/               # model checkpoints & “final.zip”
 │
-├── Environments/             # Gymnasium + PySC2 envs per map variant
+├── Environments/                   # Gymnasium + PySC2 envs per map variant
 │   └── TB_env<variant>.py
 │
-├── Maps/                     # *.SC2Map files (drop into SC2/Maps)
+├── Maps/                           # *.SC2Map files (drop into SC2/Maps)
 │   └── TwoBridgeMap<Vi>_<mode>.SC2Map
 │
-├── tb_logs/                  # TensorBoard event files
-├── register_bridge_map.py    # Utility: adds map to PySC2 registry
-├── requirements.txt          # Python dependencies 
+├── tb_logs/                        # TensorBoard event files
+├── register_bridge_map.py          # Utility: adds map to PySC2 registry
+├── requirements.txt                # Python dependencies 
 └── README.md
 ```
 
@@ -49,10 +49,8 @@ The `.py` environments in **Environments/** wrap these maps as Gymnasium envs, e
 | **PPO**   | SF / NSF   | 14       | V2-Base | 100 K → 1 M(NSF) / 400 k → 2M(SF)|
 | **Mask-PPO** | SF      | AM       | V2-Base, V3-navigate, V3-combat | 400 K → 2 M |
 
-All zipped policies live in  
-`Agents/saved_models/<run-id>/`  
-Performance curves (.png) are in  
-`Agents/Agent Performance Charts/`
+All zipped policies live in `Agents/saved_models/<run-id>/`  
+Performance curves (.png) are in `Agents/Agent Performance Charts/`
 
 ---
 
