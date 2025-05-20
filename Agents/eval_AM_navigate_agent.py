@@ -14,7 +14,7 @@ from sb3_contrib import MaskablePPO
 from sb3_contrib.common.wrappers import ActionMasker
 
 # ─────────────────── env + wrapper ────────────────
-from Environments.TB_env_SF_AM import (
+from Environments.TB_env_SF_AM_V3_navigate import (
     TwoBridgeEnv, N_FRIEND, N_ENEMY
 )
 
@@ -64,7 +64,7 @@ class FlattenActionWrapper(Wrapper):
 mask_fn = lambda e: e.action_masks()
 
 # ─────────────────── user-config ──────────────────
-AGENT_NAME = "SB_MaskPPO_SF_AM"
+AGENT_NAME = "SB_MaskPPO_SF_AM_V3_navigate"
 MODEL_PATH = os.path.join(project_root, "Agents", "saved_models",
                           AGENT_NAME, f"{AGENT_NAME}_final.zip")
 
