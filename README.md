@@ -2,22 +2,25 @@
 _StarCraft II navigation-and-combat benchmark_
 
 ## Repository Overview
+
+```
 SC2-Two-Bridge-Maps/
-├── Agents/ # Training / evaluation entry-points
-│ ├── *train.py # SB3 scripts (A2C, PPO, Maskable-PPO …)
-│ ├── Agent Performance Charts/ # PNG win-rate curves
-│ └── saved_models/ # 200 K-step checkpoints & “final.zip”
+├── Agents/                   # Training / evaluation entry-points
+│   ├── *train.py                 # SB3 scripts (A2C, PPO, Maskable-PPO …)
+│   ├── Agent Performance Charts/ # PNG win-rate curves
+│   └── saved_models/             # 200 K-step checkpoints & “final.zip”
 │
-├── Environments/ # Gymnasium + PySC2 envs per map variant
-│ └── TB_env<variant>.py
+├── Environments/             # Gymnasium + PySC2 envs per map variant
+│   └── TB_env<variant>.py
 │
-├── Maps/ # *.SC2Map files (drop into SC2/Maps)
-│ └── TwoBridgeMap<Vi>_<mode>.SC2Map
+├── Maps/                     # *.SC2Map files (drop into SC2/Maps)
+│   └── TwoBridgeMap<Vi>_<mode>.SC2Map
 │
-├── tb_logs/ # TensorBoard event files
-├── register_bridge_map.py # Utility: adds map to PySC2 registry - TODO
-├── requirements.txt # Python deps (tested on 3.12.5) - TODO
+├── tb_logs/                  # TensorBoard event files
+├── register_bridge_map.py    # Utility: adds map to PySC2 registry - TODO
+├── requirements.txt          # Python deps (tested on 3.12.5) - TODO
 └── README.md
+```
 
 ### Naming convention
 
