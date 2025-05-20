@@ -8,7 +8,7 @@ SC2-Two-Bridge-Maps/
 ├── Agents/                   # Training / evaluation entry-points
 │   ├── *train.py                 # SB3 scripts (A2C, PPO, Maskable-PPO …)
 │   ├── Agent Performance Charts/ # PNG win-rate curves
-│   └── saved_models/             # 200 K-step checkpoints & “final.zip”
+│   └── saved_models/             # model checkpoints & “final.zip”
 │
 ├── Environments/             # Gymnasium + PySC2 envs per map variant
 │   └── TB_env<variant>.py
@@ -17,8 +17,8 @@ SC2-Two-Bridge-Maps/
 │   └── TwoBridgeMap<Vi>_<mode>.SC2Map
 │
 ├── tb_logs/                  # TensorBoard event files
-├── register_bridge_map.py    # Utility: adds map to PySC2 registry - TODO
-├── requirements.txt          # Python deps (tested on 3.12.5) - TODO
+├── register_bridge_map.py    # Utility: adds map to PySC2 registry
+├── requirements.txt          # Python dependencies 
 └── README.md
 ```
 
@@ -30,28 +30,29 @@ SC2-Two-Bridge-Maps/
 | **A2C / PPO / MaskPPO** | RL algorithm |
 | **NSF**       | _No Spatial Features_: vector-only observation |
 | **SF**        | _Spatial Features_: adds 64×64 screen + minimap |
-| **AS**        | _Action space |
+| **AS**        | _Action space_ |
 | **AM**        | _Action Masking_ enabled |
 | **V1 / V2 / V3** | Unit based map variants |
 | **Base / navigate / combat** | Objective placement based map variants |
 
 ---
 
-The `.py` environments in **Environments/** wrap these maps as Gymnasium envs, expose a hybrid multi-discrete action space, and
-(optionally) supply an action-mask to forbid illegal moves.
+The `.py` environments in **Environments/** wrap these maps as Gymnasium envs, expose a hybrid multi-discrete action space, and (optionally) supply an action-mask to forbid illegal moves.
 
 ---
 
 ## Pre-Trained Agents
 
-| Algorithm | Obs. Space | Action Mask | Map Variant | Checkpoints |
+| Algorithm | Obs. Space | Action Space | Map Variant | Checkpoints |
 |-----------|------------|-------------|-------------|-------------|
-| **A2C**   | SF / NSF   | ✗ / ✗       | V2-Base | 400 K → 2 M |
-| **PPO**   | SF / NSF   | ✗ / ✗       | V1-Base | 100 K → 1 M(NSF), 400 k → 2M(SF)|
-| **Mask-PPO** | SF       | ✓           | V2-Base, V3-navigate, V3-combat | 400 K → 2 M |
+| **A2C**   | SF / NSF   | 14       | V2-Base | 400 K → 2 M |
+| **PPO**   | SF / NSF   | 14       | V2-Base | 100 K → 1 M(NSF) / 400 k → 2M(SF)|
+| **Mask-PPO** | SF      | AM       | V2-Base, V3-navigate, V3-combat | 400 K → 2 M |
 
-All zipped policies live in `Agents/saved_models/<run-id>/`.
-Performance curves (.png) are in `Agents/Agent Performance Charts/`.
+All zipped policies live in  
+`Agents/saved_models/<run-id>/`  
+Performance curves (.png) are in  
+`Agents/Agent Performance Charts/`
 
 ---
 
