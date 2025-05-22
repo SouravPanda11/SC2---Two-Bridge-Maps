@@ -64,9 +64,10 @@ Performance curves (.png) are in `Agents/Agent Performance Charts/`
 6. Evaluate
 
 ## Acknowledgements
-PySC2 by DeepMind
-Stable-Baselines3 contributors
-Blizzard Entertainment (for SC2)
+
+PySC2 by DeepMind  
+Stable-Baselines3 contributors  
+Blizzard Entertainment (for SC2)  
 StarCraft community for inspiration
 
 This is an open-source educational project. Not affiliated with Blizzard.
