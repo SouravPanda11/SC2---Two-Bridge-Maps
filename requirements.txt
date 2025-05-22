@@ -43,6 +43,7 @@ pytz==2025.2
 requests==2.32.3
 s2clientprotocol==5.0.14.93333.0
 s2protocol==5.0.14.93333.0
+sb3_contrib==2.6.0
 scipy==1.15.2
 six==1.17.0
 sk-video==1.1.10
