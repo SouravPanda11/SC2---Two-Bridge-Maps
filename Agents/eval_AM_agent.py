@@ -66,7 +66,7 @@ mask_fn = lambda e: e.action_masks()
 # ─────────────────── user-config ──────────────────
 AGENT_NAME = "SB_MaskPPO_SF_AM"
 MODEL_PATH = os.path.join(project_root, "Agents", "saved_models",
-                          AGENT_NAME, f"{AGENT_NAME}_800K.zip")
+                          AGENT_NAME, f"{AGENT_NAME}_final.zip")
 
 EPISODES = 200
 RENDER   = False
