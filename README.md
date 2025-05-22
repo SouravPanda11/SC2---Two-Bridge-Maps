@@ -62,7 +62,12 @@ Performance curves (.png) are in `Agents/Agent Performance Charts/`
 4. Train an agent.
 5. Watch progress in TensorBoard:
 6. Evaluate
+--- 
 
+**Note:**  
+All scripts and environments have been tested on Windows only. Linux support is not guaranteed and has not been tested.
+
+---
 ## Acknowledgements
 
 PySC2 by DeepMind  
