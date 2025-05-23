@@ -37,26 +37,6 @@ SC2-Two-Bridge-Maps/
 | **V1 / V2 / V3** | Unit based map variants |
 | **Base / navigate / combat** | Objective placement based map variants |
 
----
-
-The `.py` environments in **Environments/** wrap these maps as Gymnasium envs, expose a hybrid multi-discrete action space, and (optionally) supply an action-mask to forbid illegal moves.
-
----
-
-## Pre-Trained Agents
-
-| Algorithm | Obs. Space | Action Space | Map Variant | Checkpoints |
-|-----------|------------|-------------|-------------|-------------|
-| **A2C**   | SF / NSF   | 14       | V2-Base | 400 K → 2 M |
-| **PPO**   | SF / NSF   | 14       | V2-Base | 100 K → 1 M(NSF) / 400 k → 2M(SF)|
-| **Mask-PPO** | SF      | AM       | V2-Base, V3-navigate, V3-combat | 400 K → 2 M |
-
-All zipped policies live in `Agents/saved_models/<run-id>/`  
-Performance curves (.png) are in `Agents/Agent Performance Charts/`
-
-We provide the pre-trained agent weights—simply run the supplied eval_* scripts to reproduce the paper’s results and watch the agents’ qualitative behaviour.
----
-
 ## Quick-Start Guide
 
 1. Download and install StarCraft II from Battlenet.
@@ -67,10 +47,24 @@ We provide the pre-trained agent weights—simply run the supplied eval_* script
 6. Evaluate
 --- 
 
+### Repository contents at a glance
+
+- **Environments/** – Each `TB_env<variant>.py` wraps a custom map as a Gymnasium env (hybrid multi-discrete actions, optional action-mask).
+- **Agents/** – `*train.py` scripts that launch Stable-Baselines 3 runs and log to TensorBoard.
+- **Pre-trained policies** – All checkpoints (`final.zip` plus intermediates) live in `Agents/saved_models/<run-id>/`; load them with the supplied `eval_*` scripts to reproduce the paper’s results or watch qualitative behaviour.
+- **Performance curves** – Win-rate PNGs are in `Agents/Agent Performance Charts/`.
+
 **Note:**  
 All scripts and environments have been tested on Windows only. Linux support is not guaranteed and has not been tested.
 
----
+## Pre-Trained Agents
+
+| Algorithm | Obs. Space | Action Space | Map Variant | Checkpoints |
+|-----------|------------|-------------|-------------|-------------|
+| **A2C**   | SF / NSF   | 14       | V2-Base | 400 K → 2 M |
+| **PPO**   | SF / NSF   | 14       | V2-Base | 100 K → 1 M(NSF) / 400 k → 2M(SF)|
+| **Mask-PPO** | SF      | AM       | V2-Base, V3-navigate, V3-combat | 400 K → 2 M |
+
 ## Acknowledgements
 
 PySC2 by DeepMind  
