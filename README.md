@@ -65,7 +65,7 @@ SC2-Two-Bridge-Maps/
 | **2. Copy the maps** | Same as above. |
 | **3. Clone this repo** | `git clone https://github.com/<user>/SC2-Two-Bridge-Maps.git` |
 | **4. Set up Python** |  Create a virtual environment and install dependencies. |
-| **5. Train a baseline** | `python Agents/PPO_SF_train.py`  → logs appear in `tb_logs/` for TensorBoard. |
+| **5. Train an Agent** | `python Agents/SB_PPO_SF_AS14_train.py`  → logs appear in `tb_logs/` for TensorBoard. |
 | **6. Skip training & just watch** | Use one of the evaluation scripts, such as `python Agents/eval_agent.py` (for action space 14), `python Agents/eval_AM_agent.py` (for action masking), or scenario-specific scripts like `eval_AM_combat_agent.py` and `eval_AM_navigate_agent.py`. |
 
 ---
@@ -83,9 +83,9 @@ All scripts and environments have been tested on Windows only. Linux support is 
 
 ## Acknowledgements
 
-PySC2 by DeepMind  
-Stable-Baselines3 contributors  
-Blizzard Entertainment (for SC2)  
-StarCraft community for inspiration
+PySC2 by DeepMind.  
+Stable-Baselines3 contributors.  
+Blizzard Entertainment (for SC2).  
+StarCraft community for inspiration.
 
 This is an open-source educational project. Not affiliated with Blizzard.
