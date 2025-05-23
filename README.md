@@ -24,6 +24,13 @@ SC2-Two-Bridge-Maps/
 └── README.md
 ```
 
+### Repository contents at a glance
+
+- **Environments/** – Each `TB_env<variant>.py` wraps a custom map as a Gymnasium env (hybrid multi-discrete actions, optional action-mask).
+- **Agents/** – `*train.py` scripts that launch Stable-Baselines 3 runs and log to TensorBoard.
+- **Pre-trained policies** – All checkpoints (`final.zip` plus intermediates) live in `Agents/saved_models/<run-id>/`; load them with the supplied `eval_*` scripts to reproduce the paper’s results or watch qualitative behaviour.
+- **Performance curves** – Win-rate PNGs are in `Agents/Agent Performance Charts/`.
+
 ### Naming convention
 
 | Token | Meaning |
@@ -37,22 +44,35 @@ SC2-Two-Bridge-Maps/
 | **V1 / V2 / V3** | Unit based map variants |
 | **Base / navigate / combat** | Objective placement based map variants |
 
-## Quick-Start Guide
+## Quick-Start
 
-1. Download and install StarCraft II from Battlenet.
-2. Create Python env & install dependencies.
-3. Copy the maps into SC2/Maps folder.
-4. Train an agent.
-5. Watch progress in TensorBoard:
-6. Evaluate
---- 
+### 1 · Run Your **Own** Experiments
+| Step | What to do |
+|------|------------|
+| **1. Install StarCraft II** | Download the free client from Battle.net and launch it once. |
+| **2. Copy the maps** | Move all `*.SC2Map` files from `Maps/` into your local `StarCraft II/Maps/` folder. |
+| **3. Register the maps** | `python register_bridge_map.py` &nbsp;*(one-time helper that adds the maps to PySC2)* |
+| **4. Wrap the environment** | Import a template from `Environments/` **or** build your own Gym wrapper on top of PySC2. |
+| **5. Train an agent** | Use any RL library (SB3, RLlib, CleanRL, etc.). |
+| **6. Evaluate & iterate** | Render live games or collect metrics with your preferred tooling. |
 
-### Repository contents at a glance
+---
 
-- **Environments/** – Each `TB_env<variant>.py` wraps a custom map as a Gymnasium env (hybrid multi-discrete actions, optional action-mask).
-- **Agents/** – `*train.py` scripts that launch Stable-Baselines 3 runs and log to TensorBoard.
-- **Pre-trained policies** – All checkpoints (`final.zip` plus intermediates) live in `Agents/saved_models/<run-id>/`; load them with the supplied `eval_*` scripts to reproduce the paper’s results or watch qualitative behaviour.
-- **Performance curves** – Win-rate PNGs are in `Agents/Agent Performance Charts/`.
+### 2 · **Reproduce** Our Baseline Results
+| Step | What to do |
+|------|------------|
+| **1. Install StarCraft II** | Same as above. |
+| **2. Copy the maps** | Same as above. |
+| **3. Clone this repo** | `git clone https://github.com/<user>/SC2-Two-Bridge-Maps.git` |
+| **4. Set up Python** |  
+  ```bash
+  python -m venv venv && source venv/bin/activate   # Windows: venv\Scripts\activate
+  pip install -r requirements.txt
+  ``` |
+| **5. Train a baseline** | `python Agents/PPO_SF_train.py`  → logs appear in `tb_logs/` for TensorBoard. |
+| **6. Skip training & just watch** | `python Agents/eval_agent.py --model_path Agents/saved_models/PPO_SF_V2-Base/final.zip --render` |
+
+---
 
 **Note:**  
 All scripts and environments have been tested on Windows only. Linux support is not guaranteed and has not been tested.
