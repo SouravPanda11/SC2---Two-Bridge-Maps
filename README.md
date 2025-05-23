@@ -64,7 +64,7 @@ SC2-Two-Bridge-Maps/
 | **1. Install StarCraft II** | Same as above. |
 | **2. Copy the maps** | Same as above. |
 | **3. Clone this repo** | `git clone https://github.com/<user>/SC2-Two-Bridge-Maps.git` |
-| **4. Set up Python** |  Create Virtual environment and install dependencies |
+| **4. Set up Python** |  Create a virtual environment and install dependencies. |
 | **5. Train a baseline** | `python Agents/PPO_SF_train.py`  → logs appear in `tb_logs/` for TensorBoard. |
 | **6. Skip training & just watch** | Use one of the evaluation scripts, such as `python Agents/eval_agent.py` (for action space 14), `python Agents/eval_AM_agent.py` (for action masking), or scenario-specific scripts like `eval_AM_combat_agent.py` and `eval_AM_navigate_agent.py`. |
 
