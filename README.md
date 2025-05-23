@@ -1,5 +1,6 @@
 # Two-Bridge Benchmark
-This repository accompanies the paper(will be added after review cycle) by providing the **reinforcement-learning (RL) training code** used to generate the empirical results reported in our study. While the benchmark itself is fully self-contained within the StarCraft II map triggers, the scripts here wrap those custom maps with PySC2-based Gym environments and train agents with Stable-Baselines 3. 
+This repository accompanies the paper(will be added after review cycle) by providing the **reinforcement-learning (RL) training code** used to generate the empirical results reported in our study. While the benchmark itself is fully self-contained within the StarCraft II map triggers, the scripts here wrap those custom maps with PySC2-based Gym environments and train agents with Stable-Baselines 3.
+
 Consequently, these files are **not required for running or evaluating the maps**; they serve purely to document and reproduce the RL experiments showcased in the paper.
 
 ## Repository Overview
@@ -53,6 +54,7 @@ The `.py` environments in **Environments/** wrap these maps as Gymnasium envs, e
 All zipped policies live in `Agents/saved_models/<run-id>/`  
 Performance curves (.png) are in `Agents/Agent Performance Charts/`
 
+We provide the pre-trained agent weights—simply run the supplied eval_* scripts to reproduce the paper’s results and watch the agents’ qualitative behaviour.
 ---
 
 ## Quick-Start Guide
