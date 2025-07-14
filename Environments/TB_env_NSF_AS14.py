@@ -51,7 +51,12 @@ class TwoBridgeEnv(gym.Env):
     metadata = {}
 
     # ───── init ─────────────────────────────────────────────────────────
-    def __init__(self, screen_res: int = 64, visualize: bool = False):
+    def __init__(self,
+                 screen_res: int = 64,
+                 visualize: bool = False,
+                 realtime: bool = False,
+                 replay_dir: str = None,
+                 save_replay_episodes: int = 0):
         super().__init__()
         self.screen = screen_res
 
@@ -66,7 +71,10 @@ class TwoBridgeEnv(gym.Env):
                 feature_dimensions=features.Dimensions(screen=screen_res,
                                                        minimap=screen_res)),
             step_mul  = STEP_MUL,
-            visualize = visualize)
+            visualize = visualize,
+            realtime = realtime,
+            save_replay_episodes=save_replay_episodes,
+            replay_dir=replay_dir)
 
         # 14 choices per marine
         self.action_space      = spaces.MultiDiscrete([14]*5)
@@ -102,6 +110,7 @@ class TwoBridgeEnv(gym.Env):
 
         # built-in SC2 termination (Galaxy triggers / surrender / etc.)
         if ts.last():
+            print("[DEBUG] PySC2 reports episode end (ts.last() == True)")
             obs   = self._build_obs(ts)
             pr    = getattr(ts.observation, "player_result", [])
             lbl   = ("victory" if pr and pr[0].result == 1
