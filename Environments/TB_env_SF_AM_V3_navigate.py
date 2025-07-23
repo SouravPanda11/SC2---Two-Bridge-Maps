@@ -20,14 +20,14 @@ VEC_ECOUNT  = VEC_TIME    + 1                   # 1 × float32
 VEC_SIZE    = VEC_ECOUNT  + 1
 
 # ───────────────────── Map registration ───────────────────────
-class TwoBridgeMap_V3_navigate(lib.Map):
-    name      = "TwoBridgeMap_V3_navigate"
+class TwoBridgeMap_V3_Navigate(lib.Map):
+    name      = "TwoBridgeMap_V3_Navigate"
     directory = r"C:/Program Files (x86)/StarCraft II/Maps/Strategy Maps"
-    filename  = "TwoBridgeMap_V3_navigate.SC2Map"
+    filename  = "TwoBridgeMap_V3_Navigate.SC2Map"
     players   = 2
 
-lib.get_maps().pop("TwoBridgeMap_V3_navigate", None)
-lib.get_maps()["TwoBridgeMap_V3_navigate"] = TwoBridgeMap_V3_navigate()
+lib.get_maps().pop("TwoBridgeMap_V3_Navigate", None)
+lib.get_maps()["TwoBridgeMap_V3_Navigate"] = TwoBridgeMap_V3_Navigate()
 
 # ───────────────────────── constants ───────────────────────────
 FLAGS = flags.FLAGS
@@ -78,10 +78,16 @@ class TwoBridgeEnv(gym.Env):
     })
 
     # -------------- ctor / close -------------------------------
-    def __init__(self, visualize: bool = False):
+    def __init__(self,
+                 screen_res: int = 64,
+                 visualize: bool = False,
+                 realtime: bool = False,
+                 replay_dir: str = None,
+                 save_replay_episodes: int = 0):
         super().__init__()
+        
         self._env = sc2_env.SC2Env(
-            map_name="TwoBridgeMap_V3_navigate",
+            map_name="TwoBridgeMap_V3_Navigate",
             players=[sc2_env.Agent(sc2_env.Race.terran),
                      sc2_env.Bot  (sc2_env.Race.terran,
                                    sc2_env.Difficulty.easy)],
@@ -92,7 +98,10 @@ class TwoBridgeEnv(gym.Env):
                 raw_resolution=SCR_RES,
                 feature_dimensions=features.Dimensions(
                     screen=SCR_RES, minimap=SCR_RES)),
-            visualize=visualize)
+            visualize=visualize,
+            realtime=realtime,
+            replay_dir=replay_dir,
+            save_replay_episodes=save_replay_episodes)
 
         # caches ────────────────────────────────────────────────
         self._my_tags     = np.zeros(N_FRIEND, np.int64)

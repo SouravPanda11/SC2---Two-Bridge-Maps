@@ -1,43 +1,37 @@
 import sys
 import os
+import glob
 
 # Add project root to sys.path
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.insert(0, project_root)
 
 import numpy as np, matplotlib.pyplot as plt, torch
 import stable_baselines3 as sb3
-
-from Environments.TB_env_NSF_AS14_V2_Base import TwoBridgeEnv
-# from Environments.TB_env_SF_AS14 import TwoBridgeEnv
-# from Environments.TB_env_SF_AM import TwoBridgeEnv
-
 import matplotlib
 matplotlib.use('Agg')
 
+# Import environment
+from Environments.TB_env_NSF_AS14_V2_Base import TwoBridgeEnv
 
-AGENT_NAME = "SB_PPO_NSF"
-# AGENT_NAME = "SB_PPO_SF_AS14"
-# AGENT_NAME = "SB_A2C_SF_AS14"
-# AGENT_NAME = "SB_A2C_NSF_AS14"
-# AGENT_NAME = "SB_MaskPPO_SF_AM"
+# Agent name
+AGENT_NAME = "SB_PPO_NSF_AS14"
 
 # Absolute model path
-MODEL_PATH = os.path.join(project_root, "Agents", "saved_models", AGENT_NAME, f"{AGENT_NAME}_final.zip")
-# MODEL_PATH = os.path.join(project_root, "Agents", "saved_models", AGENT_NAME, f"{AGENT_NAME}_400k.zip")
+MODEL_PATH = os.path.join(project_root, "Agents", "PPO", "saved_models", AGENT_NAME, f"{AGENT_NAME}_final.zip")
 EPISODES = 3
 RENDER = False
 
-# replay_output_dir = os.path.join(project_root, "Agents", "Replays", AGENT_NAME)
+# Replay output directory
 replay_output_dir = os.path.abspath(
-    os.path.join(project_root, "Agents", "Replays", AGENT_NAME)
+    os.path.join(project_root, "Replays", "PPO", AGENT_NAME)
 )
-print("Replay directory:", replay_output_dir)
 os.makedirs(replay_output_dir, exist_ok=True)
 
+# Create environment with replay capabilities
 env = TwoBridgeEnv(
     visualize=True,              # Show window
-    realtime=True,               # Play in real time
+    realtime=False,               # Play in real time
     replay_dir=replay_output_dir,
     save_replay_episodes=1       # Save every episode
 )
@@ -61,10 +55,12 @@ counters = {
     "galaxy_3": 0,
 }
 
-performance_folder = os.path.join(project_root, "Agents", "Agent Performance Charts")
+# Create directory for performance charts
+performance_folder = os.path.join(project_root, "Agent Performance Charts", "PPO", AGENT_NAME)
 os.makedirs(performance_folder, exist_ok=True)  # Ensure the folder exists
 
-reward_value_plot_path = os.path.join(performance_folder, AGENT_NAME)
+# Create directory for reward vs value plots
+reward_value_plot_path = os.path.join(performance_folder, "EpRds_vs_Values")
 os.makedirs(reward_value_plot_path, exist_ok=True)  # Ensure the folder exists
 
 # Run episodes
@@ -91,9 +87,23 @@ for ep in range(EPISODES):
         episode_rewards.append(reward)
         value_predictions.append(value)
 
+    # # Save the replay manually
+    # if hasattr(env, "_env") and hasattr(env._env, "save_replay"):
+    #     env._env.save_replay(replay_output_dir, prefix=f"eval_ep_{ep+1}")
+    
     # Save the replay manually
     if hasattr(env, "_env") and hasattr(env._env, "save_replay"):
         env._env.save_replay(replay_output_dir, prefix=f"eval_ep_{ep+1}")
+        
+        # Rename the most recent .SC2Replay file to remove timestamp
+        matching_files = sorted(
+            glob.glob(os.path.join(replay_output_dir, f"eval_ep_{ep+1}_*.SC2Replay")),
+            key=os.path.getmtime,
+            reverse=True
+        )
+        if matching_files:
+            final_path = os.path.join(replay_output_dir, f"eval_ep_{ep+1}.SC2Replay")
+            os.rename(matching_files[0], final_path)
             
     # Handle result safely
     res = info.get("result", "tie")
@@ -116,7 +126,7 @@ for ep in range(EPISODES):
     plt.tight_layout()
 
     # Save the reward-vs-value plot
-    reward_plot_path = os.path.join(reward_value_plot_path, f"{AGENT_NAME}_eval_ep_{ep+1}_rewards_vs_values.png")
+    reward_plot_path = os.path.join(reward_value_plot_path, f"eval_ep_{ep+1}.png")
     plt.savefig(reward_plot_path)
     plt.close()
     
