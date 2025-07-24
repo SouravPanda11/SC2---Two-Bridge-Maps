@@ -1,8 +1,3 @@
-"""
-Evaluate a Maskable-PPO agent trained on the 5 v 3 Two-Bridge map.
-File layout, prints, and plot are identical to your previous script.
-"""
-
 # ─────────────────── path setup ───────────────────
 import sys, os, collections, numpy as np, matplotlib.pyplot as plt, torch
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
