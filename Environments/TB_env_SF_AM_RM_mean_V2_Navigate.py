@@ -20,14 +20,14 @@ VEC_ECOUNT  = VEC_TIME    + 1               # 1 × float32
 VEC_SIZE    = VEC_ECOUNT  + 1
 
 # ───────────────────── Map registration ───────────────────────
-class TwoBridgeMap_V2_Base(lib.Map):
-    name      = "TwoBridgeMap_V2_Base"
+class TwoBridgeMap_V2_Navigate(lib.Map):
+    name      = "TwoBridgeMap_V2_Navigate"
     directory = r"C:/Program Files (x86)/StarCraft II/Maps/Strategy Maps"
-    filename  = "TwoBridgeMap_V2_Base.SC2Map"
+    filename  = "TwoBridgeMap_V2_Navigate.SC2Map"
     players   = 2
 
-lib.get_maps().pop("TwoBridgeMap_V2_Base", None)
-lib.get_maps()["TwoBridgeMap_V2_Base"] = TwoBridgeMap_V2_Base()
+lib.get_maps().pop("TwoBridgeMap_V2_Navigate", None)
+lib.get_maps()["TwoBridgeMap_V2_Navigate"] = TwoBridgeMap_V2_Navigate()
 
 # ───────────────────────── constants ───────────────────────────
 FLAGS = flags.FLAGS
@@ -97,7 +97,7 @@ class TwoBridgeEnv(gym.Env):
         super().__init__()
         
         self._env = sc2_env.SC2Env(
-            map_name="TwoBridgeMap_V2_Base",
+            map_name="TwoBridgeMap_V2_Navigate",
             players=[sc2_env.Agent(sc2_env.Race.terran),
                      sc2_env.Bot  (sc2_env.Race.terran,
                                    sc2_env.Difficulty.easy)],

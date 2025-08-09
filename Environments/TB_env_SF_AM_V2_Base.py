@@ -60,7 +60,7 @@ class TwoBridgeEnv(gym.Env):
         "screen":      spaces.Box(0, 255, (SCR_CH,  SCR_RES, SCR_RES), np.uint8),
         "minimap":     spaces.Box(0, 255, (MINI_CH, SCR_RES, SCR_RES), np.uint8),
         "vector":      spaces.Box(0.0, np.inf, (55,), np.float32),
-        "action_mask": spaces.MultiBinary(28)                     
+        "action_mask": spaces.MultiBinary(3)   # verb-level only                    
     })
 
     # ---------- ctor / close ----------------------------------------------

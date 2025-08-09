@@ -23,12 +23,21 @@ class FlattenActionWrapper(Wrapper):
     def __init__(self, env):
         super().__init__(env)
 
+        # 1) Flat action space
         # MultiDiscrete([3,2,2,2,2,2,9,6])
         self.action_space = spaces.MultiDiscrete([3] + [2]*5 + [9] + [6])
 
         # template of always-legal bits (28-3 = 25)
-        self._mask_template = np.ones(sum(self.action_space.nvec) - 3,
-                                      dtype=np.int8)
+        self._mask_template = np.ones(sum(self.action_space.nvec) - 3, dtype=np.int8)
+
+        # 2) Advertise the FLAT mask in the wrapper's observation_space
+        obs_spaces = dict(env.observation_space.spaces)      # shallow copy
+        flat_len   = 3 + len(self._mask_template)            # 28
+        obs_spaces["action_mask"] = spaces.MultiBinary(flat_len)
+        self.observation_space = spaces.Dict(obs_spaces)
+
+        # 3) Safe default before first reset() (all allowed)
+        self._last_mask = np.ones(flat_len, dtype=np.int8)
 
     # -------------- helper: flatten Dict -> list[ints] -------------
     @staticmethod
