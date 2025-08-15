@@ -116,6 +116,8 @@ class TwoBridgeEnv(gym.Env):
         self._prev_centroid_dists = None          # ‖ 5-vector
         self._prev_enemy_hp       = np.zeros(5, np.float32)
         self._prev_friend_hp      = np.zeros(5, np.float32)
+        
+        self._last_act = {"verb": 0, "who_bits": np.zeros(5, bool), "enemy_idx": -1}
 
     def close(self): self._env.close()
 
@@ -130,6 +132,9 @@ class TwoBridgeEnv(gym.Env):
         self._prev_centroid_dists = None
         self._prev_enemy_hp[:]    = 0.
         self._prev_friend_hp[:]   = 0.
+        
+        self._last_act = {"verb": 0, "who_bits": np.zeros(5, bool), "enemy_idx": -1}
+        
         ts = self._env.reset()[0]
         return self._build_obs(ts), {}
 
@@ -170,6 +175,8 @@ class TwoBridgeEnv(gym.Env):
         enemy_idx  = int(act["enemy_idx"]) - 1     # shift so 0-4
 
         tags = [int(t) for t,bit in zip(self._my_tags, who_bits) if bit]
+        
+        self._last_act = {"verb": verb, "who_bits": who_bits.copy(), "enemy_idx": enemy_idx}
 
         # ───── MOVE ───────────────────────────────────────────────────────
         if verb == 1 and tags and 1 <= dir_id <= 8:
@@ -241,13 +248,13 @@ class TwoBridgeEnv(gym.Env):
             "action_mask": mask
         }
 
-    # ──────────────────── shaped reward (FIXED) ────────────────────
     def _shape_reward(self, vec, done, res):
         """
-        Reward = navigation Δ-distance  +  combat (distance + HP + kill)  +  terminal.
-        The very first call after reset now returns 0 so the agent doesn’t get
-        an arbitrary bonus/penalty for spawning with full HP.
+        Team reward = navigation Δ-distance  +  combat (centroid Δ-distance + HP + kill/loss)
+                    + terminal bonus (episode-level).
+        Also emits per‑unit diagnostics (nav_r Δ, combat_r Δ, friendly HP, enemy HP) keyed by tags.
         """
+
         # ---------- unpack -------------------------------------------------
         fx, fy, fhp = vec[0:25:5], vec[1:25:5], vec[2:25:5]
         ex, ey, ehp = vec[25:50:5], vec[26:50:5], vec[27:50:5]
@@ -256,7 +263,7 @@ class TwoBridgeEnv(gym.Env):
 
         # ---------- FIRST FRAME GUARD -------------------------------------
         if self._prev_enemy_hp.sum() == 0 and self._prev_friend_hp.sum() == 0:
-            # initialise all the “previous-step” caches and give zero reward
+            # initialize “previous-step” caches and return 0 so spawn state has no reward
             self._prev_beacon_dists   = np.hypot(fx - bx, fy - by) if (bx >= 0 and by >= 0) else None
             if e_alive.any():
                 cx, cy = ex[e_alive].mean(), ey[e_alive].mean()
@@ -265,65 +272,116 @@ class TwoBridgeEnv(gym.Env):
                 self._prev_centroid_dists = None
             self._prev_enemy_hp[:]  = ehp
             self._prev_friend_hp[:] = fhp
+            self._last_reward_components = {
+                "nav_r": 0.0, "combat_r": 0.0, "term_r": 0.0,
+                "friend_hp": float(fhp.sum()), "enemy_hp": float(ehp.sum()),
+                "nav_dist": 0.0, "combat_dist": 0.0
+            }
+            self._last_unit_metrics = {"friend": {}, "enemy": {}}
             return 0.0
 
-        # ───────── NAVIGATION SHAPING ─────────────────────
-        nav_r = 0.0
+        # ───────── NAVIGATION SHAPING + per‑unit deltas (compute BEFORE updating cache) ─────────
+        nav_per = np.zeros(5, np.float32)
+        nav_r   = 0.0
         if (bx >= 0) and (by >= 0):
             beacon_dists = np.hypot(fx - bx, fy - by)
-            diff = (self._prev_beacon_dists - beacon_dists)[f_alive]
-            nav_r = diff.mean() if diff.size > 0 else 0.0
+            if self._prev_beacon_dists is not None:
+                nav_per = self._prev_beacon_dists - beacon_dists      # + if moving closer
+                sel = nav_per[f_alive]
+                nav_r = sel.mean() if sel.size > 0 else 0.0
+            # update cache AFTER computing per‑unit deltas
             self._prev_beacon_dists = beacon_dists
+        else:
+            self._prev_beacon_dists = None
 
-        # ───────── COMBAT SHAPING ─────────────────────────
-        combat_r = 0.0
+        # ───────── COMBAT SHAPING + per‑unit deltas (compute BEFORE updating cache) ─────────────
+        combat_per = np.zeros(5, np.float32)
+        combat_r   = 0.0
         if e_alive.any():
             cx, cy = ex[e_alive].mean(), ey[e_alive].mean()
             centroid_dists = np.hypot(fx - cx, fy - cy)
             if self._prev_centroid_dists is not None:
-                diff = (self._prev_centroid_dists - centroid_dists)[f_alive]
-                combat_r += diff.mean() if diff.size > 0 else 0.0
+                combat_per = self._prev_centroid_dists - centroid_dists  # + if moving closer
+                sel = combat_per[f_alive]
+                combat_r += sel.mean() if sel.size > 0 else 0.0
+            # update cache AFTER computing per‑unit deltas
             self._prev_centroid_dists = centroid_dists
         else:
             self._prev_centroid_dists = None
 
-        # HP shaping
+        # HP shaping (team-level)
         combat_r +=  HP_SCALE * (self._prev_enemy_hp.sum()  - ehp.sum())
         combat_r += -HP_SCALE * (self._prev_friend_hp.sum() - fhp.sum())
 
-        # kill / loss bonuses
+        # kill / loss shaped bonuses (team-level)
         kills  = (~e_alive & (self._prev_enemy_hp > 0)).sum()
         losses = (~f_alive & (self._prev_friend_hp > 0)).sum()
         combat_r +=  KILL_BONUS * kills
         combat_r += -KILL_BONUS * losses
 
-        # update HP caches
+        # update HP caches (after using the previous values)
         self._prev_enemy_hp[:]  = ehp
         self._prev_friend_hp[:] = fhp
 
-        # ───────────────────── TERMINAL BONUS ───────────────────────
+        # ───────────────────── TERMINAL BONUS (team-level) ───────────────────────
         if done:
-            if   res == "nav_win":        term_r = NAV_WIN_BONUS
-            elif res == "combat_win":     term_r = COMBAT_WIN_BONUS
-            elif res == "combat_loss":    term_r = COMBAT_LOSS_PENALTY
-            elif res == "timeout_loss":   term_r = NAV_TIMEOUT_PENALTY
-            elif res == "tie":            term_r = TIE_BONUS
-            elif res == "victory":        term_r = COMBAT_WIN_BONUS
-            elif res == "defeat":         term_r = COMBAT_LOSS_PENALTY
+            if   res == "nav_win":      term_r = NAV_WIN_BONUS
+            elif res == "combat_win":   term_r = COMBAT_WIN_BONUS
+            elif res == "combat_loss":  term_r = COMBAT_LOSS_PENALTY
+            elif res == "timeout_loss": term_r = NAV_TIMEOUT_PENALTY
+            elif res == "tie":          term_r = TIE_BONUS
+            elif res == "victory":      term_r = COMBAT_WIN_BONUS
+            elif res == "defeat":       term_r = COMBAT_LOSS_PENALTY
+            else:                       term_r = 0.0
         else:
             term_r = 0.0
 
+        # ---------- log team-level components for CSVs/dashboards ----------
         self._last_reward_components = {
             "nav_r": float(nav_r),
             "combat_r": float(combat_r),
             "term_r": float(term_r),
             "friend_hp": float(fhp.sum()),
             "enemy_hp": float(ehp.sum()),
-            "nav_dist"   : float(np.mean(np.hypot(fx - bx, fy - by))) if f_alive.any() else 0.0,
-            "combat_dist" : float(np.mean(np.hypot(fx - cx, fy - cy))) if (e_alive.any() and f_alive.any()) else 0.0,
+            "nav_dist":    float(np.mean(np.hypot(fx - bx, fy - by))) if f_alive.any() else 0.0,
+            "combat_dist": float(np.mean(np.hypot(fx - cx, fy - cy))) if (e_alive.any() and f_alive.any()) else 0.0,
         }
 
+        # ---------- per‑unit diagnostics keyed by persistent tags ----------
+        friend_dict = {}
+        for i in range(5):
+            tag = int(self._my_tags[i])
+            if tag != 0:
+                friend_dict[tag] = {
+                    "nav_r":    float(nav_per[i]),
+                    "combat_r": float(combat_per[i]),
+                    "hp":       float(fhp[i]),
+                }
+
+        enemy_dict = {}
+        for j in range(5):
+            etag = int(self._enemy_tags[j])
+            if etag != 0:
+                enemy_dict[etag] = {"hp": float(ehp[j])}
+
+        self._last_unit_metrics = {"friend": friend_dict, "enemy": enemy_dict}
+
         return float(nav_r + combat_r + term_r)
+
     
     def get_reward_components(self):
         return getattr(self, "_last_reward_components", {})
+    
+    # In TwoBridgeEnv
+    def get_friendly_tags(self):
+        # returns the 5-slot array of current friendly unit tags (0 means empty slot)
+        return self._my_tags.copy()
+
+    def get_unit_metrics(self):
+        """
+        Returns a dict with per‑unit values for this step:
+        'friend': {tag: {'nav_r': float, 'combat_r': float, 'hp': float}}
+        'enemy':  {etag: {'hp': float}}
+        Missing tags simply won’t appear.
+        """
+        return getattr(self, "_last_unit_metrics", {"friend": {}, "enemy": {}})
