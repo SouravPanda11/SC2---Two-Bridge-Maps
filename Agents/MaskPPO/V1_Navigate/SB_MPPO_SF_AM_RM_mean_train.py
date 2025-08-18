@@ -134,10 +134,10 @@ model = MaskablePPO(
 )
 
 # ───────────────────── training loop ──────────────────────────
-# total_timesteps = 2_000_000   # 2 M
-# save_interval   = 500_000   # every 500 k
-total_timesteps = 3
-save_interval   = 1
+total_timesteps = 5_000_000   # 5 M
+save_interval   = 500_000   # every 500 k
+# total_timesteps = 3
+# save_interval   = 1
 tb_callback = TBRewardLogger()
 
 for i in range(0, total_timesteps, save_interval):
