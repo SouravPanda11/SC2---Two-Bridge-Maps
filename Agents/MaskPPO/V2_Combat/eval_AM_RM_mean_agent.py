@@ -61,7 +61,7 @@ map_name = "V2_Combat"
 MODEL_PATH = os.path.join(project_root, "Agents", "MaskPPO", map_name, "saved_models",
                           AGENT_NAME, f"{AGENT_NAME}_10027K.zip")
 
-EPISODES = 100
+EPISODES = 2
 RENDER   = False
 
 # ---------- directories ---------------------------
