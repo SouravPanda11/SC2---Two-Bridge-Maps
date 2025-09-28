@@ -38,7 +38,7 @@ ACTION_LEGEND = [
     mpatches.Patch(color=ACTION_COLORS[2], label="Attack"),
 ]
 
-def save_episode_dashboard(dest_actions_dir, agent_name, ep_idx, df, ep_r, ep_v,
+def save_episode_dashboard(dest_plots_dir, agent_name, ep_idx, df, ep_r, ep_v,
                            U=None, unit_labels=None):
     """3-row dashboard: actions (stacked), reward/value, per‑unit ribbons (by tag if provided)."""
     T = len(df)
@@ -62,8 +62,8 @@ def save_episode_dashboard(dest_actions_dir, agent_name, ep_idx, df, ep_r, ep_v,
             U = df[["u0","u1","u2","u3","u4"]].to_numpy().T
             unit_labels = [f"Unit {i}" for i in range(5)]
 
-    fig = plt.figure(figsize=(12, 8))
-    gs  = gridspec.GridSpec(3, 1, height_ratios=[1.2, 1.0, 1.1], hspace=0.25)
+    fig = plt.figure(figsize=(12, 8), constrained_layout=True)
+    gs  = gridspec.GridSpec(3, 1, height_ratios=[1.2, 1.0, 1.1], figure=fig)
 
     # Row 1: stacked actions
     ax1 = fig.add_subplot(gs[0])
@@ -103,9 +103,8 @@ def save_episode_dashboard(dest_actions_dir, agent_name, ep_idx, df, ep_r, ep_v,
     for ax in (ax1, ax2):
         plt.setp(ax.get_xticklabels(), visible=False)
 
-    out_path = os.path.join(dest_actions_dir, f"ep_{ep_idx}_dashboard.png")
-    plt.tight_layout()
-    plt.savefig(out_path, dpi=120)
+    out_path = os.path.join(dest_plots_dir, f"ep_{ep_idx}_dashboard.png")
+    fig.savefig(out_path, dpi=120, bbox_inches="tight")
     plt.close(fig)
 
 # ╔════════════════════════════════════════════════════════════════╗
@@ -172,17 +171,21 @@ os.makedirs(performance_root, exist_ok=True)
 os.makedirs(replay_root, exist_ok=True)
 
 RESULT_KINDS = ["nav_win","combat_win","combat_loss","timeout_loss","tie"]
-folders = {}
-for rk in RESULT_KINDS:
-    perf_dir = os.path.join(performance_root, rk)
-    folders[rk] = {
-        "plots"  : os.path.join(perf_dir, "EpRds_vs_Values"),
-        "csv"    : os.path.join(perf_dir, "Decomposed_reward"),
-        "replay" : os.path.join(replay_root, rk),
-        "actions": os.path.join(perf_dir, "Actions")
-    }
-    for p in folders[rk].values():
-        os.makedirs(p, exist_ok=True)
+folders = {}  # lazy cache
+
+def ensure_dest(kind: str) -> dict:
+    """Create dirs for this result kind only when needed; memoize in `folders`."""
+    if kind not in folders:
+        perf_dir = os.path.join(performance_root, kind)
+        d = {
+            "plots" : os.path.join(perf_dir, "plots"),  # <- unified plots dir
+            "csvs"  : os.path.join(perf_dir, "csvs"),   # <- renamed from 'Decomposed_reward'
+            "replay": os.path.join(replay_root, kind),
+        }
+        for p in d.values():
+            os.makedirs(p, exist_ok=True)
+        folders[kind] = d
+    return folders[kind]
 
 # ╔════════════════════════════════════════════════════════════════╗
 # ║                         LOAD MODEL                             ║
@@ -197,6 +200,9 @@ env      = ActionMasker(flat_env, mask_fn)
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model = MaskablePPO.load(MODEL_PATH, env=env, device=device)
+
+# discount for TD reward estimate; pull from the model if available
+GAMMA = float(getattr(model, "gamma", 0.99))
 
 # Helper for per‑tag timeseries plotting
 def plot_from_csv(csv_path, title, ylabel, out_png, legend_shorten=True):
@@ -216,6 +222,257 @@ def plot_from_csv(csv_path, title, ylabel, out_png, legend_shorten=True):
     plt.tight_layout()
     plt.savefig(out_png)
     plt.close()
+
+# plot experiments
+def _read_tag_csv(csv_path: str) -> pd.DataFrame | None:
+    if not os.path.isfile(csv_path):
+        return None
+    df = pd.read_csv(csv_path)
+    if df.empty:
+        return None
+    return df
+
+def _smooth(y: np.ndarray, win: int | None) -> np.ndarray:
+    """Centered NaN-aware moving average; preserves all-NaN runs."""
+    y = np.asarray(y, float)
+    if win is None or win <= 1 or y.size == 0:
+        return y
+
+    k = int(win)
+    if k % 2 == 0:
+        k += 1  # force odd to keep centered window
+
+    # replace NaNs with 0 for the sum, and build a valid-count kernel
+    valid = ~np.isnan(y)
+    y0 = np.where(valid, y, 0.0)
+
+    kernel = np.ones(k, dtype=float)
+    pad = k // 2
+
+    s = np.convolve(np.pad(y0, (pad, pad), mode="edge"),  kernel / k, mode="valid")
+    c = np.convolve(np.pad(valid.astype(float), (pad, pad), mode="edge"), kernel,      mode="valid")
+
+    out = np.divide(s, c, out=np.full_like(s, np.nan), where=c > 0)
+    return out
+
+def _mask_dead(data_df: pd.DataFrame, hp_df: pd.DataFrame | None) -> pd.DataFrame:
+    """Set samples to NaN where HP<=0 (or HP is NaN). Column names must match."""
+    if hp_df is None:
+        return data_df
+    out = data_df.copy()
+    common = [c for c in data_df.columns if c in hp_df.columns]
+    for c in common:
+        hp = hp_df[c].astype(float).to_numpy()
+        dead = np.isnan(hp) | (hp <= 0.0)
+        y = out[c].astype(float).to_numpy()
+        y[dead] = np.nan
+        out[c] = y
+    return out
+
+def _set_symmetric_ylim(ax, ys, pad_ratio: float = 0.05, min_span: float = 1e-3):
+    """Make y-axis symmetric around 0 using the largest |y| across given arrays."""
+    vals = []
+    for y in ys:
+        if y is None:
+            continue
+        y = np.asarray(y, dtype=float)
+        if y.size:
+            vals.append(np.nanmax(np.abs(y)))
+    A = np.nanmax(vals) if vals else 0.0
+    if not np.isfinite(A) or A < min_span:
+        A = min_span
+    A *= (1.0 + pad_ratio)
+    ax.set_ylim(-A, A)
+    
+def _set_symmetric_ylim_clipped(
+    ax,
+    ys,
+    pct: float = 95.0,
+    pad_ratio: float = 0.05,
+    min_span: float = 1e-3,
+):
+    """
+    Symmetric y-limits around 0 using a percentile clip.
+    Avoids a single outlier (e.g., terminal spike) blowing up the scale.
+    """
+    mags = []
+    for y in ys:
+        if y is None:
+            continue
+        a = np.asarray(y, dtype=float)
+        if a.size:
+            mags.append(np.abs(a))
+    if not mags:
+        return
+    z = np.concatenate(mags)
+    z = z[np.isfinite(z)]
+    if z.size == 0:
+        return
+    A = np.nanpercentile(z, pct)
+    A = max(float(A), min_span)
+    A *= (1.0 + pad_ratio)
+    ax.set_ylim(-A, A)
+
+def _plot_units_vs_team(
+    data_df: pd.DataFrame,
+    team_reduce: str = "sum",  
+    title: str = "",
+    ylabel: str = "",
+    out_png: str = "",
+    smooth_win: int | None = 3,
+    unit_alpha: float = 0.55,
+    unit_ls: str = "--",
+    unit_lw: float = 1.1,
+    team_lw: float = 2.2,
+    center_zero: bool = True,
+    hp_gap_mask: np.ndarray | None = None,   # ← NEW
+):
+    cols = [c for c in data_df.columns if data_df[c].notna().any()]
+    if not cols:
+        return                     # nothing to plot after masking
+
+    Y = np.vstack([data_df[c].astype(float).to_numpy() for c in cols])
+
+    # --- gap where nobody is alive ---
+    if hp_gap_mask is not None:
+        T = Y.shape[1]
+        M = hp_gap_mask[:T] if hp_gap_mask.size != T else hp_gap_mask
+        # gap team inputs
+        Y[:, ~M] = np.nan
+        # also gap the dataframe columns so the unit plots skip those spans
+        for c in cols:
+            y = data_df[c].astype(float).to_numpy()
+            y = y[:T]
+            y[~M] = np.nan
+            data_df[c] = y
+    # ----------------------------------
+    
+    if team_reduce == "sum":
+        team = np.nansum(Y, axis=0)
+    elif team_reduce == "mean":
+        team = _timewise_nanmean(Y)       # ← no warnings
+    elif team_reduce == "median":
+        # median can still warn on all-NaN; emulate safely:
+        team = np.full(Y.shape[1], np.nan, dtype=float)
+        for j in range(Y.shape[1]):
+            col = Y[:, j]
+            col = col[~np.isnan(col)]
+            team[j] = np.median(col) if col.size else np.nan
+
+    team_s = _smooth(team, smooth_win)
+
+    plt.figure(figsize=(10, 3.0))
+    ax = plt.gca()
+
+    # per-unit dashed
+    plotted_unit_series = []
+    for c in cols:
+        y = data_df[c].astype(float).to_numpy()
+        y = _smooth(y, smooth_win)
+        if np.isnan(y).all():
+            continue
+        label = c if len(c) <= 12 else f"{c[:4]}…{c[-4:]}"
+        plt.plot(y, ls=unit_ls, lw=unit_lw, alpha=unit_alpha, label=label)
+        plotted_unit_series.append(y)
+
+    # team solid
+    team_line, = plt.plot(team_s, lw=team_lw, label=f"Team ({team_reduce})")
+
+    plt.xlabel("Timestep")
+    plt.ylabel(ylabel)
+    plt.title(title)
+    plt.legend(ncol=5, fontsize="small")
+
+    if center_zero:
+        _set_symmetric_ylim(ax, plotted_unit_series + [team_s])
+
+    plt.tight_layout()
+    plt.savefig(out_png)
+    plt.close()
+
+def _compute_health_loss_signals(friend_hp_df: pd.DataFrame, enemy_hp_df: pd.DataFrame):
+    """
+    Returns dicts of per-unit losses per step (non-negative):
+      - friend_loss_per_unit[tag] : HP decreases (penalty)
+      - enemy_loss_per_unit[tag]  : HP decreases (reward)
+      and team vectors: friend_loss_team (positive), enemy_loss_team (positive),
+      and net_reward = enemy_loss_team - friend_loss_team (signed).
+    """
+    def _per_unit_loss(df: pd.DataFrame) -> dict[str, np.ndarray]:
+        out = {}
+        for c in df.columns:
+            hp = df[c].astype(float).to_numpy()
+            # HP may start as zero or NaN; forward-fill within episode helps
+            hp = pd.Series(hp).ffill().fillna(0.0).to_numpy()
+            d = np.diff(hp, prepend=hp[0])
+            loss = np.maximum(-d, 0.0)   # only decreases
+            # mask periods after death to zero (no “extra” loss once <=0)
+            dead = hp <= 0.0
+            loss[dead] = 0.0
+            out[c] = loss
+        return out
+
+    f_losses = _per_unit_loss(friend_hp_df) if friend_hp_df is not None else {}
+    e_losses = _per_unit_loss(enemy_hp_df)  if enemy_hp_df is not None else {}
+
+    # stack to team
+    def _stack_and_team(d: dict[str, np.ndarray]):
+        if not d:
+            return None, np.zeros(0, dtype=float)
+        M = np.vstack([v for v in d.values()])    # [U, T]
+        return M, np.nansum(M, axis=0)            # sum across units
+
+    fM, f_team = _stack_and_team(f_losses)
+    eM, e_team = _stack_and_team(e_losses)
+
+    # Net “health-based reward”: +enemy loss − friendly loss
+    # (visualization only; your env may scale these differently)
+    T = max((f_team.size if f_team is not None else 0),
+            (e_team.size if e_team is not None else 0))
+    if f_team.size == 0: f_team = np.zeros(T)
+    if e_team.size == 0: e_team = np.zeros(T)
+    net = e_team - f_team
+
+    return f_losses, e_losses, f_team, e_team, net
+
+def _timewise_nanmean(Y: np.ndarray) -> np.ndarray:
+    """Mean across units per time without warnings; returns NaN where no valid samples."""
+    valid = ~np.isnan(Y)
+    count = valid.sum(axis=0)
+    total = np.nansum(np.where(valid, Y, 0.0), axis=0)
+    return np.divide(total, count, out=np.full_like(total, np.nan, dtype=float), where=count > 0)
+
+def _alive_any_per_timestep(hp_df: pd.DataFrame | None) -> np.ndarray | None:
+    """True where at least one friendly is alive at that timestep."""
+    if hp_df is None or hp_df.empty:
+        return None
+    Y = np.vstack([hp_df[c].astype(float).to_numpy() for c in hp_df.columns])  # [U, T]
+    return (Y > 0.0).any(axis=0)  # [T]
+
+# --- terminal markers (render even if outside clipped y-range)
+def _plot_terminal(ax, x, y, color, label):
+    ymin, ymax = ax.get_ylim()
+    rng = (ymax - ymin) if np.isfinite(ymax - ymin) and (ymax > ymin) else 1.0
+    y_in = (ymin <= y <= ymax)
+
+    if y_in:
+        ax.scatter(x, y, s=90, marker="*", color=color, edgecolors="none",
+                   zorder=5, label=label)
+    else:
+        # Pin to the nearest edge and annotate the true value
+        y_edge = ymax if y > ymax else ymin
+        ax.scatter(x, y_edge, s=90, marker="*", color=color, edgecolors="none",
+                   zorder=6, label=label)
+        # small offset for text so it doesn't overlap the star
+        dy = 0.06 * rng * (1 if y > ymax else -1)
+        ax.annotate(f"{y:.1f}",
+                    xy=(x, y_edge),
+                    xytext=(x - 8, y_edge + dy),
+                    textcoords="data",
+                    ha="right",
+                    va="bottom" if y > ymax else "top",
+                    arrowprops=dict(arrowstyle="->", lw=1, color=color),
+                    color=color)
 
 # ---------- evaluation loop -----------------------
 counters = collections.Counter({k:0 for k in RESULT_KINDS})
@@ -341,16 +598,40 @@ for ep in range(EPISODES):
     res = info.get("result", "tie")
     if res not in RESULT_KINDS: res = "tie"
     counters[res] += 1
-    dest = folders[res]
+    dest = ensure_dest(res)
 
+    # --- agent-implied one-step reward from V(s): r_hat[t] = V_t - gamma * V_{t+1}
+    env_r = np.asarray(ep_r, dtype=float)
+    V     = np.asarray(ep_v, dtype=float)
+    if len(V) >= 2:
+        r_hat = V[:-1] - GAMMA * V[1:]
+        r_hat = np.append(r_hat, np.nan)   # no V_{T+1} on the last step
+    else:
+        r_hat = np.full_like(env_r, np.nan)
+    
+    # --- TD error: δ_t = r_t + γ V_{t+1} - V_t
+    if len(V) >= 2:
+        td_error = env_r[:-1] + GAMMA * V[1:] - V[:-1]
+        td_error = np.append(td_error, np.nan)  # no V_{T+1} for last step
+    else:
+        td_error = np.full_like(env_r, np.nan)
+    
     # CSV: decomposed reward components (team level)
     df = pd.DataFrame(logs)
-    df.to_csv(os.path.join(dest["csv"], f"decomposed_ep_{ep+1}.csv"), index=False)
+
+    # also write the three comparison series explicitly for convenience
+    df["env_reward"]     = env_r
+    df["value_estimate"] = V
+    df["agent_r_hat"]    = r_hat
+
+    df["td_error"] = td_error
+    
+    df.to_csv(os.path.join(dest["csvs"], f"decomposed_ep_{ep+1}.csv"), index=False)
 
     # CSV: per‑unit actions by tag
     tag_cols = {f"tag_{tag}": vals for tag, vals in unit_hist.items()}
     df_units_by_tag = pd.DataFrame(tag_cols)
-    df_units_by_tag.to_csv(os.path.join(dest["csv"], f"per_unit_actions_by_tag_ep_{ep+1}.csv"), index=False)
+    df_units_by_tag.to_csv(os.path.join(dest["csvs"], f"per_unit_actions_by_tag_ep_{ep+1}.csv"), index=False)
 
     # PNG: per‑unit actions ribbon (by tag)
     if not df_units_by_tag.empty:
@@ -363,24 +644,46 @@ for ep in range(EPISODES):
         plt.title(f"{AGENT_NAME} – Per‑Unit Actions (by tag) – Episode {ep+1}")
         plt.legend(handles=ACTION_LEGEND, ncol=4, loc="upper right", fontsize=8, frameon=True)
         plt.tight_layout()
-        plt.savefig(os.path.join(dest["actions"], f"ep_{ep+1}_actions_units_by_tag.png"))
+        plt.savefig(os.path.join(dest["plots"], f"ep_{ep+1}_actions_units_by_tag.png"))
         plt.close()
     else:
         U_tag, labels_tag = None, None
 
     # PNG: Episode dashboard (actions + reward/value + tag ribbon)
-    save_episode_dashboard(dest["actions"], AGENT_NAME, ep+1, df, ep_r, ep_v,
-                           U=(U_tag if not df_units_by_tag.empty else None),
-                           unit_labels=(labels_tag if not df_units_by_tag.empty else None))
+    save_episode_dashboard(dest["plots"], AGENT_NAME, ep+1, df, ep_r, ep_v,
+                       U=(U_tag if not df_units_by_tag.empty else None),
+                       unit_labels=(labels_tag if not df_units_by_tag.empty else None))
 
-    # PNG: reward vs value (classic single plot)
+    # --- Plot 1: Env reward vs Agent-estimated reward (from critic)
     plt.figure(figsize=(10,4))
-    plt.plot(ep_r, label="Env Reward", marker='o', ls='--')
-    plt.plot(ep_v, label="Value Estimate", marker='x')
-    plt.xlabel("Timestep"); plt.ylabel("Reward / Value")
-    plt.title(f"{AGENT_NAME} – Episode {ep+1} ({res})")
+    t = np.arange(len(env_r))
+    plt.plot(t, env_r, marker='o', ls='--', label="Env Reward")
+    plt.plot(t, r_hat, marker='x',           label=r"Agent-Estimated Reward ($V_t - \gamma V_{t+1}$)")
+    plt.xlabel("Timestep"); plt.ylabel("Reward")
+    plt.title(f"{AGENT_NAME} – Episode {ep+1} ({res}) – Reward vs Agent Estimate")
     plt.legend(); plt.grid(True); plt.tight_layout()
-    plt.savefig(os.path.join(dest["plots"], f"ep_{ep+1}.png")); plt.close()
+    plt.savefig(os.path.join(dest["plots"], f"ep_{ep+1}_reward_vs_agent_est.png"))
+    plt.close()
+
+    # --- (Optional) Plot 2: Reward vs Value (keep the original for reference)
+    plt.figure(figsize=(10,4))
+    plt.plot(env_r, label="Env Reward", marker='o', ls='--')
+    plt.plot(V,     label="Value Estimate V(s)", marker='x')
+    plt.xlabel("Timestep"); plt.ylabel("Reward / Value")
+    plt.title(f"{AGENT_NAME} – Episode {ep+1} ({res}) – Reward vs Value")
+    plt.legend(); plt.grid(True); plt.tight_layout()
+    plt.savefig(os.path.join(dest["plots"], f"ep_{ep+1}_reward_vs_value.png"))
+    plt.close()
+    
+    # --- Plot 3: Temporal Difference error
+    plt.figure(figsize=(10,4))
+    plt.axhline(0, color="black", lw=1, ls="--")
+    plt.plot(td_error, label="TD Error δ_t", marker='x', color="orange")
+    plt.xlabel("Timestep"); plt.ylabel("TD Error")
+    plt.title(f"{AGENT_NAME} – Episode {ep+1} ({res}) – TD Error")
+    plt.legend(); plt.grid(True); plt.tight_layout()
+    plt.savefig(os.path.join(dest["plots"], f"ep_{ep+1}_td_error.png"))
+    plt.close()
 
     # PNG: stacked action counts (standalone)
     t = np.arange(len(df))
@@ -395,7 +698,7 @@ for ep in range(EPISODES):
     plt.title(f"{AGENT_NAME} – Actions (Episode {ep+1})")
     plt.legend(handles=ACTION_LEGEND, ncol=4, loc="upper right")
     plt.tight_layout()
-    plt.savefig(os.path.join(dest["actions"], f"ep_{ep+1}_actions_stacked.png"))
+    plt.savefig(os.path.join(dest["plots"], f"ep_{ep+1}_actions_stacked.png"))
     plt.close()
 
     # CSVs: per‑unit reward/HP series (by tag)
@@ -405,7 +708,7 @@ for ep in range(EPISODES):
         df_ts = pd.DataFrame({f"tag_{k}": v for k, v in series_dict.items()})
         df_ts.to_csv(path_prefix + ".csv", index=False)
 
-    csv_dir = dest["csv"]
+    csv_dir = dest["csvs"]
     _save_tag_timeseries(friend_nav_by_tag,    os.path.join(csv_dir, f"per_unit_nav_reward_ep_{ep+1}"))
     _save_tag_timeseries(friend_combat_by_tag, os.path.join(csv_dir, f"per_unit_combat_reward_ep_{ep+1}"))
     _save_tag_timeseries(friend_hp_by_tag,     os.path.join(csv_dir, f"per_unit_friend_hp_ep_{ep+1}"))
@@ -468,46 +771,161 @@ for ep in range(EPISODES):
         plt.savefig(out_png)
         plt.close()
 
-    csv_dir = dest["csv"]
+    # ───────── New plots per your spec ─────────
+    csv_dir = dest["csvs"]
+    plots_dir = dest["plots"]
+
     friend_hp_csv = os.path.join(csv_dir, f"per_unit_friend_hp_ep_{ep+1}.csv")
     enemy_hp_csv  = os.path.join(csv_dir, f"per_enemy_hp_ep_{ep+1}.csv")
+    nav_csv       = os.path.join(csv_dir, f"per_unit_nav_reward_ep_{ep+1}.csv")
+    combat_csv    = os.path.join(csv_dir, f"per_unit_combat_reward_ep_{ep+1}.csv")
 
-    # nav_r (friends) → mask with friend HP
-    plot_from_csv_masked(
-        os.path.join(csv_dir, f"per_unit_nav_reward_ep_{ep+1}.csv"),
-        title=f"{AGENT_NAME} – Episode {ep+1} – Per‑Unit Beacon Distance Δ (nav_r)",
-        ylabel="nav_r",
-        out_png=os.path.join(dest["actions"], f"ep_{ep+1}_friend_nav_r_by_tag.png"),
-        hp_mask_csv=friend_hp_csv,
-    )
+    friend_hp_df  = _read_tag_csv(friend_hp_csv)
+    enemy_hp_df   = _read_tag_csv(enemy_hp_csv)
+    nav_df_raw    = _read_tag_csv(nav_csv)
+    combat_df_raw = _read_tag_csv(combat_csv)
+    
+    alive_mask = _alive_any_per_timestep(friend_hp_df)  # True where some friendly is alive
 
-    # combat_r (friends) → mask with friend HP
-    plot_from_csv_masked(
-        os.path.join(csv_dir, f"per_unit_combat_reward_ep_{ep+1}.csv"),
-        title=f"{AGENT_NAME} – Episode {ep+1} – Per‑Unit Enemy Centroid Δ (combat_r)",
-        ylabel="combat_r",
-        out_png=os.path.join(dest["actions"], f"ep_{ep+1}_friend_combat_r_by_tag.png"),
-        hp_mask_csv=friend_hp_csv,
-    )
+    # Mask distance-based rewards where the friendly unit is dead, then plot:
+    if nav_df_raw is not None:
+        nav_df = _mask_dead(nav_df_raw, friend_hp_df)
+        _plot_units_vs_team(
+            nav_df, team_reduce="mean",
+            title=f"{AGENT_NAME} – Episode {ep+1} – Navigation Distance-Δ Reward",
+            ylabel="nav_r",
+            out_png=os.path.join(plots_dir, f"ep_{ep+1}_nav_distance_reward_units_vs_team.png"),
+            smooth_win=11,
+            center_zero=True,
+            hp_gap_mask=alive_mask, 
+        )
 
-    # friendly HP → mask with itself (handled automatically when ylabel="HP")
-    plot_from_csv_masked(
-        friend_hp_csv,
-        title=f"{AGENT_NAME} – Episode {ep+1} – Per‑Unit Friendly HP (by tag)",
-        ylabel="HP",
-        out_png=os.path.join(dest["actions"], f"ep_{ep+1}_friend_hp_by_tag.png"),
-        hp_mask_csv=None,
-    )
+    if combat_df_raw is not None:
+        combat_df = _mask_dead(combat_df_raw, friend_hp_df)
+        _plot_units_vs_team(
+            combat_df, team_reduce="mean",
+            title=f"{AGENT_NAME} – Episode {ep+1} – Combat Distance-Δ Reward",
+            ylabel="combat_r",
+            out_png=os.path.join(plots_dir, f"ep_{ep+1}_combat_distance_reward_units_vs_team.png"),
+            smooth_win=11,
+            center_zero=True,
+            hp_gap_mask=alive_mask, 
+        )
 
-    # enemy HP → mask with itself (handled automatically)
-    plot_from_csv_masked(
-        enemy_hp_csv,
-        title=f"{AGENT_NAME} – Episode {ep+1} – Per‑Unit Enemy HP (by tag)",
-        ylabel="HP",
-        out_png=os.path.join(dest["actions"], f"ep_{ep+1}_enemy_hp_by_tag.png"),
-        hp_mask_csv=None,
-    )
+    # --- Overall navigation vs overall combat (terminal integrated, using env logs) ---
+    T = len(df); t = np.arange(T)
 
+    nav_r    = df["nav_r"].to_numpy()    if "nav_r"    in df.columns else None
+    combat_r = df["combat_r"].to_numpy() if "combat_r" in df.columns else None
+    term_r   = df["term_r"].to_numpy()   if "term_r"   in df.columns else None
+
+    nav_terminal    = np.zeros(T, dtype=float)
+    combat_terminal = np.zeros(T, dtype=float)
+    if term_r is not None:
+        if res == "nav_win":
+            nav_terminal[-1] = term_r[-1]
+        elif res in ("combat_win", "combat_loss", "timeout_loss", "victory", "defeat"):
+            combat_terminal[-1] = term_r[-1]
+
+    overall_nav    = None if nav_r    is None else (nav_r    + nav_terminal)
+    overall_combat = None if combat_r is None else (combat_r + combat_terminal)
+
+    if (overall_nav is not None) or (overall_combat is not None):
+        plt.figure(figsize=(10, 3.4))
+        ax = plt.gca()
+
+        # plot the “regular” parts without the terminal spike (so the line scale is nice)
+        nav_line_for_scale    = None if overall_nav    is None else overall_nav.copy()
+        combat_line_for_scale = None if overall_combat is None else overall_combat.copy()
+        if nav_line_for_scale is not None and nav_terminal[-1] != 0:
+            nav_line_for_scale[-1] = np.nan
+        if combat_line_for_scale is not None and combat_terminal[-1] != 0:
+            combat_line_for_scale[-1] = np.nan
+
+        if nav_line_for_scale is not None:
+            plt.plot(t, _smooth(nav_line_for_scale, 3), lw=2.4,
+                    label="Overall Nav (distance)")
+        if combat_line_for_scale is not None:
+            plt.plot(t, _smooth(combat_line_for_scale, 3), lw=2.4,
+                    label="Overall Combat (distance + HP + kill/loss)")
+
+        if overall_nav is not None and nav_terminal[-1] != 0:
+            _plot_terminal(ax, t[-1], overall_nav[-1], color="C0", label="Nav terminal")
+
+        if overall_combat is not None and combat_terminal[-1] != 0:
+            _plot_terminal(ax, t[-1], overall_combat[-1], color="C1", label="Combat terminal")
+
+        plt.xlabel("Timestep"); plt.ylabel("Reward")
+        plt.title(f"{AGENT_NAME} – Episode {ep+1} – Overall Nav vs Overall Combat")
+        plt.legend()
+
+        # use percentile-clipped symmetric limits so normal dynamics stay readable
+        _set_symmetric_ylim_clipped(ax, [nav_line_for_scale, combat_line_for_scale], pct=95)
+
+        plt.tight_layout()
+        plt.savefig(os.path.join(plots_dir, f"ep_{ep+1}_overall_nav_vs_combat.png"))
+        plt.close()
+    
+    # Friendly HP: dashed per-unit, solid team sum
+    if friend_hp_df is not None:
+        _plot_units_vs_team(
+            friend_hp_df, team_reduce="sum",
+            title=f"{AGENT_NAME} – Episode {ep+1} – Friendly HP (per-unit dashed, team solid)",
+            ylabel="HP",
+            out_png=os.path.join(plots_dir, f"ep_{ep+1}_friendly_hp_units_vs_team.png"),
+            smooth_win=1,   # no smoothing on HP unless you want it
+        )
+
+    # Enemy HP: dashed per-unit, solid team sum
+    if enemy_hp_df is not None:
+        _plot_units_vs_team(
+            enemy_hp_df, team_reduce="sum",
+            title=f"{AGENT_NAME} – Episode {ep+1} – Enemy HP (per-unit dashed, team solid)",
+            ylabel="HP",
+            out_png=os.path.join(plots_dir, f"ep_{ep+1}_enemy_hp_units_vs_team.png"),
+            smooth_win=1,
+        )
+
+    # Health-based reward view:
+    # + enemy HP decreases; − friendly HP decreases; net = enemy_loss − friendly_loss
+    if (friend_hp_df is not None) or (enemy_hp_df is not None):
+        f_losses, e_losses, f_team, e_team, net = _compute_health_loss_signals(friend_hp_df, enemy_hp_df)
+
+        T = max(e_team.size, f_team.size, net.size) if net is not None else 0
+        if T > 0:
+            plt.figure(figsize=(10, 3.2))
+            ax = plt.gca()
+            t = np.arange(T)
+
+            # dashed per-unit (very faint)
+            for d in (e_losses,):
+                for _, y in d.items():
+                    y = _smooth(y, 3)
+                    plt.plot(t, y, ls="--", lw=0.9, alpha=0.25, label=None)  # enemy loss (+)
+
+            for d in (f_losses,):
+                for _, y in d.items():
+                    y = _smooth(y, 3)
+                    plt.plot(t, -y, ls="--", lw=0.9, alpha=0.20, label=None)  # friendly loss (−)
+
+            # dashed team components
+            enemy_line, = plt.plot(t, _smooth(e_team, 3), ls="--", lw=2.0, label="Enemy HP loss (+)")
+            friend_line, = plt.plot(t, -_smooth(f_team, 3), ls="--", lw=2.0, label="Friendly HP loss (−)")
+
+            # solid net
+            net_line, = plt.plot(t, _smooth(net, 3), lw=2.6, label="Net health reward")
+
+            plt.xlabel("Timestep")
+            plt.ylabel("Reward units")
+            plt.title(f"{AGENT_NAME} – Episode {ep+1} – Health-Based Reward (net solid)")
+            plt.legend(ncol=3)
+
+            # symmetric around 0, but clipped (95th percentile) so typical variation is visible
+            _set_symmetric_ylim_clipped(ax, [e_team, -f_team, net], pct=95)
+
+            plt.tight_layout()
+            plt.savefig(os.path.join(plots_dir, f"ep_{ep+1}_health_based_reward.png"))
+            plt.close()
     # Replays (if enabled by your SC2Env)
     base = unwrap_env(env)
     if hasattr(base, "_env") and hasattr(base._env, "save_replay"):
