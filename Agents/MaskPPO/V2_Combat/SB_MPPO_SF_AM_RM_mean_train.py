@@ -9,7 +9,7 @@ from sb3_contrib import MaskablePPO
 from sb3_contrib.common.wrappers import ActionMasker
 from copy import deepcopy
 
-from Environments.TB_env_SF_AM_RM_mean_V2_Combat import TwoBridgeEnv
+from Environments.AM_RM_mean.TB_env_SF_AM_RM_mean_V2_Combat import TwoBridgeEnv
 
 # ──────────────────── FLATTEN-ACTION WRAPPER ────────────────────
 class FlattenActionWrapper(Wrapper):

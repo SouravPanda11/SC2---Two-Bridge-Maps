@@ -11,7 +11,7 @@ from sb3_contrib.common.wrappers import ActionMasker
 import glob
 
 # ─────────────────── env + wrapper ────────────────
-from Environments.TB_env_SF_AM_RM_mean_V2_Combat import TwoBridgeEnv
+from Environments.AM_RM_mean.TB_env_SF_AM_RM_mean_V2_Combat import TwoBridgeEnv
 
 class FlattenActionWrapper(Wrapper):
     """Dict(verb, who, dir, enemy_idx) → flat MultiDiscrete; expands mask."""

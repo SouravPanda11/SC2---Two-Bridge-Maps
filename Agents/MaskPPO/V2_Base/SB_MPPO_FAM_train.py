@@ -10,7 +10,7 @@ from sb3_contrib.common.wrappers import ActionMasker
 from stable_baselines3.common.callbacks import BaseCallback
 
 # Environment imports
-from Environments.TB_env_FAM_V2_Base import TwoBridgeEnv, N_FRIEND, N_ENEMY
+from Environments.full_action_mask.TB_env_FAM_V2_Base import TwoBridgeEnv, N_FRIEND, N_ENEMY
 
 # ──────────────────── FLATTEN-ACTION WRAPPER ───────────────────
 class FlattenActionWrapper(Wrapper):
