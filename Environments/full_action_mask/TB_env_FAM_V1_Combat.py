@@ -8,7 +8,7 @@ from absl       import flags
 
 # ────────────────────── configuration ──────────────────────────
 N_FRIEND = 5
-N_ENEMY  = 5
+N_ENEMY  = 8
 
 # index helpers for the compact vector  ─────────────────────────
 VEC_FRIEND  = 0
@@ -20,14 +20,14 @@ VEC_ECOUNT  = VEC_TIME    + 1               # 1 × float32
 VEC_SIZE    = VEC_ECOUNT  + 1
 
 # ───────────────────── Map registration ───────────────────────
-class TwoBridgeMap_V2_Base(lib.Map):
-    name      = "TwoBridgeMap_V2_Base"
+class TwoBridgeMap_V1_Combat(lib.Map):
+    name      = "TwoBridgeMap_V1_Combat"
     directory = r"C:/Program Files (x86)/StarCraft II/Maps/Strategy Maps"
-    filename  = "TwoBridgeMap_V2_Base.SC2Map"
+    filename  = "TwoBridgeMap_V1_Combat.SC2Map"
     players   = 2
 
-lib.get_maps().pop("TwoBridgeMap_V2_Base", None)
-lib.get_maps()["TwoBridgeMap_V2_Base"] = TwoBridgeMap_V2_Base()
+lib.get_maps().pop("TwoBridgeMap_V1_Combat", None)
+lib.get_maps()["TwoBridgeMap_V1_Combat"] = TwoBridgeMap_V1_Combat()
 
 # ───────────────────────── constants ───────────────────────────
 FLAGS = flags.FLAGS
@@ -67,7 +67,7 @@ TIE_BONUS           = 0.0
 # ─────────────────────── environment ───────────────────────────
 class TwoBridgeEnv(gym.Env):
     """
-    5 v 5 Two-Bridge V2_Base.
+    5 v 8 Two-Bridge V1_Combat.
     Action space = {verb, who-mask, direction, enemy_idx}
     """
     metadata = {}
@@ -75,9 +75,9 @@ class TwoBridgeEnv(gym.Env):
     # -------------- Gym spaces ---------------------------------
     action_space = spaces.Dict({
         "verb":      spaces.Discrete(3),            # 0 noop | 1 move | 2 atk
-        "who":       spaces.MultiBinary(N_FRIEND),  # 5 marines
+        "who":       spaces.MultiBinary(N_FRIEND),  # 5 friendly marines
         "direction": spaces.Discrete(9),            # 0 unused | 1-8 compass
-        "enemy_idx": spaces.Discrete(N_ENEMY + 1)   # 0 none | 1-5 enemy slot
+        "enemy_idx": spaces.Discrete(N_ENEMY + 1)   # 0 none | 1-8 enemy slot
     })
 
     observation_space = spaces.Dict({
@@ -104,7 +104,7 @@ class TwoBridgeEnv(gym.Env):
         super().__init__()
         
         self._env = sc2_env.SC2Env(
-            map_name="TwoBridgeMap_V2_Base",
+            map_name="TwoBridgeMap_V1_Combat",
             players=[sc2_env.Agent(sc2_env.Race.terran),
                      sc2_env.Bot  (sc2_env.Race.terran,
                                    sc2_env.Difficulty.easy)],
