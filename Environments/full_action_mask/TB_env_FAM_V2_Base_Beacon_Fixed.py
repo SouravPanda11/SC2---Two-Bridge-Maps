@@ -35,7 +35,7 @@ if not FLAGS.is_parsed():
 
 RAW            = actions.RAW_FUNCTIONS
 BEACON_TYPE_ID = 317
-BEACON_RADIUS  = 2.0
+BEACON_RADIUS  = 5.0
 
 STEP_MUL       = 8
 FIVE_MIN_LOOPS = 5*60*16
@@ -77,7 +77,7 @@ class TwoBridgeEnv(gym.Env):
     })
 
     observation_space = spaces.Dict({
-        "screen":  spaces.Box(0, 255, (SCR_CH,  SCR_RES, SCR_RES), np.uint8),
+        # "screen":  spaces.Box(0, 255, (SCR_CH,  SCR_RES, SCR_RES), np.uint8),
         "minimap": spaces.Box(0, 255, (MINI_CH, SCR_RES, SCR_RES), np.uint8),
         "vector":  spaces.Box(0.0, np.inf, (VEC_SIZE,), np.float32),
 
@@ -120,7 +120,10 @@ class TwoBridgeEnv(gym.Env):
 
         self._step_ctr          = 0
         self._prev_beacon_dists = None          # shape (N_FRIEND,)
+
+        # logging caches (team + per-unit) ─────────────────────
         self._last_reward_components = {}
+        self._last_unit_metrics      = {"friend": {}}
 
     def close(self):
         self._env.close()
@@ -130,6 +133,8 @@ class TwoBridgeEnv(gym.Env):
         super().reset(seed=seed)
         self._step_ctr = 0
         self._prev_beacon_dists = None
+        self._last_reward_components = {}
+        self._last_unit_metrics      = {"friend": {}}
 
         ts = self._env.reset()[0]
         return self._build_obs(ts), {}
@@ -259,7 +264,7 @@ class TwoBridgeEnv(gym.Env):
 
         self._step_ctr += 1
         return {
-            "screen":      np.asarray(ob.feature_screen,  np.uint8),
+            # "screen":      np.asarray(ob.feature_screen,  np.uint8),
             "minimap":     np.asarray(ob.feature_minimap, np.uint8),
             "vector":      vec,
             "action_mask": action_mask
@@ -271,6 +276,7 @@ class TwoBridgeEnv(gym.Env):
         Navigation-only reward:
           - nav_r: Δ-distance to beacon (per-step shaping)
           - term_r: terminal bonus/penalty for nav_win / timeout_loss
+        Also logs per-unit navigation deltas and HP keyed by tags.
         """
         fx  = vec[0 : N_FRIEND*5 : 5]
         fy  = vec[1 : N_FRIEND*5 : 5]
@@ -279,35 +285,65 @@ class TwoBridgeEnv(gym.Env):
 
         bx, by = vec[VEC_BXY : VEC_BXY+2]
 
-        # FIRST FRAME GUARD
+        # ---------- FIRST FRAME GUARD -------------------------------------
         if self._prev_beacon_dists is None:
             if (bx >= 0) and (by >= 0):
-                self._prev_beacon_dists = np.hypot(fx - bx, fy - by)
+                beacon_dists = np.hypot(fx - bx, fy - by)
+                self._prev_beacon_dists = beacon_dists
+                nav_dist = float(
+                    np.mean(beacon_dists[f_alive])
+                ) if f_alive.any() else 0.0
             else:
                 self._prev_beacon_dists = None
+                nav_dist = 0.0
 
-            nav_dist = float(
-                np.mean(np.hypot(fx - bx, fy - by))
-            ) if f_alive.any() and (bx >= 0) and (by >= 0) else 0.0
-
+            # team-level logs
             self._last_reward_components = {
                 "nav_r":     0.0,
                 "term_r":    0.0,
                 "friend_hp": float(fhp.sum()),
                 "nav_dist":  nav_dist,
             }
+
+            # per-unit logs (all nav_r = 0.0 on first frame)
+            friend_dict = {}
+            if (bx >= 0) and (by >= 0):
+                beacon_dists = np.hypot(fx - bx, fy - by)
+            else:
+                beacon_dists = np.zeros_like(fx)
+
+            for i in range(N_FRIEND):
+                tag = int(self._my_tags[i])
+                if tag != 0:
+                    friend_dict[tag] = {
+                        "nav_r":    0.0,
+                        "hp":       float(fhp[i]),
+                        "nav_dist": float(beacon_dists[i]),
+                    }
+
+            self._last_unit_metrics = {"friend": friend_dict}
             return 0.0
 
-        # NAVIGATION SHAPING
+        # ---------- NAVIGATION SHAPING (per-unit + team) ------------------
         nav_r = 0.0
+        nav_per = np.zeros(N_FRIEND, np.float32)
+
         if (bx >= 0) and (by >= 0):
             beacon_dists = np.hypot(fx - bx, fy - by)
             if self._prev_beacon_dists is not None:
-                diff = (self._prev_beacon_dists - beacon_dists)[f_alive]
+                nav_per = self._prev_beacon_dists - beacon_dists  # + if closer
+                diff = nav_per[f_alive]
                 nav_r = diff.mean() if diff.size > 0 else 0.0
             self._prev_beacon_dists = beacon_dists
+            nav_dist = float(
+                np.mean(beacon_dists[f_alive])
+            ) if f_alive.any() else 0.0
+        else:
+            self._prev_beacon_dists = None
+            nav_dist = 0.0
+            nav_per[:] = 0.0
 
-        # TERMINAL BONUS
+        # ---------- TERMINAL BONUS ----------------------------------------
         if done:
             if   res == "nav_win":
                 term_r = NAV_WIN_BONUS
@@ -318,10 +354,7 @@ class TwoBridgeEnv(gym.Env):
         else:
             term_r = 0.0
 
-        nav_dist = float(
-            np.mean(np.hypot(fx - bx, fy - by))
-        ) if f_alive.any() and (bx >= 0) and (by >= 0) else 0.0
-
+        # ---------- team-level logging ------------------------------------
         self._last_reward_components = {
             "nav_r":     float(nav_r),
             "term_r":    float(term_r),
@@ -329,7 +362,46 @@ class TwoBridgeEnv(gym.Env):
             "nav_dist":  nav_dist,
         }
 
+        # ---------- per-unit diagnostics keyed by tags ---------------------
+        friend_dict = {}
+        if (bx >= 0) and (by >= 0):
+            beacon_dists = np.hypot(fx - bx, fy - by)
+        else:
+            beacon_dists = np.zeros_like(fx)
+
+        for i in range(N_FRIEND):
+            tag = int(self._my_tags[i])
+            if tag != 0:
+                friend_dict[tag] = {
+                    "nav_r":    float(nav_per[i]),
+                    "hp":       float(fhp[i]),
+                    "nav_dist": float(beacon_dists[i]),
+                }
+
+        self._last_unit_metrics = {"friend": friend_dict}
+
         return float(nav_r + term_r)
 
     def get_reward_components(self):
         return getattr(self, "_last_reward_components", {})
+
+    # ───────── extra helpers to mirror combat env ──────────────
+    def get_friendly_tags(self):
+        """Return the current 5-slot array of friendly unit tags."""
+        return self._my_tags.copy()
+
+    def get_unit_metrics(self):
+        """
+        Returns per-unit metrics for this step:
+        {
+            'friend': {
+                tag: {
+                    'nav_r': float,     # per-unit Δ distance to beacon
+                    'hp': float,        # current HP
+                    'nav_dist': float,  # absolute distance to beacon
+                },
+                ...
+            }
+        }
+        """
+        return getattr(self, "_last_unit_metrics", {"friend": {}})

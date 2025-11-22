@@ -114,16 +114,33 @@ class FlattenActionWrapper(Wrapper):
 class TBRewardLogger(BaseCallback):
     """
     Logs env-provided reward components under 'rew/*' in TensorBoard.
-    Requires env to set info['rew'] = env.get_reward_components() each step.
+    Also logs simple summaries of per-unit metrics from get_unit_metrics().
+    Requires:
+      - info['rew'] = env.get_reward_components()
+      - base env implements get_unit_metrics()
     """
     def __init__(self, verbose=0):
         super().__init__(verbose)
+
+    def _unwrap_base_env(self):
+        """
+        Get the underlying TwoBridgeEnv from SB3's VecEnv + our wrappers.
+        """
+        env = self.training_env
+        # SB3: training_env is usually a VecEnv; grab first sub-env
+        if hasattr(env, "envs"):
+            env = env.envs[0]
+        # unwrap through ActionMasker / FlattenActionWrapper, etc.
+        while hasattr(env, "env"):
+            env = env.env
+        return env
 
     def _on_step(self) -> bool:
         infos = self.locals.get("infos", None)
         if infos is None:
             return True
 
+        # ----- log team-level reward components from info['rew'] -----
         if isinstance(infos, (list, tuple)):
             for info in infos:
                 if isinstance(info, dict) and "rew" in info and self.logger is not None:
@@ -138,6 +155,28 @@ class TBRewardLogger(BaseCallback):
                     self.logger.record(f"rew/{k}", float(v))
                 except Exception:
                     pass
+
+        # ----- log per-unit summaries from get_unit_metrics() --------
+        try:
+            base = self._unwrap_base_env()
+            if hasattr(base, "get_unit_metrics"):
+                um = base.get_unit_metrics()  # {'friend': {tag: {...}}}
+                f_dict = um.get("friend", {})
+
+                if f_dict and self.logger is not None:
+                    nav_rs    = [m.get("nav_r", 0.0) for m in f_dict.values()]
+                    nav_dists = [m.get("nav_dist", 0.0) for m in f_dict.values()]
+                    hps       = [m.get("hp", 0.0) for m in f_dict.values()]
+
+                    # simple aggregate stats; avoids spamming TB with per-tag series
+                    self.logger.record("units/nav_r_mean",    float(np.mean(nav_rs)))
+                    self.logger.record("units/nav_r_max",     float(np.max(nav_rs)))
+                    self.logger.record("units/nav_dist_mean", float(np.mean(nav_dists)))
+                    self.logger.record("units/hp_mean",       float(np.mean(hps)))
+        except Exception:
+            # never break training because of logging
+            pass
+
         return True
 
 
