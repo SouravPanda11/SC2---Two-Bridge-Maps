@@ -37,7 +37,7 @@ if not FLAGS.is_parsed():
 RAW              = actions.RAW_FUNCTIONS
 MARINE_HP        = 45
 BEACON_TYPE_ID   = 317
-BEACON_RADIUS    = 2.0
+BEACON_RADIUS    = 5.0
 
 STEP_MUL         = 8
 FIVE_MIN_LOOPS   = 5*60*16
@@ -81,7 +81,7 @@ class TwoBridgeEnv(gym.Env):
     })
 
     observation_space = spaces.Dict({
-        "screen":  spaces.Box(0, 255, (SCR_CH,  SCR_RES, SCR_RES), np.uint8),
+        # "screen":  spaces.Box(0, 255, (SCR_CH,  SCR_RES, SCR_RES), np.uint8),
         "minimap": spaces.Box(0, 255, (MINI_CH, SCR_RES, SCR_RES), np.uint8),
         "vector":  spaces.Box(0.0, np.inf, (VEC_SIZE,), np.float32),
 
@@ -114,7 +114,8 @@ class TwoBridgeEnv(gym.Env):
                 use_raw_units=True,
                 raw_resolution=SCR_RES,
                 feature_dimensions=features.Dimensions(
-                    screen=SCR_RES, minimap=SCR_RES)),
+                    # screen=SCR_RES, 
+                    minimap=SCR_RES)),
             visualize=visualize,
             realtime=realtime,
             replay_dir=replay_dir,
@@ -294,7 +295,7 @@ class TwoBridgeEnv(gym.Env):
 
         self._step_ctr += 1
         return {
-            "screen":      np.asarray(ob.feature_screen,  np.uint8),
+            # "screen":      np.asarray(ob.feature_screen,  np.uint8),
             "minimap":     np.asarray(ob.feature_minimap, np.uint8),
             "vector":      vec,
             "action_mask": action_mask

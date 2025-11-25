@@ -10,7 +10,7 @@ from sb3_contrib.common.wrappers import ActionMasker
 from stable_baselines3.common.callbacks import BaseCallback
 
 # Environment imports
-from Environments.full_action_mask.TB_env_FAM_V2_Base import TwoBridgeEnv, N_FRIEND, N_ENEMY
+from Environments.full_action_mask.TB_env_FAM_V2_Navigate import TwoBridgeEnv, N_FRIEND, N_ENEMY
 
 # ──────────────────── FLATTEN-ACTION WRAPPER ───────────────────
 class FlattenActionWrapper(Wrapper):
@@ -146,7 +146,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {device}")
 
 agent_name = "SB_MaskPPO_FAM"
-map_name = "V2_Base"   # tag it as reward-modeling
+map_name = "V2_Navigate"
 save_dir = f"./Agents/MaskPPO/{map_name}/saved_models/{agent_name}/"
 os.makedirs(save_dir, exist_ok=True)
 
