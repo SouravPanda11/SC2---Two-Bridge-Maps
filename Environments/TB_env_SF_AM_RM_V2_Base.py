@@ -23,7 +23,7 @@ if not FLAGS.is_parsed():  FLAGS([''])
 RAW              = actions.RAW_FUNCTIONS
 # MARINE_HP        = 45
 BEACON_TYPE_ID   = 317
-BEACON_RADIUS    = 2.0
+BEACON_RADIUS    = 5.0
 
 STEP_MUL         = 8
 FIVE_MIN_LOOPS   = 5*60*16

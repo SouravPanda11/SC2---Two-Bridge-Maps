@@ -28,7 +28,7 @@ if not FLAGS.is_parsed():
 RAW             = actions.RAW_FUNCTIONS
 MARINE_HP       = 45
 BEACON_TYPE_ID  = 317
-BEACON_RADIUS = 2.0           # ←  match the trigger radius
+BEACON_RADIUS   = 5.0           # ←  match the trigger radius
 MAP_NAME        = "TwoBridgeMap_V2_Base"
 
 FIVE_MIN_LOOPS  = 5 * 60 * 16         # 300 s × 16 loops/s = 4800

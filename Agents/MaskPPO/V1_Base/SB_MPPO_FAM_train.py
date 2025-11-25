@@ -1,4 +1,4 @@
-import sys, os, torch, numpy as np
+import sys, os, torch, numpy as np, random
 
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
 if project_root not in sys.path:
@@ -161,13 +161,18 @@ base_env = TwoBridgeEnv(visualize=False)
 flat_env = FlattenActionWrapper(base_env)
 env      = ActionMasker(flat_env, mask_fn)
 
+# ───────────────────── reproducibility ────────────────────────
+SEED = 12345
+env.reset(seed=SEED)
+
 # ───────────────────── model (Maskable) ───────────────────────
 model = MaskablePPO(
     "MultiInputPolicy",
     env,
     device=device,
     verbose=1,
-    tensorboard_log=tb_log_dir
+    tensorboard_log=tb_log_dir,
+    seed=SEED
 )
 
 # ───────────────────── training loop ──────────────────────────
