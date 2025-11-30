@@ -176,7 +176,7 @@ model = MaskablePPO(
 )
 
 # ───────────────────── training loop ──────────────────────────
-total_timesteps = 5_000_000   # 5 M
+total_timesteps = 3_000_000   # 3 M
 save_interval   = 500_000     # every 500 k
 # total_timesteps = 10
 # save_interval   = 3     
