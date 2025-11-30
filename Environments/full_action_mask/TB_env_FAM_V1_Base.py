@@ -114,7 +114,7 @@ class TwoBridgeEnv(gym.Env):
                 use_raw_units=True,
                 raw_resolution=SCR_RES,
                 feature_dimensions=features.Dimensions(
-                    # screen=SCR_RES, 
+                    screen=SCR_RES, 
                     minimap=SCR_RES)),
             visualize=visualize,
             realtime=realtime,

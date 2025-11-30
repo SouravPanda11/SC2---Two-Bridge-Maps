@@ -1,4 +1,4 @@
-import sys, os, torch, numpy as np, random
+import sys, os, torch, numpy as np
 
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
 if project_root not in sys.path:
@@ -10,7 +10,7 @@ from sb3_contrib.common.wrappers import ActionMasker
 from stable_baselines3.common.callbacks import BaseCallback
 
 # Environment imports
-from Environments.full_action_mask.TB_env_FAM_V1_Base import TwoBridgeEnv, N_FRIEND, N_ENEMY
+from Environments.full_action_mask.TB_env_FAM_V1_Base_Cam import TwoBridgeEnv, N_FRIEND, N_ENEMY
 
 # ──────────────────── FLATTEN-ACTION WRAPPER ───────────────────
 class FlattenActionWrapper(Wrapper):
@@ -145,8 +145,8 @@ class TBRewardLogger(BaseCallback):
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {device}")
 
-agent_name = "SB_MaskPPO_FAM"
-map_name = "V1_Base" 
+agent_name = "SB_MaskPPO_FAM_Cam"
+map_name = "V1_Base"
 save_dir = f"./Agents/MaskPPO/{map_name}/saved_models/{agent_name}/"
 os.makedirs(save_dir, exist_ok=True)
 
