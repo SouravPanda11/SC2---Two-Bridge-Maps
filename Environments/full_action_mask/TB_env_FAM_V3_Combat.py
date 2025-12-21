@@ -8,7 +8,7 @@ from absl       import flags
 
 # ────────────────────── configuration ──────────────────────────
 N_FRIEND = 5
-N_ENEMY  = 3
+N_ENEMY  = 8
 
 # index helpers for the compact vector  ─────────────────────────
 VEC_FRIEND  = 0

@@ -20,14 +20,14 @@ VEC_ECOUNT  = VEC_TIME    + 1               # 1 × float32
 VEC_SIZE    = VEC_ECOUNT  + 1
 
 # ───────────────────── Map registration ───────────────────────
-class TwoBridgeMap_V1_Base_Cam(lib.Map):
-    name      = "TwoBridgeMap_V1_Base_Cam"
+class TwoBridgeMap_V3_Base_Cam(lib.Map):
+    name      = "TwoBridgeMap_V3_Base_Cam"
     directory = r"C:/Program Files (x86)/StarCraft II/Maps/Strategy Maps"
-    filename  = "TwoBridgeMap_V1_Base_Cam.SC2Map"
+    filename  = "TwoBridgeMap_V3_Base_Cam.SC2Map"
     players   = 2
 
-lib.get_maps().pop("TwoBridgeMap_V1_Base_Cam", None)
-lib.get_maps()["TwoBridgeMap_V1_Base_Cam"] = TwoBridgeMap_V1_Base_Cam()
+lib.get_maps().pop("TwoBridgeMap_V3_Base_Cam", None)
+lib.get_maps()["TwoBridgeMap_V3_Base_Cam"] = TwoBridgeMap_V3_Base_Cam()
 
 # ───────────────────────── constants ───────────────────────────
 FLAGS = flags.FLAGS
@@ -67,7 +67,7 @@ TIE_BONUS           = 0.0
 # ─────────────────────── environment ───────────────────────────
 class TwoBridgeEnv(gym.Env):
     """
-    5 v 8 Two-Bridge V1_Base_Cam.
+    5 v 8 Two-Bridge V3_Base_Cam.
     Action space = {verb, who-mask, direction, enemy_idx}
     """
     metadata = {}
@@ -104,7 +104,7 @@ class TwoBridgeEnv(gym.Env):
         super().__init__()
         
         self._env = sc2_env.SC2Env(
-            map_name="TwoBridgeMap_V1_Base_Cam",
+            map_name="TwoBridgeMap_V3_Base_Cam",
             players=[sc2_env.Agent(sc2_env.Race.terran),
                      sc2_env.Bot  (sc2_env.Race.terran,
                                    sc2_env.Difficulty.easy)],
