@@ -1,4 +1,5 @@
 import sys, os, torch, numpy as np
+import random
 
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
 if project_root not in sys.path:
@@ -9,8 +10,17 @@ from sb3_contrib import MaskablePPO
 from sb3_contrib.common.wrappers import ActionMasker
 from stable_baselines3.common.callbacks import BaseCallback
 
-# ✅ Import N_FRIEND / N_ENEMY from the env (like V3_Navigate)
+# Environment imports
 from Environments.AM_RM_mean.TB_env_SF_AM_RM_mean_V2_Combat import TwoBridgeEnv, N_FRIEND, N_ENEMY
+
+
+# ───────────────────── Reproducibility (single seed) ─────────────────────
+SEED = 0
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed_all(SEED)
 
 
 # ──────────────────── FLATTEN-ACTION WRAPPER ───────────────────
@@ -18,33 +28,21 @@ class FlattenActionWrapper(Wrapper):
     """
     Dict(verb, who, direction, enemy_idx) →
     MultiDiscrete([3, 2×N_FRIEND, 9, N_ENEMY+1])
-
-    Also expands env's verb-level action_mask (len=3) into a flat mask that SB3 expects.
     """
 
     def __init__(self, env):
         super().__init__(env)
 
-        # MultiDiscrete layout (modular)
         self.action_space = spaces.MultiDiscrete([3] + [2]*N_FRIEND + [9] + [N_ENEMY + 1])
 
         # bits beyond the verb-level mask that are always legal
         self._mask_template = np.ones(sum(self.action_space.nvec) - 3, dtype=np.int8)
 
-        # Advertise the flattened mask shape to SB3
+        # Advertise flattened mask to SB3
         flat_len = 3 + len(self._mask_template)
         obs_spaces = dict(env.observation_space.spaces)
         obs_spaces["action_mask"] = spaces.MultiBinary(flat_len)
         self.observation_space = spaces.Dict(obs_spaces)
-
-    @staticmethod
-    def _flatten(a_dict):
-        return np.array([
-            a_dict["verb"],
-            *a_dict["who"],
-            a_dict["direction"],
-            a_dict["enemy_idx"]
-        ], dtype=np.int64)
 
     @staticmethod
     def _unflatten(a_vec):
@@ -79,7 +77,6 @@ class FlattenActionWrapper(Wrapper):
 class TBRewardLogger(BaseCallback):
     """
     Logs env-provided reward components under 'rew/*' in TensorBoard.
-    Requires env to set info['rew'] = env.get_reward_components() each step.
     """
     def __init__(self, verbose=0):
         super().__init__(verbose)
@@ -108,7 +105,7 @@ class TBRewardLogger(BaseCallback):
 
 # ───────────────────── hardware / logging ─────────────────────
 device = "cuda" if torch.cuda.is_available() else "cpu"
-print(f"Using device: {device}")
+print(f"Using device: {device} | SEED={SEED}")
 
 agent_name = "SB_MaskPPO_SF_AM_RM_mean"
 map_name   = "V2_Combat"
@@ -121,40 +118,45 @@ os.makedirs(tb_log_dir, exist_ok=True)
 
 
 # ───────────────── env + wrappers ─────────────────────────────
-def mask_fn(env):  # env is the FlattenActionWrapper
+def mask_fn(env):
     return env.action_masks()
 
 base_env = TwoBridgeEnv(visualize=False)
 flat_env = FlattenActionWrapper(base_env)
 env      = ActionMasker(flat_env, mask_fn)
 
+# Seed the environment RNG (Gymnasium style)
+env.reset(seed=SEED)
 
-# ───────────────────── model (Maskable) ───────────────────────
+
+# ───────────────────── model (Maskable PPO) ─────────────────────
 model = MaskablePPO(
     "MultiInputPolicy",
     env,
     device=device,
     verbose=1,
-    tensorboard_log=tb_log_dir
+    tensorboard_log=tb_log_dir,
+    seed=SEED
 )
 
 
 # ───────────────────── training loop ──────────────────────────
-total_timesteps = 2_000_000   # 2 M
-save_interval   = 400_000   # every 400 k
-# total_timesteps = 3
-# save_interval   = 1
-tb_callback     = TBRewardLogger()
+TOTAL_TIMESTEPS = 5_000_000
+SAVE_INTERVAL   = 500_000
+# TOTAL_TIMESTEPS = 10
+# SAVE_INTERVAL   = 3
 
-for i in range(0, total_timesteps, save_interval):
+tb_callback = TBRewardLogger()
+
+for i in range(0, TOTAL_TIMESTEPS, SAVE_INTERVAL):
     model.learn(
-        total_timesteps=save_interval,
+        total_timesteps=SAVE_INTERVAL,
         reset_num_timesteps=False,
         callback=tb_callback,
         progress_bar=True
     )
-    model.save(f"{save_dir}{agent_name}_{(i + save_interval) // 1000}K")
-    # model.save(f"{save_dir}{agent_name}_{(i + save_interval)}")
+    model.save(f"{save_dir}{agent_name}_{(i + SAVE_INTERVAL) // 1000}K")
+    # model.save(f"{save_dir}{agent_name}_{(i + SAVE_INTERVAL)}")
 
 model.save(f"{save_dir}{agent_name}_final")
 env.close()
