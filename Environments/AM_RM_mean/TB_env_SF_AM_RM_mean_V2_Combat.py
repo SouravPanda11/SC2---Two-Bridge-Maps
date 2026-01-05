@@ -23,7 +23,7 @@ VEC_SIZE    = VEC_ECOUNT + 1
 # ───────────────────── Map registration ───────────────────────
 class TwoBridgeMap_V2_Combat(lib.Map):
     name      = "TwoBridgeMap_V2_Combat"
-    directory = r"C:/Program Files (x86)/StarCraft II/Maps/Strategy Maps"
+    directory = r"C:/Program Files (x86)/StarCraft II/Maps/Strategy Maps/Camera Free"
     filename  = "TwoBridgeMap_V2_Combat.SC2Map"
     players   = 2
 
