@@ -8,7 +8,7 @@ from absl       import flags
 
 # ────────────────────── configuration ──────────────────────────
 N_FRIEND = 5
-N_ENEMY  = 3
+N_ENEMY  = 5
 
 # index helpers for the compact vector  ─────────────────────────
 VEC_FRIEND  = 0
@@ -20,14 +20,14 @@ VEC_ECOUNT  = VEC_TIME    + 1               # 1 × float32
 VEC_SIZE    = VEC_ECOUNT  + 1
 
 # ───────────────────── Map registration ───────────────────────
-class TwoBridgeMap_V1_Combat(lib.Map):
-    name      = "TwoBridgeMap_V1_Combat"
-    directory = r"C:/Program Files (x86)/StarCraft II/Maps/Strategy Maps"
-    filename  = "TwoBridgeMap_V1_Combat.SC2Map"
+class TwoBridgeMap_V2_Base_Cam(lib.Map):
+    name      = "TwoBridgeMap_V2_Base_Cam"
+    directory = r"C:/Program Files (x86)/StarCraft II/Maps/Strategy Maps/Camera Lock"
+    filename  = "TwoBridgeMap_V2_Base_Cam.SC2Map"
     players   = 2
 
-lib.get_maps().pop("TwoBridgeMap_V1_Combat", None)
-lib.get_maps()["TwoBridgeMap_V1_Combat"] = TwoBridgeMap_V1_Combat()
+lib.get_maps().pop("TwoBridgeMap_V2_Base_Cam", None)
+lib.get_maps()["TwoBridgeMap_V2_Base_Cam"] = TwoBridgeMap_V2_Base_Cam()
 
 # ───────────────────────── constants ───────────────────────────
 FLAGS = flags.FLAGS
@@ -67,7 +67,7 @@ TIE_BONUS           = 0.0
 # ─────────────────────── environment ───────────────────────────
 class TwoBridgeEnv(gym.Env):
     """
-    5 v 8 Two-Bridge V1_Combat.
+    5 v 8 Two-Bridge V2_Base_Cam.
     Action space = {verb, who-mask, direction, enemy_idx}
     """
     metadata = {}
@@ -81,7 +81,7 @@ class TwoBridgeEnv(gym.Env):
     })
 
     observation_space = spaces.Dict({
-        # "screen":  spaces.Box(0, 255, (SCR_CH,  SCR_RES, SCR_RES), np.uint8),
+        "screen":  spaces.Box(0, 255, (SCR_CH,  SCR_RES, SCR_RES), np.uint8),
         "minimap": spaces.Box(0, 255, (MINI_CH, SCR_RES, SCR_RES), np.uint8),
         "vector":  spaces.Box(0.0, np.inf, (VEC_SIZE,), np.float32),
 
@@ -104,7 +104,7 @@ class TwoBridgeEnv(gym.Env):
         super().__init__()
         
         self._env = sc2_env.SC2Env(
-            map_name="TwoBridgeMap_V1_Combat",
+            map_name="TwoBridgeMap_V2_Base_Cam",
             players=[sc2_env.Agent(sc2_env.Race.terran),
                      sc2_env.Bot  (sc2_env.Race.terran,
                                    sc2_env.Difficulty.easy)],
@@ -114,7 +114,7 @@ class TwoBridgeEnv(gym.Env):
                 use_raw_units=True,
                 raw_resolution=SCR_RES,
                 feature_dimensions=features.Dimensions(
-                    # screen=SCR_RES, 
+                    screen=SCR_RES, 
                     minimap=SCR_RES)),
             visualize=visualize,
             realtime=realtime,
@@ -295,7 +295,7 @@ class TwoBridgeEnv(gym.Env):
 
         self._step_ctr += 1
         return {
-            # "screen":      np.asarray(ob.feature_screen,  np.uint8),
+            "screen":      np.asarray(ob.feature_screen,  np.uint8),
             "minimap":     np.asarray(ob.feature_minimap, np.uint8),
             "vector":      vec,
             "action_mask": action_mask

@@ -1,4 +1,5 @@
-import sys, os, torch, numpy as np
+import sys, os, torch, numpy as np 
+import random
 
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
 if project_root not in sys.path:
@@ -10,7 +11,15 @@ from sb3_contrib.common.wrappers import ActionMasker
 from stable_baselines3.common.callbacks import BaseCallback
 
 # Environment imports
-from Environments.FAM.TB_env_FAM_V3_Navigate import TwoBridgeEnv, N_FRIEND, N_ENEMY
+from Environments.FAM_CAM.TB_env_FAM_V1_Base_Cam import TwoBridgeEnv, N_FRIEND, N_ENEMY
+
+# ───────────────────── Reproducibility (single seed) ─────────────────────
+SEED = 12345
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed_all(SEED)
 
 # ──────────────────── FLATTEN-ACTION WRAPPER ───────────────────
 class FlattenActionWrapper(Wrapper):
@@ -143,10 +152,11 @@ class TBRewardLogger(BaseCallback):
 
 # ───────────────────── hardware / logging ─────────────────────
 device = "cuda" if torch.cuda.is_available() else "cpu"
-print(f"Using device: {device}")
+print(f"Using device: {device} | SEED={SEED}")
 
-agent_name = "SB_MaskPPO_FAM"
-map_name = "V3_Navigate"
+agent_name = "SB_MaskPPO_FAM_CAM"
+map_name = "V1_Base_Cam" 
+
 save_dir = f"./Agents/MaskPPO/{map_name}/saved_models/{agent_name}/"
 os.makedirs(save_dir, exist_ok=True)
 
@@ -154,18 +164,18 @@ tb_log_dir = f"./tb_logs/MaskPPO/{map_name}/{agent_name}/"
 os.makedirs(tb_log_dir, exist_ok=True)
 
 # ───────────────── env + wrappers ─────────────────────────────
-def mask_fn(env):  # env is the FlattenActionWrapper
+def mask_fn(env):
     return env.action_masks()
 
 base_env = TwoBridgeEnv(visualize=False)
 flat_env = FlattenActionWrapper(base_env)
 env      = ActionMasker(flat_env, mask_fn)
 
-# ───────────────────── reproducibility ────────────────────────
-SEED = 12345
+# Seed the environment RNG (Gymnasium style)
 env.reset(seed=SEED)
 
-# ───────────────────── model (Maskable) ───────────────────────
+
+# ───────────────────── model (Maskable PPO) ─────────────────────
 model = MaskablePPO(
     "MultiInputPolicy",
     env,
@@ -175,21 +185,24 @@ model = MaskablePPO(
     seed=SEED
 )
 
+
 # ───────────────────── training loop ──────────────────────────
-total_timesteps = 5_000_000   # 5 M
-save_interval   = 500_000     # every 500 k
-# total_timesteps = 10
-# save_interval   = 3     
+TOTAL_TIMESTEPS = 5_000_000
+SAVE_INTERVAL   = 500_000
+# TOTAL_TIMESTEPS = 10
+# SAVE_INTERVAL   = 3
 
 tb_callback = TBRewardLogger()
 
-for i in range(0, total_timesteps, save_interval):
-    model.learn(total_timesteps=save_interval,
-                reset_num_timesteps=False,
-                callback=tb_callback,
-                progress_bar=True)
-    model.save(f"{save_dir}{agent_name}_{(i + save_interval) // 1000}K")
-    # model.save(f"{save_dir}{agent_name}_{(i + save_interval)}")
+for i in range(0, TOTAL_TIMESTEPS, SAVE_INTERVAL):
+    model.learn(
+        total_timesteps=SAVE_INTERVAL,
+        reset_num_timesteps=False,
+        callback=tb_callback,
+        progress_bar=True
+    )
+    model.save(f"{save_dir}{agent_name}_{(i + SAVE_INTERVAL) // 1000}K")
+    # model.save(f"{save_dir}{agent_name}_{(i + SAVE_INTERVAL)}")
 
 model.save(f"{save_dir}{agent_name}_final")
 env.close()

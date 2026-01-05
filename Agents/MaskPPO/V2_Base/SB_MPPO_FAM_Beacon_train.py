@@ -10,7 +10,7 @@ from sb3_contrib.common.wrappers import ActionMasker
 from stable_baselines3.common.callbacks import BaseCallback
 
 # ───────────────── Env import (BEACON-ONLY VERSION) ───────────────
-from Environments.full_action_mask.TB_env_FAM_V2_Base_Beacon import (
+from Environments.FAM.TB_env_FAM_V2_Base_Beacon import (
     TwoBridgeEnv, N_FRIEND
 )
 # NOTE: no N_ENEMY here – your beacon env doesn’t define it.

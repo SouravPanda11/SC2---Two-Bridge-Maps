@@ -9,7 +9,7 @@ from absl       import flags
 # ───────────────────── Map registration ──────────────────────────────
 class TwoBridgeMap_V2_Base(lib.Map):
     name      = "TwoBridgeMap_V2_Base"
-    directory = r"C:/Program Files (x86)/StarCraft II/Maps/Strategy Maps"
+    directory = r"C:/Program Files (x86)/StarCraft II/Maps/Strategy Maps/Camera Free"
     filename  = "TwoBridgeMap_V2_Base.SC2Map"
     players   = 2                     # agent vs bot
 
