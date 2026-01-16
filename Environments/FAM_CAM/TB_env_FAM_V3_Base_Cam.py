@@ -22,7 +22,7 @@ VEC_SIZE    = VEC_ECOUNT  + 1
 # ───────────────────── Map registration ───────────────────────
 class TwoBridgeMap_V3_Base_Cam(lib.Map):
     name      = "TwoBridgeMap_V3_Base_Cam"
-    directory = r"C:/Program Files (x86)/StarCraft II/Maps/Strategy Maps/Camera Lock/Camera Lock"
+    directory = r"C:/Program Files (x86)/StarCraft II/Maps/Strategy Maps/Camera Lock"
     filename  = "TwoBridgeMap_V3_Base_Cam.SC2Map"
     players   = 2
 
