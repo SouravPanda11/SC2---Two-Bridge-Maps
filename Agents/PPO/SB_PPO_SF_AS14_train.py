@@ -1,44 +1,64 @@
-import sys, os
+import sys, os, random
+import numpy as np
+import torch
 
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-import torch
 import stable_baselines3 as sb3
 
 # Import environment
 from Environments.TB_env_SF_AS14_V2_Base import TwoBridgeEnv
 
-# Check GPU availability
-device = "cuda" if torch.cuda.is_available() else "cpu"
-print(f"Using device: {device}")
+# ───────────────────── Reproducibility (single seed) ─────────────────────
+SEED = 12345
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed_all(SEED)
 
-# Define agent name and create save directory
+# ───────────────────── device ─────────────────────
+device = "cuda" if torch.cuda.is_available() else "cpu"
+print(f"Using device: {device} | SEED={SEED}")
+
+# ───────────────────── logging / dirs ─────────────────────
 agent_name = "SB_PPO_SF_AS14"
 save_dir = f"./Agents/PPO/saved_models/{agent_name}/"
 os.makedirs(save_dir, exist_ok=True)
 
-# Initialize environment and model
+tb_log_dir = f"./tb_logs/PPO/{agent_name}/"
+os.makedirs(tb_log_dir, exist_ok=True)
+
+# ───────────────────── env ─────────────────────
 env = TwoBridgeEnv(visualize=False)
+
+# Seed environment (Gymnasium style)
+env.reset(seed=SEED)
+
+# ───────────────────── model ─────────────────────
 model = sb3.PPO(
-    "MultiInputPolicy",  # Use MultiInputPolicy to handle spatial + vector obs
+    "MultiInputPolicy",     # spatial + vector obs
     env,
     device=device,
     verbose=1,
-    tensorboard_log=f"./tb_logs/{agent_name}/"
+    tensorboard_log=tb_log_dir,
+    seed=SEED               # IMPORTANT
 )
 
-# Training loop with interval saving
-total_timesteps = 2_000_000  # 2 million timesteps
-save_interval = 400_000  # Save every 400K timesteps
-# total_timesteps = 10
-# save_interval = 3
-for i in range(0, total_timesteps, save_interval):
-    model.learn(total_timesteps=save_interval, reset_num_timesteps=False)
-    model.save(f"{save_dir}{agent_name}_{(i + save_interval) // 1000}K")
-    # model.save(f"{save_dir}{agent_name}_{(i + save_interval)}")
+# ───────────────────── training loop ─────────────────────
+TOTAL_TIMESTEPS = 2_000_000
+SAVE_INTERVAL   = 500_000
 
-# Final model save
+for i in range(0, TOTAL_TIMESTEPS, SAVE_INTERVAL):
+    model.learn(
+        total_timesteps=SAVE_INTERVAL,
+        reset_num_timesteps=False,
+        progress_bar=True
+    )
+    model.save(f"{save_dir}{agent_name}_{(i + SAVE_INTERVAL) // 1000}K")
+
+# Final save
 model.save(f"{save_dir}{agent_name}_final")
 env.close()
