@@ -15,7 +15,7 @@ from sb3_contrib import MaskablePPO
 from sb3_contrib.common.wrappers import ActionMasker
 
 # ─────────────────── env import (MODULAR) ─────────
-from Environments.AM_RM_mean.TB_env_SF_AM_RM_mean_V2_Combat import TwoBridgeEnv, N_FRIEND, N_ENEMY
+from Environments.AM_RM_mean.TB_env_SF_AM_RM_mean_V3_Combat import TwoBridgeEnv, N_FRIEND, N_ENEMY
 
 # ==================================================
 #                  CONFIG
@@ -25,7 +25,7 @@ EPISODES = 5
 RENDER = False
 
 AGENT_NAME = "SB_MaskPPO_SF_AM_RM_mean"
-map_name = "V2_Combat"
+map_name = "V3_Combat"
 
 # ==================================================
 #                  FEATURE FLAGS

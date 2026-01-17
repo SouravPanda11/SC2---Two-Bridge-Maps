@@ -8,14 +8,14 @@ import glob
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
-    
+
 # ─────────────────── SB3 / gym imports ────────────
 from gymnasium import Wrapper, spaces
 from sb3_contrib import MaskablePPO
 from sb3_contrib.common.wrappers import ActionMasker
 
 # ─────────────────── env import (MODULAR) ─────────
-from Environments.AM_RM_mean.TB_env_SF_AM_RM_mean_V2_Combat import TwoBridgeEnv, N_FRIEND, N_ENEMY
+from Environments.AM_RM_mean.TB_env_SF_AM_RM_mean_V1_Base import TwoBridgeEnv, N_FRIEND, N_ENEMY
 
 # ==================================================
 #                  CONFIG
@@ -25,7 +25,7 @@ EPISODES = 5
 RENDER = False
 
 AGENT_NAME = "SB_MaskPPO_SF_AM_RM_mean"
-map_name = "V2_Combat"
+map_name = "V1_Base"
 
 # ==================================================
 #                  FEATURE FLAGS

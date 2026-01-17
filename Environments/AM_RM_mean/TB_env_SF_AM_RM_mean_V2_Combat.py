@@ -11,24 +11,23 @@ N_FRIEND = 5
 N_ENEMY  = 5
 
 # index helpers for the compact vector  ─────────────────────────
-# friend features: [x, y, hp, weapon_cd, alive] × N_FRIEND
 VEC_FRIEND  = 0
-VEC_ENEMY   = VEC_FRIEND + N_FRIEND * 5
-VEC_BXY     = VEC_ENEMY  + N_ENEMY  * 5      # 2 × float32 (beacon x,y)
-VEC_DIST    = VEC_BXY    + 2                 # 1 × float32
-VEC_TIME    = VEC_DIST   + 1                 # 1 × float32
-VEC_ECOUNT  = VEC_TIME   + 1                 # 1 × float32
-VEC_SIZE    = VEC_ECOUNT + 1
+VEC_ENEMY   = VEC_FRIEND  + N_FRIEND * 5
+VEC_BXY     = VEC_ENEMY   + N_ENEMY  * 5      # 2 × float32
+VEC_DIST    = VEC_BXY     + 2                 # 1 × float32
+VEC_TIME    = VEC_DIST    + 1                 # 1 × float32
+VEC_ECOUNT  = VEC_TIME    + 1                 # 1 × float32
+VEC_SIZE    = VEC_ECOUNT  + 1
 
 # ───────────────────── Map registration ───────────────────────
-class TwoBridgeMap_V2_Combat(lib.Map):
-    name      = "TwoBridgeMap_V2_Combat"
+class TwoBridgeMap_V3_Combat(lib.Map):
+    name      = "TwoBridgeMap_V3_Combat"
     directory = r"C:/Program Files (x86)/StarCraft II/Maps/Strategy Maps/Camera Free"
-    filename  = "TwoBridgeMap_V2_Combat.SC2Map"
+    filename  = "TwoBridgeMap_V3_Combat.SC2Map"
     players   = 2
 
-lib.get_maps().pop("TwoBridgeMap_V2_Combat", None)
-lib.get_maps()["TwoBridgeMap_V2_Combat"] = TwoBridgeMap_V2_Combat()
+lib.get_maps().pop("TwoBridgeMap_V3_Combat", None)
+lib.get_maps()["TwoBridgeMap_V3_Combat"] = TwoBridgeMap_V3_Combat()
 
 # ───────────────────────── constants ───────────────────────────
 FLAGS = flags.FLAGS
@@ -36,11 +35,12 @@ if not FLAGS.is_parsed():
     FLAGS([''])
 
 RAW              = actions.RAW_FUNCTIONS
+MARINE_HP        = 45
 BEACON_TYPE_ID   = 317
 BEACON_RADIUS    = 5.0
 
 STEP_MUL         = 8
-FIVE_MIN_LOOPS   = 5*60*16
+FIVE_MIN_LOOPS   = 5 * 60 * 16
 MAX_STEPS        = FIVE_MIN_LOOPS // STEP_MUL
 STEP_PIX         = 2
 
@@ -67,7 +67,7 @@ TIE_BONUS           = 0.0
 # ─────────────────────── environment ───────────────────────────
 class TwoBridgeEnv(gym.Env):
     """
-    Two-Bridge – navigation & combat.
+    5 v 5 Two-Bridge – navigation & combat.
     Action space = {verb, who-mask, direction, enemy_idx}
     """
     metadata = {}
@@ -95,7 +95,7 @@ class TwoBridgeEnv(gym.Env):
         super().__init__()
 
         self._env = sc2_env.SC2Env(
-            map_name="TwoBridgeMap_V2_Combat",
+            map_name="TwoBridgeMap_V3_Combat",
             players=[sc2_env.Agent(sc2_env.Race.terran),
                      sc2_env.Bot  (sc2_env.Race.terran,
                                    sc2_env.Difficulty.easy)],
@@ -125,6 +125,14 @@ class TwoBridgeEnv(gym.Env):
 
         self._last_act = {"verb": 0, "who_bits": np.zeros(N_FRIEND, bool), "enemy_idx": -1}
 
+        # instrumentation caches
+        self._last_reward_components = {
+            "nav_r": 0.0, "combat_r": 0.0, "term_r": 0.0,
+            "friend_hp": 0.0, "enemy_hp": 0.0,
+            "nav_dist": 0.0, "combat_dist": 0.0
+        }
+        self._last_unit_metrics = {"friend": {}, "enemy": {}}
+
     def close(self):
         self._env.close()
 
@@ -138,6 +146,12 @@ class TwoBridgeEnv(gym.Env):
         self._prev_friend_hp[:]   = 0.0
 
         self._last_act = {"verb": 0, "who_bits": np.zeros(N_FRIEND, bool), "enemy_idx": -1}
+        self._last_unit_metrics = {"friend": {}, "enemy": {}}
+        self._last_reward_components = {
+            "nav_r": 0.0, "combat_r": 0.0, "term_r": 0.0,
+            "friend_hp": 0.0, "enemy_hp": 0.0,
+            "nav_dist": 0.0, "combat_dist": 0.0
+        }
 
         ts = self._env.reset()[0]
         return self._build_obs(ts), {}
@@ -173,12 +187,12 @@ class TwoBridgeEnv(gym.Env):
         return obs, reward, done, False, info
 
     def _translate_actions(self, act):
-        verb       = int(act["verb"])
-        who_bits   = act["who"].astype(bool)
-        dir_id     = int(act["direction"])
-        enemy_idx  = int(act["enemy_idx"]) - 1   # shift => 0..N_ENEMY-1
+        verb      = int(act["verb"])
+        who_bits  = act["who"].astype(bool)
+        dir_id    = int(act["direction"])
+        enemy_idx = int(act["enemy_idx"]) - 1   # shift => 0..N_ENEMY-1
 
-        tags = [int(t) for t, bit in zip(self._my_tags, who_bits) if bit]
+        tags = [int(t) for t, b in zip(self._my_tags, who_bits) if b]
         self._last_act = {"verb": verb, "who_bits": who_bits.copy(), "enemy_idx": enemy_idx}
 
         # MOVE
@@ -389,6 +403,7 @@ class TwoBridgeEnv(gym.Env):
 
         return float(nav_r + combat_r + term_r)
 
+    # ───────────────────────── instrumentation getters ─────────────────────────
     def get_reward_components(self):
         return getattr(self, "_last_reward_components", {})
 

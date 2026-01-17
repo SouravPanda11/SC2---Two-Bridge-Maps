@@ -1,0 +1,22 @@
+{
+  "agent": "SB_MaskPPO_SF_AM_RM_mean",
+  "map": "V3_Combat",
+  "episodes": 5,
+  "seed": 0,
+  "episode_counts": {
+    "nav_win": 0,
+    "combat_win": 0,
+    "combat_loss": 5,
+    "timeout_loss": 0,
+    "tie": 0
+  },
+  "win_rate_percent": 0.0,
+  "saved_overall_plot": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Agent Performance Charts\\MaskPPO\\V3_Combat\\SB_MaskPPO_SF_AM_RM_mean\\SB_MaskPPO_SF_AM_RM_mean_performance_5_ep.png",
+  "flags": {
+    "DO_OVERALL_PERF": true,
+    "SAVE_EPISODE_DETAILS": false,
+    "SAVE_REPLAYS": false,
+    "SHOW_OVERALL_PLOT": false
+  },
+  "timestamp_local": "20260117_164724"
+}
