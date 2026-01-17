@@ -23,7 +23,7 @@ print(f"Using device: cpu | SEED={SEED}")
 
 # ───────────────────────────── logging / dirs ────────────────────────────
 agent_name = "SB_PPO_NSF_AS14"
-map_name   = "NSF_AS14_V2_Base"   # just for folder structure consistency
+map_name   = "NSF_AS14_V2_Base"   
 
 save_dir = f"./Agents/PPO/saved_models/{agent_name}/"
 os.makedirs(save_dir, exist_ok=True)
@@ -41,10 +41,10 @@ env.reset(seed=SEED)
 model = sb3.PPO(
     "MlpPolicy",
     env,
-    device="cpu",                 # non-spatial features
+    device="cpu",                 
     verbose=1,
     tensorboard_log=tb_log_dir,
-    seed=SEED                     # IMPORTANT: SB3 RNG seed
+    seed=SEED                     
 )
 
 # ───────────────────────────── training loop ────────────────────────────
