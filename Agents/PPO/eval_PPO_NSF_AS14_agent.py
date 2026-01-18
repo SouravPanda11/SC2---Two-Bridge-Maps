@@ -1,157 +1,248 @@
-import sys
-import os
+import sys, os, collections, numpy as np, matplotlib.pyplot as plt, torch
+import pandas as pd
+import json
+from datetime import datetime
+import random
 import glob
-
-# Add project root to sys.path
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
-sys.path.insert(0, project_root)
-
-import numpy as np, matplotlib.pyplot as plt, torch
-import stable_baselines3 as sb3
 import matplotlib
-matplotlib.use('Agg')
+matplotlib.use("Agg")
+import stable_baselines3 as sb3
 
-# Import environment
-from Environments.TB_env_NSF_AS14_V2_Base import TwoBridgeEnv
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
-# Agent name
-AGENT_NAME = "SB_PPO_NSF_AS14"
+# ─────────────────── env import ─────────
+from Environments.Pilot.TB_env_NSF_AS14_V2_Base import TwoBridgeEnv
 
-# Absolute model path
-MODEL_PATH = os.path.join(project_root, "Agents", "PPO", "saved_models", AGENT_NAME, f"{AGENT_NAME}_final.zip")
+# ==================================================
+#                  CONFIG
+# ==================================================
+SEED = 0
 EPISODES = 3
 RENDER = False
 
-# Replay output directory
-replay_output_dir = os.path.abspath(
-    os.path.join(project_root, "Replays", "PPO", AGENT_NAME)
-)
-os.makedirs(replay_output_dir, exist_ok=True)
+AGENT_NAME = "SB_PPO_NSF_AS14"
+map_name = "V2_Base" 
 
-# Create environment with replay capabilities
+# ==================================================
+#                  FEATURE FLAGS
+# ==================================================
+DO_OVERALL_PERF = True                 # overall performance counts + overall bar chart
+SAVE_EPISODE_DETAILS = False           # per-episode reward-vs-value plots
+SAVE_REPLAYS = False                   # save SC2Replay files (by terminal condition)
+SAVE_OVERALL_SUMMARY_TO_FILE = True    # save Episode counts + Win rate to disk
+SHOW_OVERALL_PLOT = False              # plt.show() for overall bar chart
+# ==================================================
+
+# ───────────────────── Reproducibility ─────────────────────
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed_all(SEED)
+
+# ─────────────────── model path ───────────────────
+MODEL_PATH = os.path.join(
+    project_root, "Agents", "PPO", "saved_models", AGENT_NAME, f"{AGENT_NAME}_final.zip"
+)
+if not os.path.isfile(MODEL_PATH):
+    sys.exit(f"[ERROR] Model file not found at: {MODEL_PATH}")
+
+# ---------- directories ---------------------------
+performance_root = os.path.join(project_root, "Agent Performance Charts", "PPO", AGENT_NAME)
+os.makedirs(performance_root, exist_ok=True)
+
+replay_root = os.path.join(project_root, "Replays", "PPO", AGENT_NAME)
+
+RESULT_KINDS = ["nav_win", "combat_win", "combat_loss", "timeout_loss", "tie"]
+
+folders = {}
+if SAVE_EPISODE_DETAILS or SAVE_REPLAYS:
+    if SAVE_REPLAYS:
+        os.makedirs(replay_root, exist_ok=True)
+
+    for rk in RESULT_KINDS:
+        perf_dir = os.path.join(performance_root, rk)
+        folders[rk] = {}
+
+        if SAVE_EPISODE_DETAILS:
+            folders[rk]["plots"] = os.path.join(perf_dir, "EpRds_vs_Values")
+            folders[rk]["csv"]   = os.path.join(perf_dir, "Decomposed_reward")  # optional
+            os.makedirs(folders[rk]["plots"], exist_ok=True)
+            os.makedirs(folders[rk]["csv"], exist_ok=True)
+
+        if SAVE_REPLAYS:
+            folders[rk]["replay"] = os.path.join(replay_root, rk)
+            os.makedirs(folders[rk]["replay"], exist_ok=True)
+
+# ─────────────────── env / model ──────────────────
 env = TwoBridgeEnv(
-    visualize=True,              # Show window
-    realtime=False,               # Play in real time
-    replay_dir=replay_output_dir,
-    save_replay_episodes=1       # Save every episode
+    visualize=RENDER,                  
+    realtime=False,
+    replay_dir=(replay_root if SAVE_REPLAYS else None),
+    save_replay_episodes=1 if SAVE_REPLAYS else 0
 )
 
-# Load model with error handling
-try:
-    model = sb3.PPO.load(MODEL_PATH, env=env, device="cpu")
-except FileNotFoundError:
-    print(f"[ERROR] Model file not found at: {MODEL_PATH}")
-    sys.exit(1)
+# Seed the environment RNG (Gymnasium style)
+env.reset(seed=SEED)
 
-# Initialize result counters
-counters = {
-    "nav_win": 0,
-    "combat_win": 0,
-    "combat_loss": 0,
-    "timeout_loss": 0,
-    "tie": 0,
-    "galaxy_10": 0,  # for completeness (0=undef, 1=defeat, 2=unknown, 3=win)
-    "galaxy_1": 0,
-    "galaxy_3": 0,
-}
+# device setup
+device = "cpu" 
+model = sb3.PPO.load(MODEL_PATH, env=env, device=device)
 
-# Create directory for performance charts
-performance_folder = os.path.join(project_root, "Agent Performance Charts", "PPO", AGENT_NAME)
-os.makedirs(performance_folder, exist_ok=True)  # Ensure the folder exists
+# ---------- evaluation loop -----------------------
+counters = collections.Counter({k: 0 for k in RESULT_KINDS})
 
-# Create directory for reward vs value plots
-reward_value_plot_path = os.path.join(performance_folder, "EpRds_vs_Values")
-os.makedirs(reward_value_plot_path, exist_ok=True)  # Ensure the folder exists
+def unwrap_env(env_):
+    while hasattr(env_, "env"):
+        env_ = env_.env
+    return env_
 
-# Run episodes
 for ep in range(EPISODES):
-    obs, _ = env.reset()
+    obs, _ = env.reset(seed=SEED + ep)
     done = False
-    
-    episode_rewards = []
-    value_predictions = []
-    
+
+    # episode logs
+    logs = [] if SAVE_EPISODE_DETAILS else None
+    ep_r = [] if SAVE_EPISODE_DETAILS else None
+    ep_v = [] if SAVE_EPISODE_DETAILS else None
+
     while not done:
-        # Predict action and value
-        action, _ = model.predict(obs, deterministic=True)
+        act, _ = model.predict(obs, deterministic=True)
 
-        # Get predicted value estimate for current state
-        obs_tensor = torch.tensor(obs).float().unsqueeze(0)
-        with torch.no_grad():
-            value = model.policy.predict_values(obs_tensor.to(model.device)).cpu().item()
+        # value estimate only if needed
+        if SAVE_EPISODE_DETAILS:
+            # PPO obs is typically np.ndarray; keep this robust
+            obs_tensor = torch.as_tensor(obs, dtype=torch.float32, device=model.device).unsqueeze(0)
+            with torch.no_grad():
+                v_hat = model.policy.predict_values(obs_tensor).detach().cpu().item()
+        else:
+            v_hat = None
 
-        # Step environment
-        obs, reward, done, trunc, info = env.step(action)
+        obs, rew, done, trunc, info = env.step(act)
 
-        # Log actual and predicted rewards
-        episode_rewards.append(reward)
-        value_predictions.append(value)
+        if SAVE_EPISODE_DETAILS:
+            step = {"reward": float(rew), "value_estimate": float(v_hat)}
+            # If your env exposes decomposed rewards like AM_RM code, log them too (optional)
+            base = unwrap_env(env)
+            if hasattr(base, "get_reward_components"):
+                try:
+                    comps = base.get_reward_components()
+                    if isinstance(comps, dict):
+                        step.update(comps)
+                except Exception:
+                    pass
+            logs.append(step)
+            ep_r.append(rew)
+            ep_v.append(v_hat)
 
-    # # Save the replay manually
-    # if hasattr(env, "_env") and hasattr(env._env, "save_replay"):
-    #     env._env.save_replay(replay_output_dir, prefix=f"eval_ep_{ep+1}")
-    
-    # Save the replay manually
-    if hasattr(env, "_env") and hasattr(env._env, "save_replay"):
-        env._env.save_replay(replay_output_dir, prefix=f"eval_ep_{ep+1}")
-        
-        # Rename the most recent .SC2Replay file to remove timestamp
-        matching_files = sorted(
-            glob.glob(os.path.join(replay_output_dir, f"eval_ep_{ep+1}_*.SC2Replay")),
-            key=os.path.getmtime,
-            reverse=True
-        )
-        if matching_files:
-            final_path = os.path.join(replay_output_dir, f"eval_ep_{ep+1}.SC2Replay")
-            os.rename(matching_files[0], final_path)
-            
-    # Handle result safely
+    # -------- result & counters --------------------
     res = info.get("result", "tie")
-    if res not in counters:
+    if res not in RESULT_KINDS:
         print(f"[WARN] Unexpected result: '{res}', defaulting to 'tie'")
         res = "tie"
     counters[res] += 1
-    
-    print(f"[{ep+1}/{EPISODES}] result: {res} → Replay saved as eval_ep_{ep+1}.SC2Replay")
 
-    # Plot: Environment reward vs Agent value prediction
-    plt.figure(figsize=(10, 4))
-    plt.plot(episode_rewards, label="Env Reward", marker='o', linestyle='--')
-    plt.plot(value_predictions, label="Agent Value Estimate", marker='x', linestyle='-')
-    plt.xlabel("Timestep")
-    plt.ylabel("Reward / Value")
-    plt.title(f"{AGENT_NAME} - Episode {ep+1}: Reward vs Value Estimate")
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
+    # -------- save episode details -----------------
+    if SAVE_EPISODE_DETAILS:
+        dest = folders[res]
 
-    # Save the reward-vs-value plot
-    reward_plot_path = os.path.join(reward_value_plot_path, f"eval_ep_{ep+1}.png")
-    plt.savefig(reward_plot_path)
-    plt.close()
-    
-    if ep % 20 == 0 or ep == EPISODES - 1:
-        print(f"[{ep + 1}/{EPISODES}] result: {res}")
+        # CSV (optional: will include reward/value and any available decomposed components)
+        df = pd.DataFrame(logs)
+        df.to_csv(os.path.join(dest["csv"], f"decomposed_ep_{ep+1}.csv"), index=False)
+
+        # Reward vs value plot
+        plt.figure(figsize=(10, 4))
+        plt.plot(ep_r, label="Env Reward", marker="o", ls="--")
+        plt.plot(ep_v, label="Value Estimate", marker="x")
+        plt.xlabel("Timestep")
+        plt.ylabel("Reward / Value")
+        plt.title(f"{AGENT_NAME} – Episode {ep+1} ({res})")
+        plt.legend()
+        plt.grid(True)
+        plt.tight_layout()
+        plt.savefig(os.path.join(dest["plots"], f"ep_{ep+1}.png"))
+        plt.close()
+
+    # -------- save replay (rename) -----------------
+    if SAVE_REPLAYS:
+        dest = folders[res]
+        base = unwrap_env(env)
+        # In many PySC2 env wrappers, replay save is on base._env
+        if hasattr(base, "_env") and hasattr(base._env, "save_replay"):
+            base._env.save_replay(dest["replay"], prefix=f"ep_{ep+1}")
+
+            newest = sorted(
+                glob.glob(os.path.join(dest["replay"], f"ep_{ep+1}_*.SC2Replay")),
+                key=os.path.getmtime, reverse=True
+            )
+            if newest:
+                os.rename(newest[0], os.path.join(dest["replay"], f"ep_{ep+1}.SC2Replay"))
+
+    print(f"[{ep+1}/{EPISODES}] result: {res}")
 
 env.close()
 
-# --- Aggregated Results ---
-labels = ["nav_win", "combat_win", "combat_loss", "timeout_loss", "tie"]
-values = [counters.get(k, 0) for k in labels]
+# ---------- overall summary ------------------------
+overall_plot_path = None
+if DO_OVERALL_PERF:
+    labels = RESULT_KINDS
+    values = [counters[k] for k in RESULT_KINDS]
 
-win_pct = 100 * (counters["nav_win"] + counters["combat_win"]) / EPISODES
-print(f"\nTotal episodes: {EPISODES}")
-print(f"Win rate       : {win_pct:.1f}%")
+    plt.figure(figsize=(7, 4))
+    plt.bar(labels, values)
+    plt.xticks(rotation=30)
+    plt.ylabel(f"# episodes out of {EPISODES}")
+    plt.title("Agent performance")
+    plt.tight_layout()
 
-# --- Plot Results ---
-plt.figure(figsize=(7, 4))
-plt.bar(labels, values)
-plt.ylabel("# episodes out of " + str(EPISODES))
-plt.title("Agent performance")
-plt.xticks(rotation=30)
-plt.tight_layout()
+    overall_plot_path = os.path.join(performance_root, f"{AGENT_NAME}_performance_{EPISODES}_ep.png")
+    plt.savefig(overall_plot_path)
 
-# Save the plot in the Agent Performance Charts folder
-plot_path = os.path.join(performance_folder, f"{AGENT_NAME}_performance_{EPISODES}_ep.png")
-plt.savefig(plot_path)
-plt.show()
+    if SHOW_OVERALL_PLOT:
+        plt.show()
+    else:
+        plt.close()
+
+episode_counts = dict(counters)
+win_pct = 100.0 * (counters["nav_win"] + counters["combat_win"]) / EPISODES
+
+print("\nEpisode counts:", episode_counts)
+print(f"Win rate: {win_pct:.1f}%")
+
+if SAVE_OVERALL_SUMMARY_TO_FILE:
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    summary = {
+        "agent": AGENT_NAME,
+        "map": map_name,
+        "episodes": EPISODES,
+        "seed": SEED,
+        "episode_counts": episode_counts,
+        "win_rate_percent": round(win_pct, 1),
+        "saved_overall_plot": (overall_plot_path if DO_OVERALL_PERF else None),
+        "flags": {
+            "DO_OVERALL_PERF": DO_OVERALL_PERF,
+            "SAVE_EPISODE_DETAILS": SAVE_EPISODE_DETAILS,
+            "SAVE_REPLAYS": SAVE_REPLAYS,
+            "SHOW_OVERALL_PLOT": SHOW_OVERALL_PLOT,
+        },
+        "timestamp_local": ts,
+    }
+
+    json_path = os.path.join(performance_root, f"{AGENT_NAME}_summary_{EPISODES}ep_{ts}.json")
+    txt_path  = os.path.join(performance_root, f"{AGENT_NAME}_summary_{EPISODES}ep_{ts}.txt")
+
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(summary, f, indent=2)
+
+    with open(txt_path, "w", encoding="utf-8") as f:
+        f.write(f"Agent: {AGENT_NAME}\n")
+        f.write(f"Map: {map_name}\n")
+        f.write(f"Episodes: {EPISODES}\n")
+        f.write(f"Seed: {SEED}\n\n")
+        f.write(f"Episode counts: {episode_counts}\n")
+        f.write(f"Win rate: {win_pct:.1f}%\n")
+        if DO_OVERALL_PERF:
+            f.write(f"Overall plot: {overall_plot_path}\n")
+        f.write(f"\nFlags: {summary['flags']}\n")

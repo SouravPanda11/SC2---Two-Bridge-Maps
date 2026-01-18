@@ -9,7 +9,7 @@ if project_root not in sys.path:
 import stable_baselines3 as sb3
 
 # Import environment
-from Environments.TB_env_SF_AS14_V2_Base import TwoBridgeEnv
+from Environments.Pilot.TB_env_SF_AS14_V2_Base import TwoBridgeEnv
 
 # ───────────────────── Reproducibility (single seed) ─────────────────────
 SEED = 12345

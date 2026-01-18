@@ -10,7 +10,7 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from Environments.TB_env_SF_AS14_V2_Base import TwoBridgeEnv
+from Environments.Pilot.TB_env_SF_AS14_V2_Base import TwoBridgeEnv
 
 # ----- config -----
 agent_name = "SB_PPO_SF_AS14"
