@@ -91,10 +91,15 @@ def plot_variant(variant: str):
     plot_mat = plot_df.set_index("outcome")[VERSIONS]
     ax = plot_mat.plot(kind="bar", color=[VERSION_COLORS[v] for v in VERSIONS])
 
-    ax.set_title(f"{variant}: V1 vs V2 vs V3")
+    ax.set_title(f"{variant}: V1 vs V2 vs V3", fontsize=15, fontweight="bold")
     ax.set_xlabel("")
-    ax.set_ylabel("Episode count")
-    ax.legend([VERSION_LABELS[v] for v in VERSIONS], title="Difficulty")
+    ax.set_ylabel("Episode count", fontsize=12)
+    
+    # ✅ tick label font sizes (terminal outcome labels are x-ticks)
+    ax.tick_params(axis="x", labelsize=12)
+    ax.tick_params(axis="y", labelsize=12)
+    
+    ax.legend([VERSION_LABELS[v] for v in VERSIONS], title="Difficulty", fontsize=12, title_fontsize=12)
 
     plt.xticks(rotation=0)
     plt.tight_layout()

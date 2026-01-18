@@ -115,12 +115,18 @@ def plot_algo(algo: str) -> str:
     plot_mat = plot_df.set_index("outcome")[RECIPES]
     ax = plot_mat.plot(kind="bar", color=[RECIPE_COLORS[r] for r in RECIPES])
 
-    # Title format you asked for
-    ax.set_title(f"{algo} | NSF vs SF | {TARGET_MAP}")
+    ax.set_title(f"{algo} | NSF vs SF | {TARGET_MAP}", fontsize=15, fontweight="bold")
     ax.set_xlabel("")
-    ax.set_ylabel("Episode count")      
+    ax.set_ylabel("Episode count", fontsize=12)
 
-    ax.legend([f"{r} recipe" for r in RECIPES], title="Training recipe")
+    # ✅ tick label font sizes (terminal outcome labels are x-ticks)
+    ax.tick_params(axis="x", labelsize=12)
+    ax.tick_params(axis="y", labelsize=12)
+
+    # ✅ legend font sizes (optional but usually looks better)
+    ax.legend([f"{r} recipe" for r in RECIPES], title="Training recipe",
+              fontsize=12, title_fontsize=12)
+
     plt.xticks(rotation=0)
     plt.tight_layout()
 
