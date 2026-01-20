@@ -21,7 +21,7 @@ from Environments.AM_RM_mean.TB_env_SF_AM_RM_mean_V3_Base import TwoBridgeEnv, N
 #                  CONFIG
 # ==================================================
 SEED = 0
-EPISODES = 5
+EPISODES = 10
 RENDER = False
 
 AGENT_NAME = "SB_MaskPPO_SF_AM_RM_mean"
@@ -232,7 +232,7 @@ if DO_OVERALL_PERF:
     plt.title("Agent performance")
     plt.tight_layout()
 
-    overall_plot_path = os.path.join(performance_root, f"{AGENT_NAME}_performance_{EPISODES}_ep.png")
+    overall_plot_path = os.path.join(performance_root, f"performance_{EPISODES}_ep.png")
     plt.savefig(overall_plot_path)
 
     if SHOW_OVERALL_PLOT:
@@ -247,7 +247,8 @@ print("\nEpisode counts:", episode_counts)
 print(f"Win rate: {win_pct:.1f}%")
 
 if SAVE_OVERALL_SUMMARY_TO_FILE:
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")  # keep in json content (optional)
+
     summary = {
         "agent": AGENT_NAME,
         "map": map_name,
@@ -262,22 +263,11 @@ if SAVE_OVERALL_SUMMARY_TO_FILE:
             "SAVE_REPLAYS": SAVE_REPLAYS,
             "SHOW_OVERALL_PLOT": SHOW_OVERALL_PLOT,
         },
-        "timestamp_local": ts,
+        "timestamp_local": ts,  # optional metadata; not used in filename
     }
 
-    json_path = os.path.join(performance_root, f"{AGENT_NAME}_summary_{EPISODES}ep_{ts}.json")
-    txt_path  = os.path.join(performance_root, f"{AGENT_NAME}_summary_{EPISODES}ep_{ts}.txt")
+    # ✅ overwrite same file every time (prevents accumulating duplicates)
+    json_path = os.path.join(performance_root, f"summary_{EPISODES}ep.json")
 
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2)
-
-    with open(txt_path, "w", encoding="utf-8") as f:
-        f.write(f"Agent: {AGENT_NAME}\n")
-        f.write(f"Map: {map_name}\n")
-        f.write(f"Episodes: {EPISODES}\n")
-        f.write(f"Seed: {SEED}\n\n")
-        f.write(f"Episode counts: {episode_counts}\n")
-        f.write(f"Win rate: {win_pct:.1f}%\n")
-        if DO_OVERALL_PERF:
-            f.write(f"Overall plot: {overall_plot_path}\n")
-        f.write(f"\nFlags: {summary['flags']}\n")

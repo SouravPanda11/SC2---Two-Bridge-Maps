@@ -8,7 +8,7 @@ import matplotlib
 matplotlib.use("Agg")
 import stable_baselines3 as sb3
 
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
@@ -19,7 +19,7 @@ from Environments.Pilot.TB_env_NSF_AS14_V2_Base import TwoBridgeEnv
 #                  CONFIG
 # ==================================================
 SEED = 0
-EPISODES = 3
+EPISODES = 50
 RENDER = False
 
 AGENT_NAME = "SB_PPO_NSF_AS14"

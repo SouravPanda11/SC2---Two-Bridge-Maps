@@ -1,0 +1,22 @@
+{
+  "agent": "SB_A2C_NSF_AS14",
+  "map": "V2_Base",
+  "episodes": 50,
+  "seed": 0,
+  "episode_counts": {
+    "nav_win": 15,
+    "combat_win": 0,
+    "combat_loss": 20,
+    "timeout_loss": 15,
+    "tie": 0
+  },
+  "win_rate_percent": 30.0,
+  "saved_overall_plot": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Agent Performance Charts\\A2C\\SB_A2C_NSF_AS14\\SB_A2C_NSF_AS14_performance_50_ep.png",
+  "flags": {
+    "DO_OVERALL_PERF": true,
+    "SAVE_EPISODE_DETAILS": false,
+    "SAVE_REPLAYS": false,
+    "SHOW_OVERALL_PLOT": false
+  },
+  "timestamp_local": "20260119_145844"
+}

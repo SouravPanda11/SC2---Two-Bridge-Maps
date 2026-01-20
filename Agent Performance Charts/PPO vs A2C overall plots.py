@@ -7,7 +7,10 @@ BASE_ROOT = "Agent Performance Charts"
 ALGOS = ["PPO", "A2C"]
 
 TARGET_MAP = "V2_Base"
-TERMINAL_OUTCOMES = ["nav_win", "combat_win", "combat_loss", "timeout_loss", "tie"]
+
+# ✅ remove tie from plotting
+TERMINAL_OUTCOMES = ["nav_win", "combat_win", "combat_loss", "timeout_loss"]
+
 RECIPES = ["NSF", "SF"]  # order on the plot
 
 OUT_DIR = os.path.join(BASE_ROOT, "PPO vs A2C Aggregate Plots")
@@ -91,55 +94,135 @@ agg = (
       .sum()
 )
 
-# ───────────────── plotting ─────────────────
-def plot_algo(algo: str) -> str:
-    sub = agg[agg["algo"] == algo].copy()
+# ✅ optional sanity check: outcomes should sum to episodes (ignoring tie by design)
+sum_outcomes = agg[TERMINAL_OUTCOMES].sum(axis=1)
+bad = sum_outcomes != agg["episodes"]
+if bad.any():
+    print("WARNING: outcome counts (without tie) do not sum to episodes for:")
+    print(agg.loc[bad, ["algo", "recipe", "episodes"] + TERMINAL_OUTCOMES].to_string(index=False))
+    print("Note: If tie exists in the underlying json, episodes will be larger than the plotted outcomes.")
 
-    # ensure both recipes appear even if one is missing
-    for r in RECIPES:
-        if r not in set(sub["recipe"]):
-            sub = pd.concat(
-                [sub, pd.DataFrame([{
-                    "algo": algo, "recipe": r, "episodes": 0,
-                    **{k: 0 for k in TERMINAL_OUTCOMES}
-                }])],
-                ignore_index=True
-            )
+# ✅ shared y-axis limit from evaluation episode totals
+y_lim_top = int(agg["episodes"].max())
 
-    sub = sub.set_index("recipe").loc[RECIPES].reset_index()
+# # ───────────────── plotting ─────────────────
+# def plot_algo(algo: str) -> str:
+#     sub = agg[agg["algo"] == algo].copy()
 
-    plot_df = pd.DataFrame({"outcome": TERMINAL_OUTCOMES})
-    for r in RECIPES:
-        plot_df[r] = [int(sub.loc[sub["recipe"] == r, k].values[0]) for k in TERMINAL_OUTCOMES]
+#     # ensure both recipes appear even if one is missing
+#     for r in RECIPES:
+#         if r not in set(sub["recipe"]):
+#             sub = pd.concat(
+#                 [sub, pd.DataFrame([{
+#                     "algo": algo, "recipe": r, "episodes": 0,
+#                     **{k: 0 for k in TERMINAL_OUTCOMES}
+#                 }])],
+#                 ignore_index=True
+#             )
 
-    plot_mat = plot_df.set_index("outcome")[RECIPES]
-    ax = plot_mat.plot(kind="bar", color=[RECIPE_COLORS[r] for r in RECIPES])
+#     sub = sub.set_index("recipe").loc[RECIPES].reset_index()
 
-    ax.set_title(f"{algo} | NSF vs SF | {TARGET_MAP}", fontsize=15, fontweight="bold")
-    ax.set_xlabel("")
-    ax.set_ylabel("Episode count", fontsize=12)
+#     plot_df = pd.DataFrame({"outcome": TERMINAL_OUTCOMES})
+#     for r in RECIPES:
+#         plot_df[r] = [int(sub.loc[sub["recipe"] == r, k].values[0]) for k in TERMINAL_OUTCOMES]
 
-    # ✅ tick label font sizes (terminal outcome labels are x-ticks)
-    ax.tick_params(axis="x", labelsize=12)
-    ax.tick_params(axis="y", labelsize=12)
+#     plot_mat = plot_df.set_index("outcome")[RECIPES]
+#     ax = plot_mat.plot(kind="bar", color=[RECIPE_COLORS[r] for r in RECIPES])
 
-    # ✅ legend font sizes (optional but usually looks better)
-    ax.legend([f"{r} recipe" for r in RECIPES], title="Training recipe",
-              fontsize=12, title_fontsize=12)
+#     ax.set_title(f"{algo} | NSF vs SF | {TARGET_MAP}", fontsize=15, fontweight="bold")
+#     ax.set_xlabel("")
+#     ax.set_ylabel("Episode count", fontsize=12)
 
-    plt.xticks(rotation=0)
-    plt.tight_layout()
+#     # lock y-axis across plots
+#     ax.set_ylim(0, y_lim_top)
 
-    out_path = os.path.join(OUT_DIR, f"{algo}_{TARGET_MAP}_NSF_vs_SF.png")
+#     ax.tick_params(axis="x", labelsize=12)
+#     ax.tick_params(axis="y", labelsize=12)
+
+#     ax.legend([f"{r} recipe" for r in RECIPES], title="Training recipe",
+#               fontsize=12, title_fontsize=12)
+
+#     plt.xticks(rotation=0)
+#     plt.tight_layout()
+
+#     out_path = os.path.join(OUT_DIR, f"{algo}_{TARGET_MAP}_NSF_vs_SF.png")
+#     plt.savefig(out_path, dpi=200)
+#     plt.close()
+#     return out_path
+
+# out_files = [plot_algo("A2C"), plot_algo("PPO")]
+
+# ───────────────── combined vertical plotting ─────────────────
+def plot_vertical_algos(algos=("PPO", "A2C")) -> str:
+    fig, axes = plt.subplots(
+        nrows=2,
+        ncols=1,
+        figsize=(7, 8),
+        sharey=True
+    )
+
+    for ax, algo in zip(axes, algos):
+        sub = agg[agg["algo"] == algo].copy()
+
+        # ensure both recipes appear even if one is missing
+        for r in RECIPES:
+            if r not in set(sub["recipe"]):
+                sub = pd.concat(
+                    [sub, pd.DataFrame([{
+                        "algo": algo, "recipe": r, "episodes": 0,
+                        **{k: 0 for k in TERMINAL_OUTCOMES}
+                    }])],
+                    ignore_index=True
+                )
+
+        sub = sub.set_index("recipe").loc[RECIPES].reset_index()
+
+        plot_df = pd.DataFrame({"outcome": TERMINAL_OUTCOMES})
+        for r in RECIPES:
+            plot_df[r] = [
+                int(sub.loc[sub["recipe"] == r, k].values[0])
+                for k in TERMINAL_OUTCOMES
+            ]
+
+        plot_mat = plot_df.set_index("outcome")[RECIPES]
+        plot_mat.plot(
+            kind="bar",
+            ax=ax,
+            color=[RECIPE_COLORS[r] for r in RECIPES],
+            width=0.75
+        )
+
+        ax.set_title(f"{algo} | NSF vs SF | {TARGET_MAP}",
+                     fontsize=14, fontweight="bold")
+        ax.set_xlabel("")
+        ax.set_ylim(0, y_lim_top)
+
+        ax.tick_params(axis="x", labelsize=11)
+        ax.tick_params(axis="x", labelrotation=0)
+        ax.tick_params(axis="y", labelsize=11)
+
+        ax.legend(
+            [f"{r} recipe" for r in RECIPES],
+            title="Training recipe",
+            fontsize=11,
+            title_fontsize=11
+        )
+
+    # axes[-1].set_xlabel("Terminal outcome", fontsize=12)
+    # plt.xticks(rotation=0)
+
+    fig.tight_layout()
+
+    out_path = os.path.join(
+        OUT_DIR, f"PPO_A2C_{TARGET_MAP}_NSF_vs_SF_vertical.png"
+    )
     plt.savefig(out_path, dpi=200)
     plt.close()
     return out_path
 
-out_files = [plot_algo("A2C"), plot_algo("PPO")]
+out_file = plot_vertical_algos(("PPO", "A2C"))
+print("Saved plot:", out_file)
 
-print("Saved plots:")
-for f in out_files:
-    print(" -", f)
-
-print("\nAggregated counts:")
+print("\nAggregated counts (tie not plotted):")
 print(agg.sort_values(["algo", "recipe"]).to_string(index=False))
+print(f"\nShared y-axis max (episodes): {y_lim_top}")

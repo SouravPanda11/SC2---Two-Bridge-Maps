@@ -20,7 +20,7 @@ from Environments.Pilot.TB_env_SF_AS14_V2_Base import TwoBridgeEnv
 #                  CONFIG
 # ==================================================
 SEED = 0
-EPISODES = 3
+EPISODES = 50
 RENDER = False
 
 AGENT_NAME = "SB_A2C_SF_AS14"

@@ -20,14 +20,14 @@ VEC_ECOUNT  = VEC_TIME    + 1                 # 1 × float32
 VEC_SIZE    = VEC_ECOUNT  + 1
 
 # ───────────────────── Map registration ───────────────────────
-class TwoBridgeMap_V3_Combat(lib.Map):
-    name      = "TwoBridgeMap_V3_Combat"
+class TwoBridgeMap_V2_Combat(lib.Map):
+    name      = "TwoBridgeMap_V2_Combat"
     directory = r"C:/Program Files (x86)/StarCraft II/Maps/Strategy Maps/Camera Free"
-    filename  = "TwoBridgeMap_V3_Combat.SC2Map"
+    filename  = "TwoBridgeMap_V2_Combat.SC2Map"
     players   = 2
 
-lib.get_maps().pop("TwoBridgeMap_V3_Combat", None)
-lib.get_maps()["TwoBridgeMap_V3_Combat"] = TwoBridgeMap_V3_Combat()
+lib.get_maps().pop("TwoBridgeMap_V2_Combat", None)
+lib.get_maps()["TwoBridgeMap_V2_Combat"] = TwoBridgeMap_V2_Combat()
 
 # ───────────────────────── constants ───────────────────────────
 FLAGS = flags.FLAGS
@@ -95,7 +95,7 @@ class TwoBridgeEnv(gym.Env):
         super().__init__()
 
         self._env = sc2_env.SC2Env(
-            map_name="TwoBridgeMap_V3_Combat",
+            map_name="TwoBridgeMap_V2_Combat",
             players=[sc2_env.Agent(sc2_env.Race.terran),
                      sc2_env.Bot  (sc2_env.Race.terran,
                                    sc2_env.Difficulty.easy)],

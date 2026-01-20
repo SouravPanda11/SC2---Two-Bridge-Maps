@@ -1,0 +1,22 @@
+{
+  "agent": "SB_PPO_NSF_AS14",
+  "map": "V2_Base",
+  "episodes": 50,
+  "seed": 0,
+  "episode_counts": {
+    "nav_win": 13,
+    "combat_win": 0,
+    "combat_loss": 7,
+    "timeout_loss": 30,
+    "tie": 0
+  },
+  "win_rate_percent": 26.0,
+  "saved_overall_plot": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Agent Performance Charts\\PPO\\SB_PPO_NSF_AS14\\SB_PPO_NSF_AS14_performance_50_ep.png",
+  "flags": {
+    "DO_OVERALL_PERF": true,
+    "SAVE_EPISODE_DETAILS": false,
+    "SAVE_REPLAYS": false,
+    "SHOW_OVERALL_PLOT": false
+  },
+  "timestamp_local": "20260119_142852"
+}
