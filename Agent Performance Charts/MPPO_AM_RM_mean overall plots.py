@@ -7,6 +7,10 @@ ROOT = "Agent Performance Charts"
 OUT_DIR = os.path.join(ROOT, "MPPO Aggregate Plots")
 os.makedirs(OUT_DIR, exist_ok=True)
 
+# ✅ choose which model folder to plot (change only this)
+# MODEL_NAME = "SB_MaskPPO_FAM_CAM"
+MODEL_NAME = "SB_MaskPPO_SF_AM_RM_mean"
+
 # ✅ remove tie for plotting/aggregation
 TERMINAL_OUTCOMES = ["nav_win", "combat_win", "combat_loss", "timeout_loss"]
 
@@ -23,8 +27,7 @@ def classify_variant(map_str: str) -> str:
 def classify_version(map_str: str) -> str:
     return map_str.split("_", 1)[0]
 
-# ---- load all summary jsons (NEW naming) ----
-# New files are like: summary_10ep.json, summary_20ep.json, ...
+# ---- load all summary jsons ----
 json_paths = glob.glob(os.path.join(ROOT, "**", "summary_*ep.json"), recursive=True)
 if not json_paths:
     raise FileNotFoundError(
@@ -34,6 +37,13 @@ if not json_paths:
 
 rows = []
 for p in json_paths:
+    # model folder is the parent dir of summary json
+    model_dir = os.path.basename(os.path.dirname(p))
+
+    # ✅ filter by selected model folder name
+    if MODEL_NAME and model_dir != MODEL_NAME:
+        continue
+
     with open(p, "r", encoding="utf-8") as f:
         d = json.load(f)
 
@@ -48,6 +58,7 @@ for p in json_paths:
     row = {
         "path": p,
         "agent": d.get("agent", ""),
+        "model": model_dir,  # ✅ track model folder
         "map": map_name,
         "version": ver,
         "variant": var,
@@ -61,19 +72,18 @@ for p in json_paths:
 df = pd.DataFrame(rows)
 if df.empty:
     raise RuntimeError(
-        "Found summary_*.json files, but none matched expected map names like "
-        "V1_Base / V2_Combat / V3_Navigate (check the 'map' field inside json)."
+        "No summary_*.json matched your filters.\n"
+        f"Check MODEL_NAME='{MODEL_NAME}' and that summary files exist under that folder."
     )
 
-# ---- enforce exactly one evaluation per (variant, version) ----
-dup = df.groupby(["variant", "version"]).size()
+# ---- enforce exactly one evaluation per (variant, version, model) ----
+dup = df.groupby(["variant", "version", "model"]).size()
 bad = dup[dup > 1]
 if not bad.empty:
-    # Print paths to debug quickly
-    msg = ["Multiple evaluation summaries found for the same (variant, version):", bad.to_string()]
-    for (variant, version), _ in bad.items():
-        sub = df[(df["variant"] == variant) & (df["version"] == version)]
-        msg.append(f"\n--- Files for {version}_{variant} ---")
+    msg = ["Multiple evaluation summaries found for the same (variant, version, model):", bad.to_string()]
+    for (variant, version, model), _ in bad.items():
+        sub = df[(df["variant"] == variant) & (df["version"] == version) & (df["model"] == model)]
+        msg.append(f"\n--- Files for {version}_{variant} ({model}) ---")
         msg.append(sub[["path", "episodes", "seed", "agent"]].to_string(index=False))
     raise RuntimeError("\n".join(msg))
 
@@ -97,7 +107,7 @@ def plot_variant(variant: str):
         if v not in set(sub["version"]):
             sub = pd.concat(
                 [sub, pd.DataFrame([{
-                    "variant": variant, "version": v, "episodes": 0,
+                    "variant": variant, "version": v, "episodes": 0, "model": MODEL_NAME,
                     **{k: 0 for k in TERMINAL_OUTCOMES}
                 }])],
                 ignore_index=True
@@ -112,7 +122,7 @@ def plot_variant(variant: str):
     plot_mat = plot_df.set_index("outcome")[VERSIONS]
     ax = plot_mat.plot(kind="bar", color=[VERSION_COLORS[v] for v in VERSIONS])
 
-    ax.set_title(f"{variant}: V1 vs V2 vs V3", fontsize=15, fontweight="bold")
+    ax.set_title(f"{variant}", fontsize=15, fontweight="bold")
     ax.set_xlabel("")
     ax.set_ylabel("Episode count", fontsize=12)
 
@@ -128,7 +138,11 @@ def plot_variant(variant: str):
     plt.xticks(rotation=0)
     plt.tight_layout()
 
-    out_path = os.path.join(OUT_DIR, f"{variant}_V1_V2_V3_terminal_outcomes.png")
+    # ✅ output inside a model-named subfolder
+    model_out_dir = os.path.join(OUT_DIR, MODEL_NAME)
+    os.makedirs(model_out_dir, exist_ok=True)
+
+    out_path = os.path.join(model_out_dir, f"{variant}_V1_V2_V3_terminal_outcomes.png")
     plt.savefig(out_path, dpi=200)
     plt.close()
     return out_path

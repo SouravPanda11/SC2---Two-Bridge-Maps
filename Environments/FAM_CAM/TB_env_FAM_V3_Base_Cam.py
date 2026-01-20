@@ -77,7 +77,7 @@ class TwoBridgeEnv(gym.Env):
         "verb":      spaces.Discrete(3),            # 0 noop | 1 move | 2 atk
         "who":       spaces.MultiBinary(N_FRIEND),  # 5 friendly marines
         "direction": spaces.Discrete(9),            # 0 unused | 1-8 compass
-        "enemy_idx": spaces.Discrete(N_ENEMY + 1)   # 0 none | 1-8 enemy slot
+        "enemy_idx": spaces.Discrete(N_ENEMY + 1)   # 0 none | 1-N_ENEMY enemy slot
     })
 
     observation_space = spaces.Dict({
@@ -96,18 +96,18 @@ class TwoBridgeEnv(gym.Env):
 
     # -------------- ctor / close -------------------------------
     def __init__(self,
-                 screen_res: int = 64,
-                 visualize: bool = False,
-                 realtime: bool = False,
-                 replay_dir: str = None,
-                 save_replay_episodes: int = 0):
+             screen_res: int = 64,
+             visualize: bool = False,
+             realtime: bool = False,
+             replay_dir: str = None,
+             save_replay_episodes: int = 0):
         super().__init__()
         
         self._env = sc2_env.SC2Env(
             map_name="TwoBridgeMap_V3_Base_Cam",
             players=[sc2_env.Agent(sc2_env.Race.terran),
-                     sc2_env.Bot  (sc2_env.Race.terran,
-                                   sc2_env.Difficulty.easy)],
+                    sc2_env.Bot  (sc2_env.Race.terran,
+                                sc2_env.Difficulty.easy)],
             step_mul=STEP_MUL,
             agent_interface_format=sc2_env.AgentInterfaceFormat(
                 action_space=actions.ActionSpace.RAW,
@@ -133,6 +133,16 @@ class TwoBridgeEnv(gym.Env):
         self._prev_enemy_hp       = np.zeros(N_ENEMY,  np.float32)
         self._prev_friend_hp      = np.zeros(N_FRIEND, np.float32)
 
+        # ───────── eval-compatible instrumentation ─────────
+        self._last_act = {"verb": 0, "who_bits": np.zeros(N_FRIEND, bool), "enemy_idx": -1}
+
+        self._last_reward_components = {
+            "nav_r": 0.0, "combat_r": 0.0, "term_r": 0.0,
+            "friend_hp": 0.0, "enemy_hp": 0.0,
+            "nav_dist": 0.0, "combat_dist": 0.0
+        }
+        self._last_unit_metrics = {"friend": {}, "enemy": {}}
+
     def close(self): self._env.close()
 
     # -------------- Gym API ------------------------------------
@@ -144,6 +154,15 @@ class TwoBridgeEnv(gym.Env):
         self._prev_centroid_dists = None
         self._prev_enemy_hp[:]    = 0.0
         self._prev_friend_hp[:]   = 0.0
+
+        # ───────── eval-compatible instrumentation reset ─────────
+        self._last_act = {"verb": 0, "who_bits": np.zeros(N_FRIEND, bool), "enemy_idx": -1}
+        self._last_reward_components = {
+            "nav_r": 0.0, "combat_r": 0.0, "term_r": 0.0,
+            "friend_hp": 0.0, "enemy_hp": 0.0,
+            "nav_dist": 0.0, "combat_dist": 0.0
+        }
+        self._last_unit_metrics = {"friend": {}, "enemy": {}}
 
         ts = self._env.reset()[0]
         return self._build_obs(ts), {}
@@ -189,13 +208,16 @@ class TwoBridgeEnv(gym.Env):
 
         tags = [int(t) for t, b in zip(self._my_tags, who_bits) if b]
 
+        # cache last action for eval/debug
+        self._last_act = {"verb": verb, "who_bits": who_bits.copy(), "enemy_idx": enemy_idx}
+
         # MOVE
         if verb == 1 and tags and 1 <= dir_id <= 8:
             dx, dy = MOVE_DIRS[dir_id-1]
             cx = np.mean(self._fx[who_bits]) + dx
             cy = np.mean(self._fy[who_bits]) + dy
             pt = (float(np.clip(cx, 0, SCR_RES-1)),
-                  float(np.clip(cy, 0, SCR_RES-1)))
+                float(np.clip(cy, 0, SCR_RES-1)))
             return [RAW.Move_pt("now", tags, pt)]
 
         # ATTACK
@@ -304,72 +326,86 @@ class TwoBridgeEnv(gym.Env):
     # -------------- shaped reward (rich) -----------------------
     def _shape_reward(self, vec, done, res):
         """
-        Reward = navigation Δ-distance  +  combat (distance + HP + kill)  +  terminal.
+        Reward = navigation Δ-distance + combat (centroid Δ-distance + HP + kill/loss) + terminal.
+        Also emits per-unit diagnostics keyed by tags.
         The first call after reset returns 0 to avoid spawn spikes.
         """
-        # ---------- unpack -------------------------------------------------
-        fx = vec[0 : N_FRIEND*5 : 5]
-        fy = vec[1 : N_FRIEND*5 : 5]
+        # unpack
+        fx  = vec[0 : N_FRIEND*5 : 5]
+        fy  = vec[1 : N_FRIEND*5 : 5]
         fhp = vec[2 : N_FRIEND*5 : 5]
 
-        ex = vec[VEC_ENEMY   : VEC_ENEMY+N_ENEMY*5 : 5]
-        ey = vec[VEC_ENEMY+1 : VEC_ENEMY+N_ENEMY*5 : 5]
-        ehp = vec[VEC_ENEMY+2 : VEC_ENEMY+N_ENEMY*5 : 5]
+        ex  = vec[VEC_ENEMY     : VEC_ENEMY+N_ENEMY*5 : 5]
+        ey  = vec[VEC_ENEMY + 1 : VEC_ENEMY+N_ENEMY*5 : 5]
+        ehp = vec[VEC_ENEMY + 2 : VEC_ENEMY+N_ENEMY*5 : 5]
 
         f_alive = fhp > 0
         e_alive = ehp > 0
+        bx, by  = vec[VEC_BXY : VEC_BXY+2]
 
-        bx, by = vec[VEC_BXY : VEC_BXY+2]
-
-        # ---------- FIRST FRAME GUARD -------------------------------------
+        # first-frame guard
         if self._prev_enemy_hp.sum() == 0 and self._prev_friend_hp.sum() == 0:
-            self._prev_beacon_dists   = np.hypot(fx - bx, fy - by) if (bx >= 0 and by >= 0) else None
+            self._prev_beacon_dists = np.hypot(fx - bx, fy - by) if (bx >= 0 and by >= 0) else None
             if e_alive.any():
                 cx, cy = ex[e_alive].mean(), ey[e_alive].mean()
                 self._prev_centroid_dists = np.hypot(fx - cx, fy - cy)
             else:
                 self._prev_centroid_dists = None
+
             self._prev_enemy_hp[:]  = ehp
             self._prev_friend_hp[:] = fhp
-            self._last_reward_components = {"nav_r":0.0,"combat_r":0.0,"term_r":0.0}
+
+            self._last_reward_components = {
+                "nav_r": 0.0, "combat_r": 0.0, "term_r": 0.0,
+                "friend_hp": float(fhp.sum()), "enemy_hp": float(ehp.sum()),
+                "nav_dist": 0.0, "combat_dist": 0.0
+            }
+            self._last_unit_metrics = {"friend": {}, "enemy": {}}
             return 0.0
 
-        # ───────── NAVIGATION SHAPING ─────────────────────
-        nav_r = 0.0
+        # NAV shaping (+per-unit)
+        nav_per = np.zeros(N_FRIEND, np.float32)
+        nav_r   = 0.0
         if (bx >= 0) and (by >= 0):
-            beacon_dists = np.hypot(fx - bx, fy - by)         # (N_FRIEND,)
-            diff = (self._prev_beacon_dists - beacon_dists)[f_alive] if self._prev_beacon_dists is not None else np.array([], dtype=np.float32)
-            nav_r = diff.mean() if diff.size > 0 else 0.0
+            beacon_dists = np.hypot(fx - bx, fy - by)
+            if self._prev_beacon_dists is not None:
+                nav_per = self._prev_beacon_dists - beacon_dists
+                sel = nav_per[f_alive]
+                nav_r = float(sel.mean()) if sel.size > 0 else 0.0
             self._prev_beacon_dists = beacon_dists
+        else:
+            self._prev_beacon_dists = None
 
-        # ───────── COMBAT SHAPING ─────────────────────────
-        combat_r = 0.0
+        # COMBAT shaping (+per-unit centroid)
+        combat_per = np.zeros(N_FRIEND, np.float32)
+        combat_r   = 0.0
         cx = cy = np.nan
         if e_alive.any():
             cx, cy = ex[e_alive].mean(), ey[e_alive].mean()
             centroid_dists = np.hypot(fx - cx, fy - cy)
             if self._prev_centroid_dists is not None:
-                diff = (self._prev_centroid_dists - centroid_dists)[f_alive]
-                combat_r += diff.mean() if diff.size > 0 else 0.0
+                combat_per = self._prev_centroid_dists - centroid_dists
+                sel = combat_per[f_alive]
+                combat_r += float(sel.mean()) if sel.size > 0 else 0.0
             self._prev_centroid_dists = centroid_dists
         else:
             self._prev_centroid_dists = None
 
         # HP shaping
-        combat_r +=  HP_SCALE * (self._prev_enemy_hp.sum()  - ehp.sum())
-        combat_r += -HP_SCALE * (self._prev_friend_hp.sum() - fhp.sum())
+        combat_r +=  HP_SCALE * float(self._prev_enemy_hp.sum()  - ehp.sum())
+        combat_r += -HP_SCALE * float(self._prev_friend_hp.sum() - fhp.sum())
 
         # kill / loss bonuses
         kills  = (~e_alive & (self._prev_enemy_hp > 0)).sum()
         losses = (~f_alive & (self._prev_friend_hp > 0)).sum()
-        combat_r +=  KILL_BONUS * kills
-        combat_r += -KILL_BONUS * losses
+        combat_r +=  KILL_BONUS * float(kills)
+        combat_r += -KILL_BONUS * float(losses)
 
         # update HP caches
         self._prev_enemy_hp[:]  = ehp
         self._prev_friend_hp[:] = fhp
 
-        # ───────────────────── TERMINAL BONUS ───────────────────────
+        # terminal
         if done:
             if   res == "nav_win":      term_r = NAV_WIN_BONUS
             elif res == "combat_win":   term_r = COMBAT_WIN_BONUS
@@ -378,21 +414,48 @@ class TwoBridgeEnv(gym.Env):
             elif res == "tie":          term_r = TIE_BONUS
             elif res == "victory":      term_r = COMBAT_WIN_BONUS
             elif res == "defeat":       term_r = COMBAT_LOSS_PENALTY
+            else:                       term_r = 0.0
         else:
             term_r = 0.0
 
-        # store components for logging
+        # reward components (match your eval logging keys)
         self._last_reward_components = {
             "nav_r": float(nav_r),
             "combat_r": float(combat_r),
             "term_r": float(term_r),
             "friend_hp": float(fhp.sum()),
             "enemy_hp": float(ehp.sum()),
-            "nav_dist": float(np.mean(np.hypot(fx - bx, fy - by))) if f_alive.any() and (bx>=0) and (by>=0) else 0.0,
+            "nav_dist": float(np.mean(np.hypot(fx - bx, fy - by))) if f_alive.any() and (bx >= 0) and (by >= 0) else 0.0,
             "combat_dist": float(np.mean(np.hypot(fx - cx, fy - cy))) if (e_alive.any() and f_alive.any()) else 0.0,
         }
 
+        # per-unit diagnostics keyed by tags (same structure as AM/RM mean env)
+        friend_dict = {}
+        for i in range(N_FRIEND):
+            tag = int(self._my_tags[i])
+            if tag != 0:
+                friend_dict[tag] = {
+                    "nav_r":    float(nav_per[i]),
+                    "combat_r": float(combat_per[i]),
+                    "hp":       float(fhp[i]),
+                }
+
+        enemy_dict = {}
+        for j in range(N_ENEMY):
+            etag = int(self._enemy_tags[j])
+            if etag != 0:
+                enemy_dict[etag] = {"hp": float(ehp[j])}
+
+        self._last_unit_metrics = {"friend": friend_dict, "enemy": enemy_dict}
+
         return float(nav_r + combat_r + term_r)
+
 
     def get_reward_components(self):
         return getattr(self, "_last_reward_components", {})
+
+    def get_friendly_tags(self):
+        return self._my_tags.copy()
+
+    def get_unit_metrics(self):
+        return getattr(self, "_last_unit_metrics", {"friend": {}, "enemy": {}})
