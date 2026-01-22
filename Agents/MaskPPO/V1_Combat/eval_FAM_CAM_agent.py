@@ -130,7 +130,7 @@ def mask_fn(env):
 # ─────────────────── model path ───────────────────
 MODEL_PATH = os.path.join(
     project_root, "Agents", "MaskPPO", map_name, "saved_models",
-    AGENT_NAME, f"{AGENT_NAME}_3500K.zip"
+    AGENT_NAME, f"{AGENT_NAME}_final.zip"
 )
 
 if not os.path.isfile(MODEL_PATH):
