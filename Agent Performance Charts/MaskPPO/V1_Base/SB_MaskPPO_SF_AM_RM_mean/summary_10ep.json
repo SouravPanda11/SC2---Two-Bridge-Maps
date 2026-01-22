@@ -4,8 +4,8 @@
   "episodes": 10,
   "seed": 0,
   "episode_counts": {
-    "nav_win": 4,
-    "combat_win": 6,
+    "nav_win": 2,
+    "combat_win": 8,
     "combat_loss": 0,
     "timeout_loss": 0,
     "tie": 0
@@ -18,5 +18,5 @@
     "SAVE_REPLAYS": false,
     "SHOW_OVERALL_PLOT": false
   },
-  "timestamp_local": "20260119_171826"
+  "timestamp_local": "20260121_222922"
 }

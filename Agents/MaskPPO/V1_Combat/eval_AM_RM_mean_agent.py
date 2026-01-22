@@ -17,11 +17,19 @@ from sb3_contrib.common.wrappers import ActionMasker
 # ─────────────────── env import (MODULAR) ─────────
 from Environments.AM_RM_mean.TB_env_SF_AM_RM_mean_V1_Combat import TwoBridgeEnv, N_FRIEND, N_ENEMY
 
+# ─────────────────── argparsing ───────────────────
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("--episodes", type=int, default=10)
+args = parser.parse_args()
+
+EPISODES = args.episodes
+
 # ==================================================
 #                  CONFIG
 # ==================================================
 SEED = 0
-EPISODES = 10
+# EPISODES = 10
 RENDER = False
 
 AGENT_NAME = "SB_MaskPPO_SF_AM_RM_mean"
