@@ -159,22 +159,15 @@ env.reset(seed=SEED)
 
 
 # ───────────────────── resume checkpoint ─────────────────────
-# Pick ONE of these patterns:
-
-# (A) Resume by K-timestep checkpoint name (matches your save convention)
-resume_k  = 1500  # e.g., 500, 1000, 1500, ..., 5000
+resume_k  = 3500  # e.g., 500, 1000, 1500, ..., 5000
 ckpt_path = f"{save_dir}{agent_name}_{resume_k}K.zip"
-
-# (B) Or point directly:
-# ckpt_path = r"./Agents/MaskPPO/V1_Combat_Cam/saved_models/SB_MaskPPO_FAM_CAM/SB_MaskPPO_FAM_CAM_1500K.zip"
-# resume_k  = int(os.path.basename(ckpt_path).split("_")[-1].replace("K.zip", ""))
 
 assert os.path.exists(ckpt_path), f"Checkpoint not found: {ckpt_path}"
 print(f"Resuming from: {ckpt_path}")
 
 model = MaskablePPO.load(
     ckpt_path,
-    env=env,                  # IMPORTANT: pass env again
+    env=env,                  
     device=device,
     tensorboard_log=tb_log_dir,
     seed=SEED
@@ -197,7 +190,7 @@ while steps_done < REMAINING:
 
     model.learn(
         total_timesteps=step_chunk,
-        reset_num_timesteps=False,   # keep global timestep continuity in TB + schedulers
+        reset_num_timesteps=False,   
         callback=tb_callback,
         progress_bar=True
     )
@@ -205,7 +198,6 @@ while steps_done < REMAINING:
     steps_done += step_chunk
     current_total = ALREADY_DONE + steps_done
 
-    # Save using TOTAL timesteps so filenames stay consistent
     model.save(f"{save_dir}{agent_name}_{current_total // 1000}K")
     print(f"Saved: {agent_name}_{current_total // 1000}K")
 
