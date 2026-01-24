@@ -17,11 +17,19 @@ from sb3_contrib.common.wrappers import ActionMasker
 # ─────────────────── env import (FAM_CAM) ─────────
 from Environments.FAM_CAM.TB_env_FAM_V2_Combat_Cam import TwoBridgeEnv, N_FRIEND, N_ENEMY
 
+# ─────────────────── argparsing ───────────────────
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("--episodes", type=int, default=10)
+args = parser.parse_args()
+
+EPISODES = args.episodes
+
 # ==================================================
 #                  CONFIG
 # ==================================================
 SEED = 0
-EPISODES = 10
+# EPISODES = 10
 RENDER = False
 
 AGENT_NAME = "SB_MaskPPO_FAM_CAM"   
