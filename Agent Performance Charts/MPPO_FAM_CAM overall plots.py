@@ -166,7 +166,7 @@ def plot_variant(variant: str):
     ax.set_yticklabels(TERMINAL_OUTCOMES, fontsize=10)
     ax.invert_yaxis()
 
-    # ax.set_title(f"{variant}", fontsize=12, fontweight="bold")
+    ax.set_title(f"{variant}", fontsize=12, fontweight="bold")
     ax.set_xlabel("Episode count", fontsize=10)
     ax.set_xlim(0, y_lim_top)
 

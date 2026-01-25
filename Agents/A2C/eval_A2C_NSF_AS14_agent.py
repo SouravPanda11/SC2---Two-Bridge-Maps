@@ -16,11 +16,19 @@ if project_root not in sys.path:
 # ─────────────────── env import ─────────
 from Environments.Pilot.TB_env_NSF_AS14_V2_Base import TwoBridgeEnv
 
+# ─────────────────── argparsing ───────────────────
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("--episodes", type=int, default=10)
+args = parser.parse_args()
+
+EPISODES = args.episodes
+
 # ==================================================
 #                  CONFIG
 # ==================================================
 SEED = 0
-EPISODES = 50
+# EPISODES = 10
 RENDER = False
 
 AGENT_NAME = "SB_A2C_NSF_AS14"
