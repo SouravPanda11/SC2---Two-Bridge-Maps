@@ -1,0 +1,22 @@
+{
+  "agent": "SB_MaskPPO_SF_AM_RM_mean",
+  "map": "V2_Combat",
+  "episodes": 200,
+  "seed": 0,
+  "episode_counts": {
+    "nav_win": 27,
+    "combat_win": 49,
+    "combat_loss": 123,
+    "timeout_loss": 1,
+    "tie": 0
+  },
+  "win_rate_percent": 38.0,
+  "saved_overall_plot": "C:\\Users\\sbp5911\\Visual Studio Code Workspace\\SC2---Two-Bridge-Maps\\Agent Performance Charts\\MaskPPO\\V2_Combat\\SB_MaskPPO_SF_AM_RM_mean\\performance_200_ep.png",
+  "flags": {
+    "DO_OVERALL_PERF": true,
+    "SAVE_EPISODE_DETAILS": false,
+    "SAVE_REPLAYS": false,
+    "SHOW_OVERALL_PLOT": false
+  },
+  "timestamp_local": "20260122_161942"
+}
