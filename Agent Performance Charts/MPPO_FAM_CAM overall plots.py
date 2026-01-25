@@ -2,17 +2,20 @@ import os, glob, json
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import re
 
 # ---- config ----
 ROOT = "Agent Performance Charts"
 OUT_DIR = os.path.join(ROOT, "MPPO Aggregate Plots")
 os.makedirs(OUT_DIR, exist_ok=True)
 
-# ✅ choose which model folder to plot (change only this)
+# choose which model folder to plot
 MODEL_NAME = "SB_MaskPPO_FAM_CAM"
 # MODEL_NAME = "SB_MaskPPO_SF_AM_RM_mean"
 
-# ✅ remove tie for plotting/aggregation
+# choose which evaluation episode-count to plot
+TARGET_EPISODES = 100
+
 TERMINAL_OUTCOMES = ["nav_win", "combat_win", "combat_loss", "timeout_loss"]
 
 VERSIONS = ["V1", "V2", "V3"]
@@ -27,6 +30,11 @@ def classify_variant(map_str: str) -> str:
 
 def classify_version(map_str: str) -> str:
     return map_str.split("_", 1)[0]
+
+def episodes_from_filename(path: str) -> int | None:
+    # matches summary_200ep.json -> 200
+    m = re.search(r"summary_(\d+)ep\.json$", os.path.basename(path))
+    return int(m.group(1)) if m else None
 
 # ---- load all summary jsons ----
 json_paths = glob.glob(os.path.join(ROOT, "**", "summary_*ep.json"), recursive=True)
@@ -47,6 +55,16 @@ for p in json_paths:
 
     with open(p, "r", encoding="utf-8") as f:
         d = json.load(f)
+    
+    # prefer value in JSON, fallback to filename
+    ep = d.get("episodes", None)
+    if ep is None:
+        ep = episodes_from_filename(p) or 0
+    ep = int(ep)
+
+    # ✅ filter by selected episode count
+    if TARGET_EPISODES is not None and ep != TARGET_EPISODES:
+        continue
 
     map_name = d.get("map", "")
     ver = classify_version(map_name)
@@ -59,11 +77,11 @@ for p in json_paths:
     row = {
         "path": p,
         "agent": d.get("agent", ""),
-        "model": model_dir,  # ✅ track model folder
+        "model": model_dir,
         "map": map_name,
         "version": ver,
         "variant": var,
-        "episodes": int(d.get("episodes", 0) or 0),
+        "episodes": ep,   
         "seed": d.get("seed", None),
     }
     for k in TERMINAL_OUTCOMES:
@@ -98,7 +116,7 @@ if bad.any():
     print(agg.loc[bad, ["variant", "version", "episodes"] + TERMINAL_OUTCOMES].to_string(index=False))
 
 # ✅ shared y-axis limit from eval episode totals (per-map, should be 10/20/etc.)
-y_lim_top = int(agg["episodes"].max())
+y_lim_top = TARGET_EPISODES if TARGET_EPISODES is not None else int(agg["episodes"].max())
 
 def plot_variant(variant: str):
     sub = agg[agg["variant"] == variant].copy()

@@ -15,7 +15,7 @@ from sb3_contrib import MaskablePPO
 from sb3_contrib.common.wrappers import ActionMasker
 
 # ─────────────────── env import (FAM_CAM) ─────────
-from Environments.FAM_CAM.TB_env_FAM_V2_Navigate_Cam import TwoBridgeEnv, N_FRIEND, N_ENEMY
+from Environments.FAM_CAM.TB_env_FAM_V3_Navigate_Cam import TwoBridgeEnv, N_FRIEND, N_ENEMY
 
 # ─────────────────── argparsing ───────────────────
 import argparse
@@ -33,7 +33,7 @@ SEED = 0
 RENDER = False
 
 AGENT_NAME = "SB_MaskPPO_FAM_CAM"   
-map_name   = "V2_Navigate"
+map_name   = "V3_Navigate"
 
 # ==================================================
 #                  FEATURE FLAGS

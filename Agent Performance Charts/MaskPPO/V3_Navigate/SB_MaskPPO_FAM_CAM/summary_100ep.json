@@ -1,0 +1,22 @@
+{
+  "agent": "SB_MaskPPO_FAM_CAM",
+  "map": "V3_Navigate",
+  "episodes": 100,
+  "seed": 0,
+  "episode_counts": {
+    "nav_win": 14,
+    "combat_win": 0,
+    "combat_loss": 0,
+    "timeout_loss": 86,
+    "tie": 0
+  },
+  "win_rate_percent": 14.0,
+  "saved_overall_plot": "C:\\Users\\sbp5911\\Visual Studio Code Workspace\\SC2---Two-Bridge-Maps\\Agent Performance Charts\\MaskPPO\\V3_Navigate\\SB_MaskPPO_FAM_CAM\\performance_100_ep.png",
+  "flags": {
+    "DO_OVERALL_PERF": true,
+    "SAVE_EPISODE_DETAILS": false,
+    "SAVE_REPLAYS": false,
+    "SHOW_OVERALL_PLOT": false
+  },
+  "timestamp_local": "20260125_002142"
+}
