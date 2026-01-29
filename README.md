@@ -7,16 +7,35 @@ Consequently, these files are **not required for running or evaluating the maps*
 
 ```
 SC2-Two-Bridge-Maps/
-├── Agents/                         # Training / evaluation entry-points
-│   ├── *train.py                   # SB3 scripts (A2C, PPO, Maskable-PPO …)
-│   ├── Agent Performance Charts/   # PNG win-rate curves
-│   └── saved_models/               # model checkpoints & “final.zip”
+├── Agent Performance Charts/           # Performance Plots
+|   ├── A2C
+|   ├── MPPO
+|   └── PPO
+├── Agents/                             # Training / evaluation entry-points
+|   ├── A2C
+│       ├── SB*train.py                 # Training scripts
+│       ├── eval_*.py                   # Evaluation scripts
+│       └── saved_models/               # model checkpoints & “final.zip”
+|   ├── MPPO
+│       ├── SB*train.py                 # Training scripts
+│       ├── eval_*.py                   # Evaluation scripts
+│       └── saved_models/               # model checkpoints & “final.zip”
+|   ├── PPO
+│       ├── SB*train.py                 # Training scripts
+│       ├── eval_*.py                   # Evaluation scripts
+│       └── saved_models/               # model checkpoints & “final.zip”
 │
 ├── Environments/                   # Gymnasium + PySC2 envs per map variant
-│   └── TB_env<variant>.py
+│       ├── AM_RM_mean                  # Experiment 2
+│           └── TB_env<variant>.py
+│       ├── FAM_CAM                     # Experiment 3
+│           └── TB_env<variant>.py
+│       └── Pilot                       # Experiment 1
+│           └── TB_env<variant>.py
 │
 ├── Maps/                           # *.SC2Map files (drop into SC2/Maps)
-│   └── TwoBridgeMap<Vi>_<mode>.SC2Map
+│   └── Camera Free                     # Experiment 2 map files
+│   └── Camera Lock                     # Experiment 3 map files
 │
 ├── tb_logs/                        # TensorBoard event files
 ├── register_bridge_map.py          # Utility: adds map to PySC2 registry
@@ -63,10 +82,10 @@ SC2-Two-Bridge-Maps/
 |------|------------|
 | **1. Install StarCraft II** | Same as above. |
 | **2. Copy the maps** | Same as above. |
-| **3. Clone this repo** | `git clone https://github.com/<user>/SC2-Two-Bridge-Maps.git` |
+| **3. Clone this repo** | |
 | **4. Set up Python** |  Create a virtual environment and install dependencies. |
-| **5. Train an Agent** | `python Agents/SB_PPO_SF_AS14_train.py`  → logs appear in `tb_logs/` for TensorBoard. |
-| **6. Skip training & just watch** | Use one of the evaluation scripts, such as `python Agents/eval_agent.py` (for action space 14), `python Agents/eval_AM_agent.py` (for action masking), or scenario-specific scripts like `eval_AM_combat_agent.py` and `eval_AM_navigate_agent.py`. |
+| **5. Train an Agent** | `python Agents/PPO/SB_PPO_SF_AS14_train.py`  → logs appear in `tb_logs/` for TensorBoard. |
+| **6. Skip training & just watch** | Use one of the evaluation scripts.. |
 
 ---
 
@@ -75,11 +94,11 @@ All scripts and environments have been tested on Windows only. Linux support is 
 
 ## Pre-Trained Agents
 
-| Algorithm | Obs. Space | Action Space | Map Variant | Checkpoints |
+| Algorithm | Obs. Space | Action Space | Map Variant | Training Timesteps |
 |-----------|------------|-------------|-------------|-------------|
-| **A2C**   | SF / NSF   | 14       | V2-Base | 400 K → 2 M |
-| **PPO**   | SF / NSF   | 14       | V2-Base | 100 K → 1 M(NSF) / 400 k → 2M(SF)|
-| **Mask-PPO** | SF      | AM       | V2-Base, V3-navigate, V3-combat | 400 K → 2 M |
+| **A2C**   | SF / NSF   | 14       | V2-Base | 2 M |
+| **PPO**   | SF / NSF   | 14       | V2-Base | 2 M|
+| **Mask-PPO** | SF      | AM       | Full Suite | 5 M |
 
 ## Acknowledgements
 
