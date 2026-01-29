@@ -39,12 +39,12 @@ env.reset(seed=SEED)
 
 # ───────────────────── model ─────────────────────
 model = sb3.PPO(
-    "MultiInputPolicy",     # spatial + vector obs
+    "MultiInputPolicy",     
     env,
     device=device,
     verbose=1,
     tensorboard_log=tb_log_dir,
-    seed=SEED               # IMPORTANT
+    seed=SEED               
 )
 
 # ───────────────────── training loop ─────────────────────
@@ -59,6 +59,5 @@ for i in range(0, TOTAL_TIMESTEPS, SAVE_INTERVAL):
     )
     model.save(f"{save_dir}{agent_name}_{(i + SAVE_INTERVAL) // 1000}K")
 
-# Final save
 model.save(f"{save_dir}{agent_name}_final")
 env.close()

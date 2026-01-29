@@ -67,15 +67,15 @@ class FlattenActionWrapper(Wrapper):
 
     def _convert_mask(self, obs):
         am = obs["action_mask"]
-        verb_mask = np.asarray(am["verb"], dtype=np.int8)  # (3,)
+        verb_mask = np.asarray(am["verb"], dtype=np.int8)  
 
-        who_bits = np.asarray(am["who"], dtype=np.int8)    # (N_FRIEND,)
+        who_bits = np.asarray(am["who"], dtype=np.int8)    
         who_pairs = []
         for b in who_bits:
-            who_pairs.extend([1, int(b)])  # allow_0 always, allow_1 iff b==1
+            who_pairs.extend([1, int(b)]) 
 
-        direction_mask = np.asarray(am["direction"], dtype=np.int8)   # (9,)
-        enemy_mask     = np.asarray(am["enemy_idx"], dtype=np.int8)   # (N_ENEMY+1,)
+        direction_mask = np.asarray(am["direction"], dtype=np.int8)   
+        enemy_mask     = np.asarray(am["enemy_idx"], dtype=np.int8)   
 
         flat_mask = np.concatenate([
             verb_mask,

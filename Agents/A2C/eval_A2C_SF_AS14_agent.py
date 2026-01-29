@@ -119,7 +119,6 @@ for ep in range(EPISODES):
         act, _ = model.predict(obs, deterministic=True)
 
         if SAVE_EPISODE_DETAILS:
-            # Dict obs -> tensor dict
             obs_tensor = {
                 k: torch.as_tensor(v, dtype=torch.float32, device=model.device).unsqueeze(0)
                 for k, v in obs.items()

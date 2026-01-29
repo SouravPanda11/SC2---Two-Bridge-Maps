@@ -108,7 +108,6 @@ class FlattenActionWrapper(Wrapper):
             dir_m  = np.asarray(am["direction"], dtype=np.int8).reshape(-1)
             ene_m  = np.asarray(am["enemy_idx"], dtype=np.int8).reshape(-1)
 
-            # sanity: make sure lengths match what we think
             if verb_m.size != 3:
                 raise ValueError(f"verb mask size {verb_m.size} != 3")
             if who_m.size != N_FRIEND:
@@ -120,7 +119,6 @@ class FlattenActionWrapper(Wrapper):
 
             flat_head = np.concatenate([verb_m, who_m, dir_m, ene_m]).astype(np.int8)
         else:
-            # If you ever switch back to a flat verb-only mask, this keeps it from crashing.
             flat_head = np.asarray(am, dtype=np.int8).reshape(-1)
 
         flat_mask = np.concatenate([flat_head[:3], self._mask_template]).astype(np.int8)

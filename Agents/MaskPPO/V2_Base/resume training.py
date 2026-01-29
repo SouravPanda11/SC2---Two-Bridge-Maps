@@ -124,7 +124,6 @@ env.reset(seed=SEED)
 
 
 # ───────────────────── resume checkpoint ─────────────────────
-# Point this to the checkpoint you have:
 resume_k = 3500  # in K timesteps
 ckpt_path = f"{save_dir}{agent_name}_{resume_k}K.zip"
 
@@ -133,7 +132,7 @@ print(f"Resuming from: {ckpt_path}")
 
 model = MaskablePPO.load(
     ckpt_path,
-    env=env,                  # IMPORTANT: pass env again
+    env=env,                  
     device=device,
     tensorboard_log=tb_log_dir,
     seed=SEED
@@ -149,7 +148,6 @@ tb_callback     = TBRewardLogger()
 
 print(f"Already done: {ALREADY_DONE} | Remaining: {REMAINING}")
 
-# Continue in chunks (saves at consistent points)
 steps_done = 0
 while steps_done < REMAINING:
     step_chunk = min(SAVE_INTERVAL, REMAINING - steps_done)
@@ -164,7 +162,6 @@ while steps_done < REMAINING:
     steps_done += step_chunk
     current_total = ALREADY_DONE + steps_done
 
-    # Save a checkpoint named by total timesteps (e.g., 4000K, 4500K, 5000K)
     model.save(f"{save_dir}{agent_name}_{current_total // 1000}K")
 
 model.save(f"{save_dir}{agent_name}_final")

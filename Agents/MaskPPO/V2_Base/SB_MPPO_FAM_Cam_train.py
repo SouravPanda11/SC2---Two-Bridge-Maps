@@ -189,8 +189,6 @@ model = MaskablePPO(
 # ───────────────────── training loop ──────────────────────────
 TOTAL_TIMESTEPS = 5_000_000
 SAVE_INTERVAL   = 500_000
-# TOTAL_TIMESTEPS = 10
-# SAVE_INTERVAL   = 3
 
 tb_callback = TBRewardLogger()
 
@@ -202,7 +200,6 @@ for i in range(0, TOTAL_TIMESTEPS, SAVE_INTERVAL):
         progress_bar=True
     )
     model.save(f"{save_dir}{agent_name}_{(i + SAVE_INTERVAL) // 1000}K")
-    # model.save(f"{save_dir}{agent_name}_{(i + SAVE_INTERVAL)}")
 
 model.save(f"{save_dir}{agent_name}_final")
 env.close()

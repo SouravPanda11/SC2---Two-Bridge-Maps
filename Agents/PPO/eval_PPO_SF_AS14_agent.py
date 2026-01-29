@@ -118,9 +118,7 @@ for ep in range(EPISODES):
     while not done:
         act, _ = model.predict(obs, deterministic=True)
 
-        # value estimate only if needed
         if SAVE_EPISODE_DETAILS:
-            # Dict obs -> tensor dict for SB3 policy.predict_values
             obs_tensor = {
                 k: torch.as_tensor(v, dtype=torch.float32, device=model.device).unsqueeze(0)
                 for k, v in obs.items()
@@ -135,7 +133,6 @@ for ep in range(EPISODES):
         if SAVE_EPISODE_DETAILS:
             step = {"reward": float(rew), "value_estimate": (float(v_hat) if v_hat is not None else None)}
 
-            # log decomposed components from env if available
             base = unwrap_env(env)
             if hasattr(base, "get_reward_components"):
                 try:

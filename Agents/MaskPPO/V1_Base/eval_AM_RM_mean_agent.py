@@ -159,7 +159,7 @@ def unwrap_env(env_):
     return env_
 
 for ep in range(EPISODES):
-    obs, _ = env.reset(seed=SEED + ep)  # optional: different episode seeds but still reproducible
+    obs, _ = env.reset(seed=SEED + ep)  
     done = False
 
     logs = [] if SAVE_EPISODE_DETAILS else None
@@ -169,7 +169,6 @@ for ep in range(EPISODES):
     while not done:
         act, _ = model.predict(obs, deterministic=True)
 
-        # value estimate only if needed
         if SAVE_EPISODE_DETAILS:
             obs_tensor = {k: torch.tensor(v).float().unsqueeze(0).to(model.device) for k, v in obs.items()}
             with torch.no_grad():

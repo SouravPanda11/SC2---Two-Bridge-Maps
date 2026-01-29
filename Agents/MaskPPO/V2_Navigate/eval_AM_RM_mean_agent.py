@@ -159,7 +159,7 @@ def unwrap_env(env_):
     return env_
 
 for ep in range(EPISODES):
-    obs, _ = env.reset(seed=SEED + ep)  # optional: different episode seeds but still reproducible
+    obs, _ = env.reset(seed=SEED + ep)  
     done = False
 
     logs = [] if SAVE_EPISODE_DETAILS else None
@@ -169,7 +169,6 @@ for ep in range(EPISODES):
     while not done:
         act, _ = model.predict(obs, deterministic=True)
 
-        # value estimate only if needed
         if SAVE_EPISODE_DETAILS:
             obs_tensor = {k: torch.tensor(v).float().unsqueeze(0).to(model.device) for k, v in obs.items()}
             with torch.no_grad():
@@ -255,7 +254,7 @@ print("\nEpisode counts:", episode_counts)
 print(f"Win rate: {win_pct:.1f}%")
 
 if SAVE_OVERALL_SUMMARY_TO_FILE:
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S")  # keep in json content (optional)
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")  
 
     summary = {
         "agent": AGENT_NAME,
@@ -271,10 +270,9 @@ if SAVE_OVERALL_SUMMARY_TO_FILE:
             "SAVE_REPLAYS": SAVE_REPLAYS,
             "SHOW_OVERALL_PLOT": SHOW_OVERALL_PLOT,
         },
-        "timestamp_local": ts,  # optional metadata; not used in filename
+        "timestamp_local": ts,  
     }
 
-    # ✅ overwrite same file every time (prevents accumulating duplicates)
     json_path = os.path.join(performance_root, f"summary_{EPISODES}ep.json")
 
     with open(json_path, "w", encoding="utf-8") as f:

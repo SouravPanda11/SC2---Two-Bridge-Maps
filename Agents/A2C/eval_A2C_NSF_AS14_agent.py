@@ -77,7 +77,7 @@ if SAVE_EPISODE_DETAILS or SAVE_REPLAYS:
 
         if SAVE_EPISODE_DETAILS:
             folders[rk]["plots"] = os.path.join(perf_dir, "EpRds_vs_Values")
-            folders[rk]["csv"]   = os.path.join(perf_dir, "Decomposed_reward")  # optional
+            folders[rk]["csv"]   = os.path.join(perf_dir, "Decomposed_reward")  
             os.makedirs(folders[rk]["plots"], exist_ok=True)
             os.makedirs(folders[rk]["csv"], exist_ok=True)
 
@@ -119,7 +119,6 @@ for ep in range(EPISODES):
     while not done:
         act, _ = model.predict(obs, deterministic=True)
 
-        # value estimate only if needed
         if SAVE_EPISODE_DETAILS:
             obs_tensor = torch.as_tensor(obs, dtype=torch.float32, device=model.device).unsqueeze(0)
             with torch.no_grad():

@@ -80,24 +80,22 @@ class FlattenActionWrapper(Wrapper):
             "enemy_idx": (N_ENEMY+1,)
           }
         """
-        am = obs["action_mask"]  # dict of np.int8 arrays
-        verb_mask = np.asarray(am["verb"], dtype=np.int8)  # (3,)
+        am = obs["action_mask"]  
+        verb_mask = np.asarray(am["verb"], dtype=np.int8)  
 
-        # For each who_i (∈ {0,1}), make a 2-entry mask: [allow_0, allow_1]
-        who_bits = np.asarray(am["who"], dtype=np.int8)    # (N_FRIEND,)
+        who_bits = np.asarray(am["who"], dtype=np.int8)    
         who_pairs = []
         for b in who_bits:
-            # 0 (don't select) always valid; 1 valid iff unit alive (b==1)
             who_pairs.extend([1, int(b)])
 
-        direction_mask = np.asarray(am["direction"], dtype=np.int8)        # (9,)
-        enemy_mask     = np.asarray(am["enemy_idx"], dtype=np.int8)        # (N_ENEMY+1,)
+        direction_mask = np.asarray(am["direction"], dtype=np.int8)       
+        enemy_mask     = np.asarray(am["enemy_idx"], dtype=np.int8)        
 
         flat_mask = np.concatenate([
-            verb_mask,                     # 3
-            np.asarray(who_pairs, np.int8),# 2*N_FRIEND
-            direction_mask,                # 9
-            enemy_mask                     # N_ENEMY+1
+            verb_mask,                     
+            np.asarray(who_pairs, np.int8),
+            direction_mask,                
+            enemy_mask                     
         ], dtype=np.int8)
 
         obs["action_mask"] = flat_mask
@@ -114,7 +112,6 @@ class FlattenActionWrapper(Wrapper):
         obs = self._convert_mask(obs)
         return obs, info
 
-    # ActionMasker will call this to fetch the current mask
     def action_masks(self):
         return self._last_mask
 
@@ -189,8 +186,6 @@ model = MaskablePPO(
 # ───────────────────── training loop ──────────────────────────
 TOTAL_TIMESTEPS = 5_000_000
 SAVE_INTERVAL   = 500_000
-# TOTAL_TIMESTEPS = 10
-# SAVE_INTERVAL   = 3
 
 tb_callback = TBRewardLogger()
 
@@ -202,7 +197,6 @@ for i in range(0, TOTAL_TIMESTEPS, SAVE_INTERVAL):
         progress_bar=True
     )
     model.save(f"{save_dir}{agent_name}_{(i + SAVE_INTERVAL) // 1000}K")
-    # model.save(f"{save_dir}{agent_name}_{(i + SAVE_INTERVAL)}")
 
 model.save(f"{save_dir}{agent_name}_final")
 env.close()

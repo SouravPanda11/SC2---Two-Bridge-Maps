@@ -39,7 +39,7 @@ env.reset(seed=SEED)
 
 # ───────────────────── model ─────────────────────
 model = sb3.A2C(
-    "MultiInputPolicy",     # spatial + vector obs (dict obs)
+    "MultiInputPolicy",     
     env,
     device=device,
     verbose=1,
@@ -65,6 +65,5 @@ for i in range(0, TOTAL_TIMESTEPS, SAVE_INTERVAL):
     )
     model.save(f"{save_dir}{agent_name}_{(i + SAVE_INTERVAL) // 1000}K")
 
-# Final save
 model.save(f"{save_dir}{agent_name}_final")
 env.close()

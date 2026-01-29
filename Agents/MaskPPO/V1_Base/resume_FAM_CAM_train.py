@@ -10,7 +10,6 @@ from sb3_contrib import MaskablePPO
 from sb3_contrib.common.wrappers import ActionMasker
 from stable_baselines3.common.callbacks import BaseCallback
 
-# Environment imports (MUST match the training file)
 from Environments.FAM_CAM.TB_env_FAM_V1_Base_Cam import TwoBridgeEnv, N_FRIEND, N_ENEMY
 
 # ───────────────────── Reproducibility (single seed) ─────────────────────
@@ -65,15 +64,15 @@ class FlattenActionWrapper(Wrapper):
 
     def _convert_mask(self, obs):
         am = obs["action_mask"]
-        verb_mask = np.asarray(am["verb"], dtype=np.int8)  # (3,)
+        verb_mask = np.asarray(am["verb"], dtype=np.int8)  
 
-        who_bits = np.asarray(am["who"], dtype=np.int8)    # (N_FRIEND,)
+        who_bits = np.asarray(am["who"], dtype=np.int8)    
         who_pairs = []
         for b in who_bits:
-            who_pairs.extend([1, int(b)])  # allow_0 always, allow_1 iff b==1
+            who_pairs.extend([1, int(b)])  
 
-        direction_mask = np.asarray(am["direction"], dtype=np.int8)   # (9,)
-        enemy_mask     = np.asarray(am["enemy_idx"], dtype=np.int8)   # (N_ENEMY+1,)
+        direction_mask = np.asarray(am["direction"], dtype=np.int8)   
+        enemy_mask     = np.asarray(am["enemy_idx"], dtype=np.int8)   
 
         flat_mask = np.concatenate([
             verb_mask,
@@ -163,7 +162,7 @@ print(f"Resuming from: {ckpt_path}")
 
 model = MaskablePPO.load(
     ckpt_path,
-    env=env,                  # IMPORTANT: pass env again
+    env=env,                  
     device=device,
     tensorboard_log=tb_log_dir,
     seed=SEED
@@ -186,7 +185,7 @@ while steps_done < REMAINING:
 
     model.learn(
         total_timesteps=step_chunk,
-        reset_num_timesteps=False,   # keep global timestep continuity in TB + schedulers
+        reset_num_timesteps=False,   
         callback=tb_callback,
         progress_bar=True
     )
@@ -194,7 +193,6 @@ while steps_done < REMAINING:
     steps_done += step_chunk
     current_total = ALREADY_DONE + steps_done
 
-    # Save using TOTAL timesteps so filenames stay consistent
     model.save(f"{save_dir}{agent_name}_{current_total // 1000}K")
     print(f"Saved: {agent_name}_{current_total // 1000}K")
 
