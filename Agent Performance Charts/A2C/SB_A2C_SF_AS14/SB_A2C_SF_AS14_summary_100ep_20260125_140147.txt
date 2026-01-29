@@ -1,0 +1,10 @@
+Agent: SB_A2C_SF_AS14
+Map: V2_Base
+Episodes: 100
+Seed: 0
+
+Episode counts: {'nav_win': 17, 'combat_win': 0, 'combat_loss': 9, 'timeout_loss': 74, 'tie': 0}
+Win rate: 17.0%
+Overall plot: C:\Users\sbp5911\Visual Studio Code Workspace\SC2---Two-Bridge-Maps\Agent Performance Charts\A2C\SB_A2C_SF_AS14\SB_A2C_SF_AS14_performance_100_ep.png
+
+Flags: {'DO_OVERALL_PERF': True, 'SAVE_EPISODE_DETAILS': False, 'SAVE_REPLAYS': False, 'SHOW_OVERALL_PLOT': False}

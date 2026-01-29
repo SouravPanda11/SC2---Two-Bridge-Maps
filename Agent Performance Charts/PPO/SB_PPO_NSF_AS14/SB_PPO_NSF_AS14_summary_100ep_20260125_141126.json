@@ -1,0 +1,22 @@
+{
+  "agent": "SB_PPO_NSF_AS14",
+  "map": "V2_Base",
+  "episodes": 100,
+  "seed": 0,
+  "episode_counts": {
+    "nav_win": 18,
+    "combat_win": 0,
+    "combat_loss": 13,
+    "timeout_loss": 69,
+    "tie": 0
+  },
+  "win_rate_percent": 18.0,
+  "saved_overall_plot": "C:\\Users\\sbp5911\\Visual Studio Code Workspace\\SC2---Two-Bridge-Maps\\Agent Performance Charts\\PPO\\SB_PPO_NSF_AS14\\SB_PPO_NSF_AS14_performance_100_ep.png",
+  "flags": {
+    "DO_OVERALL_PERF": true,
+    "SAVE_EPISODE_DETAILS": false,
+    "SAVE_REPLAYS": false,
+    "SHOW_OVERALL_PLOT": false
+  },
+  "timestamp_local": "20260125_141126"
+}
