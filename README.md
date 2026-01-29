@@ -47,8 +47,8 @@ SC2-Two-Bridge-Maps/
 
 - **Environments/** – Each `TB_env<variant>.py` wraps a custom map as a Gymnasium env (hybrid multi-discrete actions, optional action-mask).
 - **Agents/** – `*train.py` scripts that launch Stable-Baselines 3 runs and log to TensorBoard.
-- **Pre-trained policies** – All checkpoints (`final.zip` plus intermediates) live in `Agents/saved_models/<run-id>/`; load them with the supplied `eval_*` scripts to reproduce the paper’s results or watch qualitative behaviour.
-- **Performance curves** – Win-rate PNGs are in `Agents/Agent Performance Charts/`.
+- **Pre-trained policies** – All checkpoints (`final.zip`) live in `Agents/<model-name>/saved_models/`; load them with the supplied `eval_*` scripts to reproduce the paper’s results or watch qualitative behaviour.
+- **Performance curves** – Win-rate PNGs are in `Agent Performance Charts/`.
 
 ### Naming convention
 
