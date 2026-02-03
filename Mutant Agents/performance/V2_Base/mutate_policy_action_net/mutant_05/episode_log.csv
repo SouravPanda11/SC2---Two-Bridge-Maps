@@ -1,0 +1,6 @@
+episode,seed,return,length,outcome
+0,4242,49.32173778349534,175,nav_win
+1,4243,-19.655478013679385,599,timeout_loss
+2,4244,-15.0,599,timeout_loss
+3,4245,-15.0,599,timeout_loss
+4,4246,-15.0,599,timeout_loss

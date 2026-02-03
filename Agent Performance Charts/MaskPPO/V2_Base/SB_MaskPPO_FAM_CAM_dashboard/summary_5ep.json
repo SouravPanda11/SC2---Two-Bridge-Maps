@@ -1,0 +1,22 @@
+{
+  "agent": "SB_MaskPPO_FAM_CAM",
+  "map": "V2_Base",
+  "episodes": 5,
+  "seed": 0,
+  "episode_counts": {
+    "nav_win": 0,
+    "combat_win": 2,
+    "combat_loss": 3,
+    "timeout_loss": 0,
+    "tie": 0
+  },
+  "win_rate_percent": 40.0,
+  "saved_overall_plot": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Agent Performance Charts\\MaskPPO\\V2_Base\\SB_MaskPPO_FAM_CAM_dashboard\\SB_MaskPPO_FAM_CAM_performance_5_ep.png",
+  "flags": {
+    "DO_OVERALL_PERF": true,
+    "SAVE_EPISODE_DETAILS": true,
+    "SAVE_REPLAYS": true,
+    "SHOW_OVERALL_PLOT": true
+  },
+  "timestamp_local": "20260203_180042"
+}

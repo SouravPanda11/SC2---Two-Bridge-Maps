@@ -1,0 +1,11 @@
+{
+  "model_path": "Mutant Agents\\V2_Base_mutants\\mutate_policy_action_net\\mutant_04.zip",
+  "n_episodes": 5,
+  "return_mean": 15.718718730797994,
+  "return_std": 21.12423448362115,
+  "len_mean": 121.8,
+  "len_std": 34.64909811236073,
+  "outcome_counts": {
+    "combat_loss": 5
+  }
+}
