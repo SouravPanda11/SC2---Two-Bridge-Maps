@@ -140,7 +140,7 @@ h1 {
 .paper-title {
   margin: 0 auto;
   max-width: none;
-  font-size: clamp(1.35rem, 2.3vw, 1.72rem);
+  font-size: clamp(1.5rem, 2.6vw, 1.9rem);
   line-height: 1.28;
   color: #101a2f;
 }
@@ -153,7 +153,7 @@ h1 {
 .author-line {
   margin: 1.15rem 0 0;
   color: var(--ink-soft);
-  font-size: clamp(0.98rem, 2.1vw, 1.35rem);
+  font-size: clamp(1.02rem, 2vw, 1.38rem);
   font-weight: 500;
 }
 
@@ -165,7 +165,7 @@ h1 {
 
 .abstract-title {
   margin: 2rem 0 0;
-  font-size: clamp(1.65rem, 3.8vw, 2.5rem);
+  font-size: clamp(1.02rem, 2vw, 1.38rem);
 }
 
 .abstract-card {
