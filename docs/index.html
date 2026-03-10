@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Two-Bridge Benchmark (StarCraft II): a reproducible reinforcement learning benchmark bridging mini-games and full-game complexity.">
+  <title>Two-Bridge Benchmark (StarCraft II)</title>
+
+  <!-- Fonts: lightweight, academic-friendly pair -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Spectral:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#overview">Skip to content</a>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="#top">Two-Bridge Benchmark</a>
+      <nav aria-label="Primary">
+        <ul class="nav-list">
+          <li><a href="#overview">Overview</a></li>
+          <li><a href="#benchmark">Benchmark</a></li>
+          <li><a href="#repository">Repository</a></li>
+          <li><a href="#results">Results</a></li>
+          <li><a href="#replays">Replays</a></li>
+          <li><a href="#reproducibility">Reproducibility</a></li>
+          <li><a href="#citation">Citation</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="container hero-inner">
+        <!-- Edit title/subtitle/authors here -->
+        <p class="eyebrow">Project Website</p>
+        <h1>Two-Bridge Benchmark (StarCraft II)</h1>
+        <p class="subtitle">
+          A reproducible StarCraft II reinforcement learning benchmark for accessible experimentation beyond mini-game simplicity.
+        </p>
+        <p class="summary">
+          Two-Bridge Benchmark introduces camera-free and camera-lock task variants across Base, Navigate, and Combat objectives with V1-V3 difficulty scaling, supported by PySC2 + Gymnasium wrappers and Stable-Baselines3 baselines.
+        </p>
+
+        <!-- Replace placeholder links below -->
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="PAPER_LINK" target="_blank" rel="noopener">Paper</a>
+          <a class="btn btn-secondary" href="REPO_LINK" target="_blank" rel="noopener">Code</a>
+          <a class="btn btn-secondary" href="README_LINK" target="_blank" rel="noopener">README</a>
+          <a class="btn btn-secondary" href="#citation">Citation</a>
+          <a class="btn btn-secondary" href="#replays">Replays</a>
+        </div>
+
+        <p class="meta">
+          Optional: <a href="ARXIV_LINK" target="_blank" rel="noopener">arXiv</a> |
+          Last updated: <span id="last-updated">2026</span>
+        </p>
+      </div>
+    </section>
+
+    <section id="overview" class="section">
+      <div class="container">
+        <h2>Overview</h2>
+        <p>
+          The Two-Bridge Benchmark is a custom StarCraft II benchmark designed to support accessible, reproducible reinforcement learning research in a richer environment than typical micro mini-games.
+        </p>
+        <p>
+          It bridges the gap between overly simplified testbeds and full-game SC2 complexity through structured map variants, transparent trigger logic, and consistent evaluation pathways. The benchmark emphasizes reproducibility through explicit map assets, task variants, and baseline implementations.
+        </p>
+      </div>
+    </section>
+
+    <section id="benchmark" class="section">
+      <div class="container">
+        <h2>Benchmark at a Glance</h2>
+        <div class="card-grid compact-grid">
+          <article class="info-card">
+            <h3>Map Families / Variants</h3>
+            <p>Camera-free and camera-lock map families with scenario-specific variants.</p>
+          </article>
+          <article class="info-card">
+            <h3>Objectives</h3>
+            <p>Base, Navigate, and Combat tasks covering complementary control challenges.</p>
+          </article>
+          <article class="info-card">
+            <h3>Difficulty Versions</h3>
+            <p>V1, V2, and V3 progression for curriculum-style scaling and stress tests.</p>
+          </article>
+          <article class="info-card">
+            <h3>Baselines</h3>
+            <p>A2C, PPO, and Maskable PPO with Stable-Baselines3-compatible workflows.</p>
+          </article>
+          <article class="info-card">
+            <h3>Environment Wrappers</h3>
+            <p>PySC2 and Gymnasium wrappers for standardized interfaces and reproducible rollouts.</p>
+          </article>
+          <article class="info-card">
+            <h3>Artifacts</h3>
+            <p>Pretrained checkpoints, TensorBoard logs, replays, and evaluation outputs.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="repository" class="section">
+      <div class="container">
+        <h2>Repository Contents</h2>
+        <p class="section-intro">
+          The repository is organized for clear separation between map logic, environment APIs, training agents, and analysis outputs.
+        </p>
+        <div class="card-grid">
+          <article class="repo-card">
+            <h3><code>Maps/</code></h3>
+            <p>Custom SC2 maps and trigger-defined benchmark logic.</p>
+          </article>
+          <article class="repo-card">
+            <h3><code>Environments/</code></h3>
+            <p>Gymnasium and PySC2-compatible wrappers for task execution.</p>
+          </article>
+          <article class="repo-card">
+            <h3><code>Agents/</code></h3>
+            <p>Baseline training and evaluation scripts for A2C/PPO variants.</p>
+          </article>
+          <article class="repo-card">
+            <h3><code>Mutant Agents/</code></h3>
+            <p>Mutant-agent analysis workflows and perturbation-based studies.</p>
+          </article>
+          <article class="repo-card">
+            <h3><code>Replays/</code></h3>
+            <p>Replay artifacts for qualitative behavior inspection.</p>
+          </article>
+          <article class="repo-card">
+            <h3><code>Agent Performance Charts/</code> + <code>tb_logs/</code></h3>
+            <p>Training curves, evaluation plots, and experiment diagnostics.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="results" class="section">
+      <div class="container">
+        <h2>Results and Highlights</h2>
+        <p class="section-intro">
+          Replace each placeholder figure with benchmark plots or qualitative analysis visuals. Click any figure to expand.
+        </p>
+        <div class="media-grid">
+          <!-- Replace FIGURE_X_PATH placeholders with real files inside docs/assets/figures/ -->
+          <figure class="media-card">
+            <button class="media-thumb js-open-modal" type="button" data-full="assets/figures/FIGURE_1_PATH" data-caption="Figure 1. Learning curves across task variants.">
+              <img src="assets/figures/FIGURE_1_PATH" alt="Figure 1 placeholder">
+              <span class="media-fallback">Replace with FIGURE_1_PATH</span>
+            </button>
+            <figcaption><strong>Figure 1:</strong> Learning curves across Base/Navigate/Combat.</figcaption>
+          </figure>
+
+          <figure class="media-card">
+            <button class="media-thumb js-open-modal" type="button" data-full="assets/figures/FIGURE_2_PATH" data-caption="Figure 2. Sample-efficiency comparison by algorithm.">
+              <img src="assets/figures/FIGURE_2_PATH" alt="Figure 2 placeholder">
+              <span class="media-fallback">Replace with FIGURE_2_PATH</span>
+            </button>
+            <figcaption><strong>Figure 2:</strong> Sample-efficiency comparison by baseline.</figcaption>
+          </figure>
+
+          <figure class="media-card">
+            <button class="media-thumb js-open-modal" type="button" data-full="assets/figures/FIGURE_3_PATH" data-caption="Figure 3. Difficulty transfer from V1 to V3.">
+              <img src="assets/figures/FIGURE_3_PATH" alt="Figure 3 placeholder">
+              <span class="media-fallback">Replace with FIGURE_3_PATH</span>
+            </button>
+            <figcaption><strong>Figure 3:</strong> Performance transfer across V1-V3.</figcaption>
+          </figure>
+
+          <figure class="media-card">
+            <button class="media-thumb js-open-modal" type="button" data-full="assets/figures/FIGURE_4_PATH" data-caption="Figure 4. Policy behavior summaries and failure modes.">
+              <img src="assets/figures/FIGURE_4_PATH" alt="Figure 4 placeholder">
+              <span class="media-fallback">Replace with FIGURE_4_PATH</span>
+            </button>
+            <figcaption><strong>Figure 4:</strong> Qualitative policy behavior and failure cases.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section id="replays" class="section">
+      <div class="container">
+        <h2>Replay and Media</h2>
+        <p class="section-intro">
+          Example snippets of agent behavior. Replace placeholders with MP4 clips or GIF thumbnails from benchmark rollouts.
+        </p>
+        <div class="media-grid">
+          <!-- Replace REPLAY_X_PATH with files inside docs/assets/replays/ -->
+          <article class="media-card">
+            <div class="replay-frame">
+              <video controls preload="metadata">
+                <source src="assets/replays/REPLAY_1_PATH" type="video/mp4">
+              </video>
+              <span class="media-fallback">Replace with REPLAY_1_PATH (MP4/GIF)</span>
+            </div>
+            <p><strong>Replay 1:</strong> Base task behavior under V1 conditions.</p>
+          </article>
+
+          <article class="media-card">
+            <div class="replay-frame">
+              <video controls preload="metadata">
+                <source src="assets/replays/REPLAY_2_PATH" type="video/mp4">
+              </video>
+              <span class="media-fallback">Replace with REPLAY_2_PATH (MP4/GIF)</span>
+            </div>
+            <p><strong>Replay 2:</strong> Navigate policy under constrained camera settings.</p>
+          </article>
+
+          <article class="media-card">
+            <div class="replay-frame">
+              <video controls preload="metadata">
+                <source src="assets/replays/REPLAY_3_PATH" type="video/mp4">
+              </video>
+              <span class="media-fallback">Replace with REPLAY_3_PATH (MP4/GIF)</span>
+            </div>
+            <p><strong>Replay 3:</strong> Combat dynamics and tactical adaptation.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="reproducibility" class="section">
+      <div class="container">
+        <h2>Reproducibility</h2>
+        <p class="section-intro">
+          Minimal setup summary for reproducing benchmark runs. See the repository README for full environment and experiment details.
+        </p>
+        <div class="repro-box">
+<pre><code># 1) Install StarCraft II (Linux/Windows)
+# 2) Copy benchmark maps into your SC2 Maps directory
+# 3) Create and activate Python environment
+# 4) Install dependencies
+pip install -r requirements.txt
+
+# 5) Train or evaluate baseline agents
+python Agents/&lt;your_script&gt;.py</code></pre>
+        </div>
+        <p>
+          Full setup guide: <a href="README_LINK" target="_blank" rel="noopener">README</a>
+        </p>
+      </div>
+    </section>
+
+    <section id="citation" class="section">
+      <div class="container">
+        <h2>Citation</h2>
+        <p>Please cite the benchmark if it contributes to your research.</p>
+        <div class="citation-wrap">
+          <button id="copy-citation" class="btn btn-secondary" type="button" data-copy-target="bibtex-block">Copy BibTeX</button>
+          <span id="copy-status" aria-live="polite"></span>
+        </div>
+        <!-- Replace BIBTEX_PLACEHOLDER with your final BibTeX -->
+        <pre><code id="bibtex-block">@misc{BIBTEX_PLACEHOLDER,
+  title        = {Two-Bridge Benchmark (StarCraft II)},
+  author       = {AUTHOR_1 and AUTHOR_2 and AUTHOR_3},
+  year         = {2026},
+  howpublished = {GitHub repository},
+  url          = {REPO_LINK}
+}</code></pre>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-wrap">
+      <p>
+        <a href="REPO_LINK" target="_blank" rel="noopener">Repository</a> |
+        <a href="README_LINK" target="_blank" rel="noopener">README</a> |
+        <a href="PAPER_LINK" target="_blank" rel="noopener">Paper (PDF)</a>
+      </p>
+      <p>Open-source educational research project. Not affiliated with Blizzard Entertainment.</p>
+    </div>
+  </footer>
+
+  <!-- Lightweight modal for figure enlargement -->
+  <div id="figure-modal" class="modal" role="dialog" aria-modal="true" aria-label="Expanded figure" hidden>
+    <button id="modal-close" class="modal-close" type="button" aria-label="Close">&times;</button>
+    <img id="modal-image" src="" alt="">
+    <p id="modal-caption"></p>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
