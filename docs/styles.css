@@ -385,6 +385,10 @@ pre code {
   padding: 1.3rem;
 }
 
+.modal[hidden] {
+  display: none;
+}
+
 .modal img {
   max-width: min(92vw, 1180px);
   max-height: 78vh;
