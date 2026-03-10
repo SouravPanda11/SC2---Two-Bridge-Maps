@@ -6,7 +6,7 @@ This folder is a static GitHub Pages site for the public-facing project/paper pa
 
 - `index.html`: content and section structure
 - `styles.css`: visual style and responsive layout
-- `script.js`: active nav, figure modal, citation copy button, media placeholders
+- `script.js`: active nav, citation copy button, media placeholder handling
 - `assets/figures/`: place figure images here
 - `assets/replays/`: place replay clips or GIF thumbnails here
 - `assets/icons/`: optional icons or logos
@@ -21,7 +21,7 @@ This folder is a static GitHub Pages site for the public-facing project/paper pa
    - `README_LINK`
 3. Replace figure placeholders:
    - `FIGURE_1_PATH`, `FIGURE_2_PATH`, ...
-   - Put files in `assets/figures/` and update the corresponding `src` and `data-full`.
+   - Put files in `assets/figures/` and update the corresponding `src`.
 4. Replace replay placeholders:
    - `REPLAY_1_PATH`, `REPLAY_2_PATH`, ...
    - Put media in `assets/replays/` and update the `<source src="...">`.
@@ -37,4 +37,3 @@ In repository settings:
    - Branch: `main` (or your default branch)
    - Folder: `/docs`
 3. Save and wait for deployment.
-

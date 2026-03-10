@@ -291,7 +291,7 @@ h1 {
 
 .media-thumb {
   padding: 0;
-  cursor: zoom-in;
+  cursor: default;
 }
 
 .media-thumb img,
@@ -300,6 +300,10 @@ h1 {
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.replay-frame video {
+  pointer-events: none;
 }
 
 .media-fallback {
@@ -373,47 +377,6 @@ pre code {
 
 .footer-wrap a {
   color: var(--accent);
-}
-
-.modal {
-  position: fixed;
-  inset: 0;
-  z-index: 90;
-  background: rgba(7, 14, 28, 0.88);
-  display: grid;
-  place-items: center;
-  padding: 1.3rem;
-}
-
-.modal[hidden] {
-  display: none;
-}
-
-.modal img {
-  max-width: min(92vw, 1180px);
-  max-height: 78vh;
-  border-radius: 12px;
-  border: 1px solid #7f94b8;
-}
-
-.modal p {
-  color: #edf3ff;
-  margin: 0.75rem 0 0;
-}
-
-.modal-close {
-  position: absolute;
-  top: 0.85rem;
-  right: 0.95rem;
-  border: 1px solid #8094ba;
-  background: rgba(14, 26, 47, 0.82);
-  color: #fff;
-  font-size: 1.45rem;
-  line-height: 1;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 999px;
-  cursor: pointer;
 }
 
 @media (max-width: 980px) {

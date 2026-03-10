@@ -59,45 +59,6 @@
     });
   };
 
-  const initImageModal = () => {
-    const modal = document.getElementById('figure-modal');
-    const modalImage = document.getElementById('modal-image');
-    const modalCaption = document.getElementById('modal-caption');
-    const closeBtn = document.getElementById('modal-close');
-    const triggers = document.querySelectorAll('.js-open-modal');
-
-    if (!modal || !modalImage || !modalCaption || !closeBtn || !triggers.length) return;
-
-    const closeModal = () => {
-      modal.hidden = true;
-      modalImage.setAttribute('src', '');
-      modalCaption.textContent = '';
-      document.body.style.overflow = '';
-    };
-
-    triggers.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const full = btn.getAttribute('data-full');
-        const caption = btn.getAttribute('data-caption') || '';
-        if (!full) return;
-
-        modalImage.setAttribute('src', full);
-        modalCaption.textContent = caption;
-        modal.hidden = false;
-        document.body.style.overflow = 'hidden';
-      });
-    });
-
-    closeBtn.addEventListener('click', closeModal);
-    modal.addEventListener('click', (event) => {
-      if (event.target === modal) closeModal();
-    });
-
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && !modal.hidden) closeModal();
-    });
-  };
-
   const initMediaFallbacks = () => {
     const imageThumbs = document.querySelectorAll('.media-thumb');
     imageThumbs.forEach((thumb) => {
@@ -123,6 +84,5 @@
   setYear();
   initActiveNav();
   initCopyCitation();
-  initImageModal();
   initMediaFallbacks();
 })();

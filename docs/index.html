@@ -145,39 +145,39 @@
       <div class="container">
         <h2>Results and Highlights</h2>
         <p class="section-intro">
-          Replace each placeholder figure with benchmark plots or qualitative analysis visuals. Click any figure to expand.
+          Replace each placeholder figure with benchmark plots or qualitative analysis visuals.
         </p>
         <div class="media-grid">
           <!-- Replace FIGURE_X_PATH placeholders with real files inside docs/assets/figures/ -->
           <figure class="media-card">
-            <button class="media-thumb js-open-modal" type="button" data-full="assets/figures/FIGURE_1_PATH" data-caption="Figure 1. Learning curves across task variants.">
+            <div class="media-thumb" aria-label="Figure 1">
               <img src="assets/figures/FIGURE_1_PATH" alt="Figure 1 placeholder">
               <span class="media-fallback">Replace with FIGURE_1_PATH</span>
-            </button>
+            </div>
             <figcaption><strong>Figure 1:</strong> Learning curves across Base/Navigate/Combat.</figcaption>
           </figure>
 
           <figure class="media-card">
-            <button class="media-thumb js-open-modal" type="button" data-full="assets/figures/FIGURE_2_PATH" data-caption="Figure 2. Sample-efficiency comparison by algorithm.">
+            <div class="media-thumb" aria-label="Figure 2">
               <img src="assets/figures/FIGURE_2_PATH" alt="Figure 2 placeholder">
               <span class="media-fallback">Replace with FIGURE_2_PATH</span>
-            </button>
+            </div>
             <figcaption><strong>Figure 2:</strong> Sample-efficiency comparison by baseline.</figcaption>
           </figure>
 
           <figure class="media-card">
-            <button class="media-thumb js-open-modal" type="button" data-full="assets/figures/FIGURE_3_PATH" data-caption="Figure 3. Difficulty transfer from V1 to V3.">
+            <div class="media-thumb" aria-label="Figure 3">
               <img src="assets/figures/FIGURE_3_PATH" alt="Figure 3 placeholder">
               <span class="media-fallback">Replace with FIGURE_3_PATH</span>
-            </button>
+            </div>
             <figcaption><strong>Figure 3:</strong> Performance transfer across V1-V3.</figcaption>
           </figure>
 
           <figure class="media-card">
-            <button class="media-thumb js-open-modal" type="button" data-full="assets/figures/FIGURE_4_PATH" data-caption="Figure 4. Policy behavior summaries and failure modes.">
+            <div class="media-thumb" aria-label="Figure 4">
               <img src="assets/figures/FIGURE_4_PATH" alt="Figure 4 placeholder">
               <span class="media-fallback">Replace with FIGURE_4_PATH</span>
-            </button>
+            </div>
             <figcaption><strong>Figure 4:</strong> Qualitative policy behavior and failure cases.</figcaption>
           </figure>
         </div>
@@ -194,7 +194,7 @@
           <!-- Replace REPLAY_X_PATH with files inside docs/assets/replays/ -->
           <article class="media-card">
             <div class="replay-frame">
-              <video controls preload="metadata">
+              <video autoplay muted loop playsinline preload="metadata">
                 <source src="assets/replays/REPLAY_1_PATH" type="video/mp4">
               </video>
               <span class="media-fallback">Replace with REPLAY_1_PATH (MP4/GIF)</span>
@@ -204,7 +204,7 @@
 
           <article class="media-card">
             <div class="replay-frame">
-              <video controls preload="metadata">
+              <video autoplay muted loop playsinline preload="metadata">
                 <source src="assets/replays/REPLAY_2_PATH" type="video/mp4">
               </video>
               <span class="media-fallback">Replace with REPLAY_2_PATH (MP4/GIF)</span>
@@ -214,7 +214,7 @@
 
           <article class="media-card">
             <div class="replay-frame">
-              <video controls preload="metadata">
+              <video autoplay muted loop playsinline preload="metadata">
                 <source src="assets/replays/REPLAY_3_PATH" type="video/mp4">
               </video>
               <span class="media-fallback">Replace with REPLAY_3_PATH (MP4/GIF)</span>
@@ -277,13 +277,6 @@ python Agents/&lt;your_script&gt;.py</code></pre>
       <p>Open-source educational research project. Not affiliated with Blizzard Entertainment.</p>
     </div>
   </footer>
-
-  <!-- Lightweight modal for figure enlargement -->
-  <div id="figure-modal" class="modal" role="dialog" aria-modal="true" aria-label="Expanded figure" hidden>
-    <button id="modal-close" class="modal-close" type="button" aria-label="Close">&times;</button>
-    <img id="modal-image" src="" alt="">
-    <p id="modal-caption"></p>
-  </div>
 
   <script src="script.js"></script>
 </body>
