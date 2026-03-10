@@ -13,7 +13,7 @@ This folder is a static GitHub Pages site for the public-facing project/paper pa
 
 ## Quick edits
 
-1. Update title/subtitle/authors in `index.html` near the Hero section comments.
+1. Update title/authors/affiliation/abstract text in `index.html` near the Hero section comments.
 2. Replace placeholder links in `index.html`:
    - `PAPER_LINK`
    - `ARXIV_LINK`

@@ -106,15 +106,13 @@ body {
 }
 
 .hero {
-  padding: 5.25rem 0 2.5rem;
+  padding: 5rem 0 2.4rem;
 }
 
 .hero-inner {
-  background: linear-gradient(180deg, #ffffff 0%, #f8faff 100%);
-  border: 1px solid var(--border);
-  border-radius: calc(var(--radius) + 6px);
-  box-shadow: var(--shadow);
-  padding: clamp(1.5rem, 3.2vw, 2.8rem);
+  max-width: 1080px;
+  text-align: center;
+  padding: clamp(0.2rem, 2vw, 1.2rem);
 }
 
 .eyebrow {
@@ -139,24 +137,55 @@ h1 {
   font-size: clamp(1.95rem, 4.8vw, 2.9rem);
 }
 
-.subtitle {
-  margin: 0.8rem 0 0;
-  max-width: 60ch;
-  color: var(--ink-soft);
-  font-size: clamp(1.03rem, 2.4vw, 1.18rem);
+.paper-title {
+  margin: 0 auto;
+  max-width: 24ch;
+  font-size: clamp(2rem, 6vw, 4.5rem);
+  line-height: 1.1;
+  color: #101a2f;
 }
 
-.summary {
-  margin: 1rem 0 0;
-  max-width: 74ch;
+.author-line {
+  margin: 1.15rem 0 0;
+  color: var(--ink-soft);
+  font-size: clamp(0.98rem, 2.1vw, 1.35rem);
+  font-weight: 500;
+}
+
+.affiliation-line {
+  margin: 0.45rem 0 0;
   color: var(--muted);
+  font-size: clamp(0.9rem, 1.8vw, 1.15rem);
+}
+
+.abstract-title {
+  margin: 2rem 0 0;
+  font-size: clamp(1.65rem, 3.8vw, 2.5rem);
+}
+
+.abstract-card {
+  margin: 0.8rem auto 0;
+  max-width: 1100px;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(18, 42, 92, 0.07);
+  padding: clamp(1rem, 2.4vw, 1.6rem);
+}
+
+.abstract-card p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: clamp(0.98rem, 2vw, 1.15rem);
 }
 
 .hero-actions {
-  margin-top: 1.35rem;
+  margin-top: 1.1rem;
   display: flex;
   flex-wrap: wrap;
   gap: 0.65rem;
+  justify-content: center;
 }
 
 .btn {
@@ -191,16 +220,6 @@ h1 {
   background: #fff;
   color: var(--ink-soft);
   border-color: var(--border);
-}
-
-.meta {
-  margin: 1rem 0 0;
-  color: var(--muted);
-  font-size: 0.92rem;
-}
-
-.meta a {
-  color: var(--accent);
 }
 
 .section {
@@ -388,7 +407,7 @@ pre code {
 
 @media (max-width: 760px) {
   .hero {
-    padding-top: 4.6rem;
+    padding-top: 4.3rem;
   }
 
   .nav-wrap {
