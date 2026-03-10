@@ -139,10 +139,15 @@ h1 {
 
 .paper-title {
   margin: 0 auto;
-  max-width: 24ch;
-  font-size: clamp(2rem, 6vw, 4.5rem);
-  line-height: 1.1;
+  max-width: none;
+  font-size: clamp(1.35rem, 2.3vw, 1.72rem);
+  line-height: 1.28;
   color: #101a2f;
+}
+
+.paper-title .title-line {
+  display: block;
+  white-space: nowrap;
 }
 
 .author-line {
@@ -399,6 +404,10 @@ pre code {
 }
 
 @media (max-width: 980px) {
+  .paper-title .title-line {
+    white-space: normal;
+  }
+
   .compact-grid .info-card,
   .repo-card {
     grid-column: span 6;
