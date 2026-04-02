@@ -40,7 +40,7 @@ map_name = "V3_Combat"
 # ==================================================
 DO_OVERALL_PERF = True                 # overall performance counts + overall bar chart
 SAVE_EPISODE_DETAILS = False           # per-episode decomposed CSV + reward-vs-value plot (by terminal condition)
-SAVE_REPLAYS = False                   # save SC2Replay files (by terminal condition)
+SAVE_REPLAYS = True                   # save SC2Replay files (by terminal condition)
 SAVE_OVERALL_SUMMARY_TO_FILE = True    # save Episode counts + Win rate to disk
 SHOW_OVERALL_PLOT = False              # plt.show() for overall bar chart
 # ==================================================

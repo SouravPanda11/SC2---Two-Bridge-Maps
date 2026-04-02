@@ -38,7 +38,7 @@ map_name = "V2_Base"
 # ==================================================
 DO_OVERALL_PERF = True                 # overall performance counts + overall bar chart
 SAVE_EPISODE_DETAILS = False           # per-episode reward-vs-value plots
-SAVE_REPLAYS = False                   # save SC2Replay files (by terminal condition)
+SAVE_REPLAYS = True                   # save SC2Replay files (by terminal condition)
 SAVE_OVERALL_SUMMARY_TO_FILE = True    # save Episode counts + Win rate to disk
 SHOW_OVERALL_PLOT = False              # plt.show() for overall bar chart
 # ==================================================

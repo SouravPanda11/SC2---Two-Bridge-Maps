@@ -39,7 +39,7 @@ map_name = "V2_Base"
 # ==================================================
 DO_OVERALL_PERF = True
 SAVE_EPISODE_DETAILS = False           # reward-vs-value + (optional) decomposed comps CSV
-SAVE_REPLAYS = False                   # save SC2Replay files (by terminal condition)
+SAVE_REPLAYS = True                   # save SC2Replay files (by terminal condition)
 SAVE_OVERALL_SUMMARY_TO_FILE = True
 SHOW_OVERALL_PLOT = False
 # ==================================================

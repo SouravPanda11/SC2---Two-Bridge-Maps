@@ -1,0 +1,155 @@
+    <section class="hero">
+      <div class="container hero-inner">
+        <!-- Edit title, authors, and affiliation here -->
+        <h1 class="paper-title">
+          <span class="title-line">Scaling Strategy, Not Compute: A Stand-Alone, Open-Source</span>
+          <span class="title-line">StarCraft II Benchmark for Accessible Reinforcement Learning Research</span>
+        </h1>
+        <p class="author-line">
+          Sourav Panda<sup>1</sup> &nbsp; Shreyash Kale<sup>1</sup> &nbsp; Tanmay Ambadkar<sup>2</sup> &nbsp; Abhinav Verma<sup>2</sup> &nbsp; Jonathan Dodge<sup>1</sup>
+        </p>
+        <!-- Edit department lines below. Keep university same, only change department text/index mapping. -->
+        <div class="affiliation-lines">
+          <p class="dept-line"><sup>1</sup>College of Information Sciences and Technology &nbsp;|&nbsp; <sup>2</sup>Department of Electrical Engineering and Computer Science</p>
+          <p><em>The Pennsylvania State University</em></p>
+        </div>
+
+        <h2 class="abstract-title">Abstract</h2>
+        <div class="abstract-card">
+          <p>
+            The research community lacks a middle ground between StarCraft IIs full game and its mini-games. The full-games sprawling state-action space renders reward signals sparse and noisy, but in mini-games simple agents saturate performance. This complexity gap hinders steady curriculum design and prevents researchers from experimenting with modern Reinforcement Learning algorithms in RTS environments under realistic compute budgets. To fill this gap, we present the Two-Bridge Map Suite, the first entry in an open-source benchmark series we purposely engineered as an intermediate benchmark to sit between these extremes. By disabling economy mechanics such as resource collection, base building, and fog-of-war, the environment isolates two core tactical skills: long-range navigation and micro-combat. Preliminary experiments show that agents learn coherent maneuvering and engagement behaviors without imposing full-game computational costs. Two-Bridge is released as a lightweight, Gym-compatible wrapper on top of PySC2, with maps, wrappers, and reference scripts fully open-sourced to encourage broad adoption as a standard benchmark.          </p>
+        </div>
+
+        <!-- Replace placeholder links below -->
+        <div class="hero-actions">
+          <a class="btn btn-secondary" href="https://arxiv.org/pdf/2603.06608v1" target="_blank" rel="noopener">Paper (PDF)</a>
+          <a class="btn btn-secondary" href="https://arxiv.org/abs/2603.06608v1" target="_blank" rel="noopener">arXiv</a>
+          <a class="btn btn-secondary" href="https://github.com/SouravPanda11/SC2---Two-Bridge-Maps" target="_blank" rel="noopener">Code</a>
+          <a class="btn btn-secondary" href="#citation">BibTeX</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="overview" class="section">
+      <div class="container">
+        <h2 class="motivation-heading">Introduction</h2>
+        <div class="intro-card">
+          <div class="motivation-layout">
+            <article class="motivation-copy intro-copy">
+              <p>
+                Full-game supports highly complex strategic behavior but requires extreme compute and complex, replay-driven training pipelines, making it infeasible for most researchers. In contrast, SC2 mini-games and SMAC are lightweight, and reproducible under limited compute budgets, but isolate narrow skills with limited strategic depth. The proposed Two-Bridge Map Suite bridges the gap between mini-games and full-game SC2 by introducing intermediate decision horizons and objective structure, while remaining interactive, replay-free, reproducible, and accessible under standard compute budgets.
+              </p>
+            </article>
+
+            <figure class="motivation-figure intro-figure">
+              <!-- Use an image file (PNG/JPG) for inline rendering -->
+              <div class="figure-embed">
+                <img src="assets/figures/Benchmark Gap.jpg" alt="Benchmark gap figure">
+              </div>
+              <!-- <figcaption> Figure 1. The Benchmark gap in StarCraft II. </figcaption> -->
+            </figure>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2>Our Contributions</h2>
+        <div class="contrib-box">
+          <ul class="contrib-list">
+            <li><strong>An Intermediate StarCraft II Benchmark:</strong> A mid-tier environment that captures meaningful tactical decision-making while remaining accessible under realistic compute budgets.</li>
+            <li><strong>A Lightweight Gym-Compatible Interface:</strong> A plug-and-play interaction layer built on PySC2 that enables training with standard reinforcement learning libraries and minimal engineering overhead.</li>
+            <li><strong>A Suite of Task Variants:</strong> Multiple map variants that support diverse research questions and enable flexible experimentation within a unified benchmark.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="benchmark" class="section">
+      <div class="container">
+        <h2>Two Bridge Map Suite</h2>
+        <div class="suite-stack">
+          <article class="suite-panel">
+            <!-- <h3 class="suite-panel-title">Core Map Components, Episode Semantics, and Game Setting</h3> -->
+            <div class="suite-copy suite-main-panel">
+              <figure class="motivation-figure suite-wide-figure suite-main-figure">
+              <div class="figure-embed">
+                <img src="assets/figures/TwoBridgeMap.jpg" alt="Two-Bridge map suite overview">
+              </div>
+              <!-- <figcaption>Figure 2. Two-Bridge map overview.</figcaption> -->
+              </figure>
+
+            <div class="suite-details-panel">
+              <div class="suite-three-columns">
+                <div class="suite-detail">
+                <h4>Core Map Components</h4>
+                <ul class="objective-list">
+                  <li><strong>Map Layout:</strong> A vertical cliff splits the map, creating two narrow bridges that act as tactical choke points.</li>
+                  <li><strong>Spawn Regions:</strong> Six spawn regions (R1–R6) distributed symmetrically across both sides of the map.</li>
+                  <li><strong>Beacon:</strong> A stationary objective that appears in a spawn region.</li>
+                  <li><strong>Units:</strong> Marine units with basic movement and ranged attack capabilities.</li>
+                  <li><strong>Visibility:</strong> Full observability with fog-of-war disabled.</li>
+                </ul>
+              </div>
+
+              <div class="suite-detail">
+                <h4>Episode Semantics</h4>
+                <ul class="objective-list">
+                  <li><strong>Unit Control:</strong> A centralized RL agent issues actions for multiple friendly units simultaneously.</li>
+                  <li><strong>Randomized Start:</strong> Friendly units, enemy units, and the beacon spawn in random regions (R1–R6), producing diverse starting layouts.</li>
+                </ul>
+              </div>
+
+              <div class="suite-detail">
+                <h4>Episode Dynamics</h4>
+                <ul class="objective-list">
+                  <li><strong>Objectives:</strong> Two mutually exclusive objectives:
+                    <ul>
+                      <li><strong>Navigation</strong> capture the beacon</li>
+                      <li><strong>Combat</strong> eliminate enemy units.</li>
+                    </ul>
+                  </li>
+                  <li><strong>Termination:</strong> Episodes end with one of five outcomes:
+                    <ul>
+                      <li>Navigation win</li>
+                      <li>Combat win</li>
+                      <li>Combat loss</li>
+                      <li>Tie</li>
+                      <li>Timeout loss</li>
+                    </ul>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            </div>
+            </div>
+          </article>
+
+          <article class="suite-panel">
+            <div class="suite-copy suite-variation-panel">
+              <h3 class="suite-panel-title">Map Variations and Strategic Diagnostics</h3>
+              <div class="suite-variation-text">
+                <p>
+                  Two-Bridge evaluates agent behavior across a structured set of tactical scenarios. We vary two factors:
+                </p>
+                <ul>
+                  <li><strong>Unit Balance:</strong> friendly vs enemy unit counts (advantage, equal, disadvantage)</li>
+                  <li><strong>Objective Proximity:</strong> relative distance to the beacon and enemy units</li>
+                </ul>
+                <p>
+                  Combining these factors produces nine map variants, each offering a distinct strategic perspective on how agents balance navigation and combat decisions.
+                </p>
+              </div>
+
+              <figure class="motivation-figure suite-wide-figure suite-variation-figure">
+                <div class="figure-embed">
+                  <img src="assets/figures/Map Variants.jpg" alt="Map variations and strategic diagnostics">
+                </div>
+                <!-- <figcaption>Figure 3. Map variations and strategic diagnostics across scenarios.</figcaption> -->
+              </figure>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>

@@ -40,7 +40,7 @@ map_name   = "V1_Navigate"
 # ==================================================
 DO_OVERALL_PERF = True
 SAVE_EPISODE_DETAILS = False
-SAVE_REPLAYS = False
+SAVE_REPLAYS = True
 SAVE_OVERALL_SUMMARY_TO_FILE = True
 SHOW_OVERALL_PLOT = False
 # ==================================================

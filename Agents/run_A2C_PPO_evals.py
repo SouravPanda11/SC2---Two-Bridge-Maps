@@ -16,7 +16,7 @@ RUN_PPO = True
 ONLY_THESE = []
 
 # - Set to None to disable
-TARGET_EPISODES = 100
+TARGET_EPISODES = 50
 EPISODES_FLAG = "--episodes"
 
 # If True, keep going even if one script fails

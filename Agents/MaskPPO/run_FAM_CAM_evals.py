@@ -19,7 +19,7 @@ ALLOWED_FOLDER_PREFIXES = [
 ]
 
 # ---- ONLY override passed to eval scripts ----
-EPISODES_OVERRIDE = 100   # change once, affects all evals
+EPISODES_OVERRIDE = 50   # change once, affects all evals
 
 def is_allowed_variant_folder(path: Path) -> bool:
     if not ALLOWED_FOLDER_PREFIXES:

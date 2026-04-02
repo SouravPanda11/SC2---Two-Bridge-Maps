@@ -1,0 +1,662 @@
+<section class="section">
+  <div class="container">
+    <section id="experiment-2" class="experiment-block">
+    <header class="experiment-header">
+    <!-- <p class="experiment-label">Experiment 2</p> -->
+    <h3>Experiment 2: Action Masking</h3>
+    </header>
+    <figure class="result-figure">
+    <div class="media-thumb" aria-label="Experiment 2 quantitative results figure">
+    <img src="assets/figures/Exp2_TB.jpg" alt="Experiment 2 quantitative results figure" loading="lazy" decoding="async">
+    <span class="media-fallback">Replace with Exp2_TB.jpg</span>
+    </div>
+    </figure>
+    <div class="experiment-summary">
+    <p>Experiment 2: Terminal outcome distribution and training dynamics for MaskPPO on all variants.</p>
+    </div>
+    <div class="experiment-media-stack">
+    <!-- V1_Base -->
+    <section id="exp2-v1-base" class="replay-showcase" aria-label="Action masking replay showcase for V1_Base">
+    <div class="replay-showcase-top">
+    <div class="replay-showcase-layout">
+    <div class="replay-showcase-layout-title">
+    <span class="replay-showcase-layout-badge">
+    <span class="replay-showcase-layout-name">V1_Base</span>
+    </span>
+    </div>
+    <div class="replay-showcase-layout-frame">
+    <img src="assets/figures/Base.jpg" alt="V1 Base layout image" loading="lazy" decoding="async">
+    </div>
+    </div>
+    <div class="replay-showcase-meta">
+    <div class="scenario-info-row replay-showcase-meta-row">
+    <div class="replay-showcase-inline-row">
+    <span class="replay-showcase-inline-label">Unit Count:</span>
+    <div class="replay-showcase-inline-value">
+    <span class="scenario-token scenario-token-friendly">F</span>
+    <span class="scenario-operator">&gt;</span>
+    <span class="scenario-token scenario-token-enemy">E</span>
+    </div>
+    </div>
+    </div>
+    <div class="scenario-info-row replay-showcase-meta-row">
+    <div class="replay-showcase-inline-row">
+    <span class="replay-showcase-inline-label">Objective Proximity:</span>
+    <div class="replay-showcase-inline-value">
+    <span class="scenario-token replay-token-combat-hot">Combat</span>
+    <span class="scenario-operator">=</span>
+    <span class="scenario-token replay-token-beacon-warm">Beacon</span>
+    </div>
+    </div>
+    </div>
+    <div class="scenario-info-row replay-showcase-meta-row replay-showcase-question-row">
+    <div class="replay-showcase-inline-row replay-showcase-question-inline-row">
+    <span class="replay-showcase-inline-label replay-showcase-question-label">Strategic Question:</span>
+    <div class="replay-showcase-question">
+    How does numerical advantage bias the agent toward combat when objectives are equidistant?
+    </div>
+    </div>
+    </div>
+    </div>
+    </div>
+    <div class="replay-showcase-videos">
+    <article class="replay-showcase-column">
+    <span class="replay-card-header-badge">MaskablePPO | V1_Base | Combat Win</span>
+    <div class="replay-player" data-poster-title="MaskablePPO" data-poster-caption="Combat Win on V1_Base" data-tone="green" data-video-src="assets/replays/ARM_v1b_combat_win_Ep_1.mp4">
+    <video class="replay-video" controls playsinline preload="none" aria-label="MaskablePPO replay video: Combat Win on V1_Base"></video>
+    <button class="replay-launch" type="button" aria-label="Play replay video: maskable ppo Combat Win on V1_Base">
+    <span class="replay-launch-art" aria-hidden="true">
+    <span class="replay-badge">MaskablePPO</span>
+    <span class="replay-title">Combat Win</span>
+    <span class="replay-caption">Video player with controls. Loads on play.</span>
+    </span>
+    <span class="replay-cta">Play replay</span>
+    </button>
+    </div>
+    <p>
+    <strong>Policy Behavior:</strong> The agent issues an attack command to all 5 friendly units. Midway, it divides them into two groups: one unit continues the initial attack, while the remaining 4 are moved to an out-of-map coordinate on the extreme right. When the single unit reaches enemy proximity, the 4 units are again issued an attack command. Due to sheer force, this results in a combat win.</p>
+    </article>
+    <article class="replay-showcase-column">
+    <span class="replay-card-header-badge">MaskablePPO | V1_Base | Navigation Win</span>
+    <div class="replay-player" data-poster-title="MaskablePPO" data-poster-caption="Navigation Win on V1_Base" data-tone="slate" data-video-src="assets/replays/ARM_v1b_nav_win_Ep_17.mp4">
+    <video class="replay-video" controls playsinline preload="none" aria-label="MaskablePPO replay video: Navigation Win on V1_Base"></video>
+    <button class="replay-launch" type="button" aria-label="Play replay video: maskable ppo Navigation Win on V1_Base">
+    <span class="replay-launch-art" aria-hidden="true">
+    <span class="replay-badge">MaskablePPO</span>
+    <span class="replay-title">Navigation Win</span>
+    <span class="replay-caption">Video player with controls. Loads on play.</span>
+    </span>
+    <span class="replay-cta">Play replay</span>
+    </button>
+    </div>
+    <p>
+    <strong>Policy Behavior:</strong> The agent issues a move command to all 5 friendly units toward the top-right. After they begin moving, it divides them into two groups: 3 units are given an attack command, while the other 2 continue toward the beacon. Before reaching the beacon, the agent assigns an attack command to 4 units (the original 3 plus 1 from the beacon group), and that unit starts moving toward the enemy. One of the units from the beacon group moves toward the enemies, encounters the beacon, and results in a navigation win. The combat group has not yet engaged in combat. The remaining beacon unit stays there, as it was only assigned a move command.</p>
+    </article></div>
+    </section>
+    <!-- V1_Combat -->
+    <section id="exp2-v1-combat" class="replay-showcase" aria-label="Action masking replay showcase for V1_Combat">
+    <div class="replay-showcase-top">
+    <div class="replay-showcase-layout">
+    <div class="replay-showcase-layout-title">
+    <span class="replay-showcase-layout-badge">
+    <span class="replay-showcase-layout-name">V1_Combat</span>
+    </span>
+    </div>
+    <div class="replay-showcase-layout-frame">
+    <img src="assets/figures/Combat.jpg" alt="V1 Combat layout image" loading="lazy" decoding="async">
+    </div>
+    </div>
+    <div class="replay-showcase-meta">
+    <div class="scenario-info-row replay-showcase-meta-row">
+    <div class="replay-showcase-inline-row">
+    <span class="replay-showcase-inline-label">Unit Count:</span>
+    <div class="replay-showcase-inline-value">
+    <span class="scenario-token scenario-token-friendly">F</span>
+    <span class="scenario-operator">&gt;</span>
+    <span class="scenario-token scenario-token-enemy">E</span>
+    </div>
+    </div>
+    </div>
+    <div class="scenario-info-row replay-showcase-meta-row">
+    <div class="replay-showcase-inline-row">
+    <span class="replay-showcase-inline-label">Objective Proximity:</span>
+    <div class="replay-showcase-inline-value">
+    <span class="scenario-token replay-token-combat-hot">Combat</span>
+    <span class="scenario-operator">&lt;</span>
+    <span class="scenario-token replay-token-beacon-warm">Beacon</span>
+    </div>
+    </div>
+    </div>
+    <div class="scenario-info-row replay-showcase-meta-row replay-showcase-question-row">
+    <div class="replay-showcase-inline-row replay-showcase-question-inline-row">
+    <span class="replay-showcase-inline-label replay-showcase-question-label">Strategic Question:</span>
+    <div class="replay-showcase-question">
+    How does numerical advantage bias the agent toward proximal combat over distant navigation?
+    </div>
+    </div>
+    </div>
+    </div>
+    </div>
+    <div class="replay-showcase-videos">
+    <article class="replay-showcase-column">
+    <span class="replay-card-header-badge">MaskablePPO | V1_Combat | Combat Win</span>
+    <div class="replay-player" data-poster-title="MaskablePPO" data-poster-caption="Combat Win on V1_Combat" data-tone="green" data-video-src="assets/replays/ARM_v1c_combat_win_Ep_1.mp4">
+    <video class="replay-video" controls playsinline preload="none" aria-label="MaskablePPO replay video: Combat Win on V1_Combat"></video>
+    <button class="replay-launch" type="button" aria-label="Play replay video: maskable ppo Combat Win on V1_Combat">
+    <span class="replay-launch-art" aria-hidden="true">
+    <span class="replay-badge">MaskablePPO</span>
+    <span class="replay-title">Combat Win</span>
+    <span class="replay-caption">Video player with controls. Loads on play.</span>
+    </span>
+    <span class="replay-cta">Play replay</span>
+    </button>
+    </div>
+    <p>
+    <strong>Policy Behavior:</strong> Initially, the agent issues an attack command to all units. While units are in transit, it forms varying sub-groups (3 or 4 units) and assigns them to attack the same target. Once engagement begins, it commands all units to attack together. Due to sheer force, this results in a combat win.</p>
+    </article>
+    </div>
+    </section>
+    <!-- V1_Navigate -->
+    <section id="exp2-v1-navigate" class="replay-showcase" aria-label="Action masking replay showcase for V1_Navigate">
+    <div class="replay-showcase-top">
+    <div class="replay-showcase-layout">
+    <div class="replay-showcase-layout-title">
+    <span class="replay-showcase-layout-badge">
+    <span class="replay-showcase-layout-name">V1_Navigate</span>
+    </span>
+    </div>
+    <div class="replay-showcase-layout-frame">
+    <img src="assets/figures/Navigate.jpg" alt="V1 Navigate layout image" loading="lazy" decoding="async">
+    </div>
+    </div>
+    <div class="replay-showcase-meta">
+    <div class="scenario-info-row replay-showcase-meta-row">
+    <div class="replay-showcase-inline-row">
+    <span class="replay-showcase-inline-label">Unit Count:</span>
+    <div class="replay-showcase-inline-value">
+    <span class="scenario-token scenario-token-friendly">F</span>
+    <span class="scenario-operator">&gt;</span>
+    <span class="scenario-token scenario-token-enemy">E</span>
+    </div>
+    </div>
+    </div>
+    <div class="scenario-info-row replay-showcase-meta-row">
+    <div class="replay-showcase-inline-row">
+    <span class="replay-showcase-inline-label">Objective Proximity:</span>
+    <div class="replay-showcase-inline-value">
+    <span class="scenario-token replay-token-combat-hot">Combat</span>
+    <span class="scenario-operator">&gt;</span>
+    <span class="scenario-token replay-token-beacon-warm">Beacon</span>
+    </div>
+    </div>
+    </div>
+    <div class="scenario-info-row replay-showcase-meta-row replay-showcase-question-row">
+    <div class="replay-showcase-inline-row replay-showcase-question-inline-row">
+    <span class="replay-showcase-inline-label replay-showcase-question-label">Strategic Question:</span>
+    <div class="replay-showcase-question">
+    How does numerical advantage bias the agent toward distant combat despite proximal navigation?
+    </div>
+    </div>
+    </div>
+    </div>
+    </div>
+    <div class="replay-showcase-videos">
+    <article class="replay-showcase-column">
+    <span class="replay-card-header-badge">MaskablePPO | V1_Navigate | Combat Win</span>
+    <div class="replay-player" data-poster-title="MaskablePPO" data-poster-caption="Combat Win on V1_Navigate" data-tone="green" data-video-src="assets/replays/ARM_v1n_combat_win_Ep_1.mp4">
+    <video class="replay-video" controls playsinline preload="none" aria-label="MaskablePPO replay video: Combat Win on V1_Navigate"></video>
+    <button class="replay-launch" type="button" aria-label="Play replay video: maskable ppo Combat Win on V1_Navigate">
+    <span class="replay-launch-art" aria-hidden="true">
+    <span class="replay-badge">MaskablePPO</span>
+    <span class="replay-title">Combat Win</span>
+    <span class="replay-caption">Video player with controls. Loads on play.</span>
+    </span>
+    <span class="replay-cta">Play replay</span>
+    </button>
+    </div>
+    <p>
+    <strong>Policy Behavior:</strong> Issues an attack command to all units. Units engage in combat and win due to sheer force.</p>
+    </article>
+    <article class="replay-showcase-column">
+    <span class="replay-card-header-badge">MaskablePPO | V1_Navigate | Navigation Win</span>
+    <div class="replay-player" data-poster-title="MaskablePPO" data-poster-caption="Navigation Win on V1_Navigate" data-tone="slate" data-video-src="assets/replays/ARM_v1n_nav_win_Ep_18.mp4">
+    <video class="replay-video" controls playsinline preload="none" aria-label="MaskablePPO replay video: Navigation Win on V1_Navigate"></video>
+    <button class="replay-launch" type="button" aria-label="Play replay video: maskable ppo Navigation Win on V1_Navigate">
+    <span class="replay-launch-art" aria-hidden="true">
+    <span class="replay-badge">MaskablePPO</span>
+    <span class="replay-title">Nav Win</span>
+    <span class="replay-caption">Video player with controls. Loads on play.</span>
+    </span>
+    <span class="replay-cta">Play replay</span>
+    </button>
+    </div>
+    <p>
+    <strong>Policy Behavior:</strong> Issues an attack command to all units. During transit toward the enemies, if any unit comes close to the beacon capture radius, it results in an incidental navigation win.</p>
+    </article></div>
+    </section>
+    <!-- V2_Base -->
+    <section id="exp2-v2-base" class="replay-showcase" aria-label="Action masking replay showcase for V2_Base">
+    <div class="replay-showcase-top">
+    <div class="replay-showcase-layout">
+    <div class="replay-showcase-layout-title">
+    <span class="replay-showcase-layout-badge">
+    <span class="replay-showcase-layout-name">V2_Base</span>
+    </span>
+    </div>
+    <div class="replay-showcase-layout-frame">
+    <img src="assets/figures/Base.jpg" alt="V2_Base layout image" loading="lazy" decoding="async">
+    </div>
+    </div>
+    <div class="replay-showcase-meta">
+    <div class="scenario-info-row replay-showcase-meta-row">
+    <div class="replay-showcase-inline-row">
+    <span class="replay-showcase-inline-label">Unit Count:</span>
+    <div class="replay-showcase-inline-value">
+    <span class="scenario-token scenario-token-friendly">F</span>
+    <span class="scenario-operator">=</span>
+    <span class="scenario-token scenario-token-enemy">E</span>
+    </div>
+    </div>
+    </div>
+    <div class="scenario-info-row replay-showcase-meta-row">
+    <div class="replay-showcase-inline-row">
+    <span class="replay-showcase-inline-label">Objective Proximity:</span>
+    <div class="replay-showcase-inline-value">
+    <span class="scenario-token replay-token-combat-hot">Combat</span>
+    <span class="scenario-operator">=</span>
+    <span class="scenario-token replay-token-beacon-warm">Beacon</span>
+    </div>
+    </div>
+    </div>
+    <div class="scenario-info-row replay-showcase-meta-row replay-showcase-question-row">
+    <div class="replay-showcase-inline-row replay-showcase-question-inline-row">
+    <span class="replay-showcase-inline-label replay-showcase-question-label">Strategic Question:</span>
+    <div class="replay-showcase-question">
+    How does the agent arbitrate between equidistant navigation and stochastic combat objectives?
+    </div>
+    </div>
+    </div>
+    </div>
+    </div>
+    <div class="replay-showcase-videos">
+    <article class="replay-showcase-column">
+    <span class="replay-card-header-badge">MaskablePPO | V2_Base | Combat Win</span>
+    <div class="replay-player" data-poster-title="MaskablePPO" data-poster-caption="Combat Win on V2_Base" data-tone="green" data-video-src="assets/replays/ARM_v2b_combat_win_Ep_3.mp4">
+    <video class="replay-video" controls playsinline preload="none" aria-label="MaskablePPO replay video: Combat Win on V2_Base"></video>
+    <button class="replay-launch" type="button" aria-label="Play replay video: maskable ppo Combat Win on V2_Base">
+    <span class="replay-launch-art" aria-hidden="true">
+    <span class="replay-badge">MaskablePPO</span>
+    <span class="replay-title">Combat Win</span>
+    <span class="replay-caption">Video player with controls. Loads on play.</span>
+    </span>
+    <span class="replay-cta">Play replay</span>
+    </button>
+    </div>
+    <p>
+    <strong>Policy Behavior:</strong> Sends all units to attack; due to the stochastic nature of combat, this results in a win.</p>
+    </article>
+    <article class="replay-showcase-column">
+    <span class="replay-card-header-badge">MaskablePPO | V2_Base | Navigation Win</span>
+    <div class="replay-player" data-poster-title="MaskablePPO" data-poster-caption="Navigation Win on V2_Base" data-tone="slate" data-video-src="assets/replays/ARM_v2b_nav_win_Ep_1.mp4">
+    <video class="replay-video" controls playsinline preload="none" aria-label="MaskablePPO replay video: Navigation Win on V2_Base"></video>
+    <button class="replay-launch" type="button" aria-label="Play replay video: maskable ppo Navigation Win on V2_Base">
+    <span class="replay-launch-art" aria-hidden="true">
+    <span class="replay-badge">MaskablePPO</span>
+    <span class="replay-title">Nav Win</span>
+    <span class="replay-caption">Video player with controls. Loads on play.</span>
+    </span>
+    <span class="replay-cta">Play replay</span>
+    </button>
+    </div>
+    <p>
+    <strong>Policy Behavior:</strong> Initially sends all units to attack. After losing one unit, it changes strategy and sends all units toward the upper right. If the beacon is encountered along the path, it results in a navigation win.</p>
+    </article></div>
+    </section>
+    <!-- V2_Combat -->
+    <section id="exp2-v2-combat" class="replay-showcase" aria-label="Action masking replay showcase for V2_Combat">
+    <div class="replay-showcase-top">
+    <div class="replay-showcase-layout">
+    <div class="replay-showcase-layout-title">
+    <span class="replay-showcase-layout-badge">
+    <span class="replay-showcase-layout-name">V2_Combat</span>
+    </span>
+    </div>
+    <div class="replay-showcase-layout-frame">
+    <img src="assets/figures/Combat.jpg" alt="V2 Combat layout image" loading="lazy" decoding="async">
+    </div>
+    </div>
+    <div class="replay-showcase-meta">
+    <div class="scenario-info-row replay-showcase-meta-row">
+    <div class="replay-showcase-inline-row">
+    <span class="replay-showcase-inline-label">Unit Count:</span>
+    <div class="replay-showcase-inline-value">
+    <span class="scenario-token scenario-token-friendly">F</span>
+    <span class="scenario-operator">=</span>
+    <span class="scenario-token scenario-token-enemy">E</span>
+    </div>
+    </div>
+    </div>
+    <div class="scenario-info-row replay-showcase-meta-row">
+    <div class="replay-showcase-inline-row">
+    <span class="replay-showcase-inline-label">Objective Proximity:</span>
+    <div class="replay-showcase-inline-value">
+    <span class="scenario-token replay-token-combat-hot">Combat</span>
+    <span class="scenario-operator">&lt;</span>
+    <span class="scenario-token replay-token-beacon-warm">Beacon</span>
+    </div>
+    </div>
+    </div>
+    <div class="scenario-info-row replay-showcase-meta-row replay-showcase-question-row">
+    <div class="replay-showcase-inline-row replay-showcase-question-inline-row">
+    <span class="replay-showcase-inline-label replay-showcase-question-label">Strategic Question:</span>
+    <div class="replay-showcase-question">
+    How does the agent arbitrate between proximal combat and distant navigation under equal unit counts?
+    </div>
+    </div>
+    </div>
+    </div>
+    </div>
+    <div class="replay-showcase-videos">
+    <article class="replay-showcase-column">
+    <span class="replay-card-header-badge">MaskablePPO | V2_Combat | Combat Win</span>
+    <div class="replay-player" data-poster-title="MaskablePPO" data-poster-caption="Combat Win on V2_Combat" data-tone="green" data-video-src="assets/replays/ARM_v2c_combat_win_Ep_20.mp4">
+    <video class="replay-video" controls playsinline preload="none" aria-label="MaskablePPO replay video: Combat Win on V2_Combat"></video>
+    <button class="replay-launch" type="button" aria-label="Play replay video: maskable ppo Combat Win on V2_Combat">
+    <span class="replay-launch-art" aria-hidden="true">
+    <span class="replay-badge">MaskablePPO</span>
+    <span class="replay-title">Combat Win</span>
+    <span class="replay-caption">Video player with controls. Loads on play.</span>
+    </span>
+    <span class="replay-cta">Play replay</span>
+    </button>
+    </div>
+    <p>
+    <strong>Policy Behavior:</strong> Sends all units to attack. After losing 2 units, it disengages from combat and retreats toward the top-right by issuing move commands to the remaining 3 units. As enemies follow, it re-engages in combat and wins.</p>
+    </article>
+    <article class="replay-showcase-column">
+    <span class="replay-card-header-badge">MaskablePPO | V2_Combat | Navigation Win</span>
+    <div class="replay-player" data-poster-title="MaskablePPO" data-poster-caption="Navigation Win on V2_Combat" data-tone="slate" data-video-src="assets/replays/ARM_v2c_nav_win_Ep_1.mp4">
+    <video class="replay-video" controls playsinline preload="none" aria-label="MaskablePPO replay video: Navigation Win on V2_Combat"></video>
+    <button class="replay-launch" type="button" aria-label="Play replay video: maskable ppo Navigation Win on V2_Combat">
+    <span class="replay-launch-art" aria-hidden="true">
+    <span class="replay-badge">MaskablePPO</span>
+    <span class="replay-title">Navigation Win</span>
+    <span class="replay-caption">Video player with controls. Loads on play.</span>
+    </span>
+    <span class="replay-cta">Play replay</span>
+    </button>
+    </div>
+    <p>
+    <strong>Policy Behavior:</strong> Sends all units to attack. After losing 3 units, it disengages from combat and issues a move command to an out-of-map coordinate in the upper-left region. The remaining units move toward the upper-left, where the beacon is located. Midway, the two units fragment—one appears to turn back while the other continues on the same path. The unit reaches the beacon, resulting in a navigation win.</p>
+    </article></div>
+    </section>
+    <!-- V2_Navigate -->
+    <section id="exp2-v2-navigate" class="replay-showcase" aria-label="Action masking replay showcase for V2_Navigate">
+    <div class="replay-showcase-top">
+    <div class="replay-showcase-layout">
+    <div class="replay-showcase-layout-title">
+    <span class="replay-showcase-layout-badge">
+    <span class="replay-showcase-layout-name">V2_Navigate</span>
+    </span>
+    </div>
+    <div class="replay-showcase-layout-frame">
+    <img src="assets/figures/Navigate.jpg" alt="V2_Navigate layout image" loading="lazy" decoding="async">
+    </div>
+    </div>
+    <div class="replay-showcase-meta">
+    <div class="scenario-info-row replay-showcase-meta-row">
+    <div class="replay-showcase-inline-row">
+    <span class="replay-showcase-inline-label">Unit Count:</span>
+    <div class="replay-showcase-inline-value">
+    <span class="scenario-token scenario-token-friendly">F</span>
+    <span class="scenario-operator">=</span>
+    <span class="scenario-token scenario-token-enemy">E</span>
+    </div>
+    </div>
+    </div>
+    <div class="scenario-info-row replay-showcase-meta-row">
+    <div class="replay-showcase-inline-row">
+    <span class="replay-showcase-inline-label">Objective Proximity:</span>
+    <div class="replay-showcase-inline-value">
+    <span class="scenario-token replay-token-combat-hot">Combat</span>
+    <span class="scenario-operator">&gt;</span>
+    <span class="scenario-token replay-token-beacon-warm">Beacon</span>
+    </div>
+    </div>
+    </div>
+    <div class="scenario-info-row replay-showcase-meta-row replay-showcase-question-row">
+    <div class="replay-showcase-inline-row replay-showcase-question-inline-row">
+    <span class="replay-showcase-inline-label replay-showcase-question-label">Strategic Question:</span>
+    <div class="replay-showcase-question">
+    How does the agent arbitrate between proximal navigation and distant combat under equal unit counts?
+    </div>
+    </div>
+    </div>
+    </div>
+    </div>
+    <div class="replay-showcase-videos">
+    <article class="replay-showcase-column">
+    <span class="replay-card-header-badge">MaskablePPO | V2_Navigate | Combat Win</span>
+    <div class="replay-player" data-poster-title="MaskablePPO" data-poster-caption="Combat Win on V2_Combat" data-tone="green" data-video-src="assets/replays/ARM_v2n_combat_win_Ep_36.mp4">
+    <video class="replay-video" controls playsinline preload="none" aria-label="MaskablePPO replay video: Combat Win on V2_Combat"></video>
+    <button class="replay-launch" type="button" aria-label="Play replay video: maskable ppo Combat Win on V2_Combat">
+    <span class="replay-launch-art" aria-hidden="true">
+    <span class="replay-badge">MaskablePPO</span>
+    <span class="replay-title">Combat Win</span>
+    <span class="replay-caption">Video player with controls. Loads on play.</span>
+    </span>
+    <span class="replay-cta">Play replay</span>
+    </button>
+    </div>
+    <p>
+    <strong>Policy Behavior:</strong> Issues a move command to an out-of-map coordinate on the extreme right, moving toward the bottom. After some time, it issues an attack command and engages in combat on the other side of the bridge. The agent wins due to the stochastic nature of combat, without forming a proper formation.</p>
+    </article>
+    <article class="replay-showcase-column">
+    <span class="replay-card-header-badge">Maskable PPO | V2_Navigate | Navigation Win</span>
+    <div class="replay-player" data-poster-title="MaskablePPO" data-poster-caption="Navigation Win on V2_Navigate" data-tone="slate" data-video-src="assets/replays/ARM_v2n_nav_win_Ep_3.mp4">
+    <video class="replay-video" controls playsinline preload="none" aria-label="MaskablePPO replay video: Navigation Win on V2_Navigate"></video>
+    <button class="replay-launch" type="button" aria-label="Play replay video: maskable ppo Navigation Win on V2_Navigate">
+    <span class="replay-launch-art" aria-hidden="true">
+    <span class="replay-badge">MaskablePPO</span>
+    <span class="replay-title">Navigation Win</span>
+    <span class="replay-caption">Video player with controls. Loads on play.</span>
+    </span>
+    <span class="replay-cta">Play replay</span>
+    </button>
+    </div>
+    <p>
+    <strong>Policy Behavior:</strong> Sends all units to attack. After losing 1 unit, it disengages from combat and issues a move command to out-of-map coordinates toward the extreme right, moving upward. The move coordinates lie near the beacon, and the units enter the beacon capture radius, resulting in a navigation win.</p>
+    </article></div>
+    </section>
+    <!-- V3_Base -->
+    <section id="exp2-v3-base" class="replay-showcase" aria-label="Action masking replay showcase for V3_Base">
+    <div class="replay-showcase-top">
+    <div class="replay-showcase-layout">
+    <div class="replay-showcase-layout-title">
+    <span class="replay-showcase-layout-badge">
+    <span class="replay-showcase-layout-name">V3_Base</span>
+    </span>
+    </div>
+    <div class="replay-showcase-layout-frame">
+    <img src="assets/figures/Base.jpg" alt="V3 Base layout image" loading="lazy" decoding="async">
+    </div>
+    </div>
+    <div class="replay-showcase-meta">
+    <div class="scenario-info-row replay-showcase-meta-row">
+    <div class="replay-showcase-inline-row">
+    <span class="replay-showcase-inline-label">Unit Count:</span>
+    <div class="replay-showcase-inline-value">
+    <span class="scenario-token scenario-token-friendly">F</span>
+    <span class="scenario-operator">&lt;</span>
+    <span class="scenario-token scenario-token-enemy">E</span>
+    </div>
+    </div>
+    </div>
+    <div class="scenario-info-row replay-showcase-meta-row">
+    <div class="replay-showcase-inline-row">
+    <span class="replay-showcase-inline-label">Objective Proximity:</span>
+    <div class="replay-showcase-inline-value">
+    <span class="scenario-token replay-token-combat-hot">Combat</span>
+    <span class="scenario-operator">=</span>
+    <span class="scenario-token replay-token-beacon-warm">Beacon</span>
+    </div>
+    </div>
+    </div>
+    <div class="scenario-info-row replay-showcase-meta-row replay-showcase-question-row">
+    <div class="replay-showcase-inline-row replay-showcase-question-inline-row">
+    <span class="replay-showcase-inline-label replay-showcase-question-label">Strategic Question:</span>
+    <div class="replay-showcase-question">
+    How does numerical disadvantage bias the agent away from combat when objectives are equidistant?
+    </div>
+    </div>
+    </div>
+    </div>
+    </div>
+    <div class="replay-showcase-videos">
+    <article class="replay-showcase-column">
+    <span class="replay-card-header-badge">Maskable PPO | V3_Base | Combat Loss</span>
+    <div class="replay-player" data-poster-title="Maskable PPO" data-poster-caption="Navigation Win on V3_Base" data-tone="green" data-video-src="assets/replays/ARM_v3b_combat_loss_Ep_1.mp4">
+    <video class="replay-video" controls playsinline preload="none" aria-label="Maskable PPO replay video: Navigation Win on V3_Base"></video>
+    <button class="replay-launch" type="button" aria-label="Play replay video: maskable ppo Navigation Win on V3_Base">
+    <span class="replay-launch-art" aria-hidden="true">
+    <span class="replay-badge">Maskable PPO</span>
+    <span class="replay-title">Navigation Win</span>
+    <span class="replay-caption">Video player with controls. Loads on play.</span>
+    </span>
+    <span class="replay-cta">Play replay</span>
+    </button>
+    </div>
+    <p>
+    <strong>Policy Behavior:</strong> Sends 4 units to attack and loses due to unfavorable unit counts. It then sends the last remaining unit to attack.</p>
+    </div>
+    </section>
+    <!-- V3_Combat -->
+    <section id="exp2-v3-combat" class="replay-showcase" aria-label="Action masking replay showcase for V3_Combat">
+    <div class="replay-showcase-top">
+    <div class="replay-showcase-layout">
+    <div class="replay-showcase-layout-title">
+    <span class="replay-showcase-layout-badge">
+    <span class="replay-showcase-layout-name">V3_Combat</span>
+    </span>
+    </div>
+    <div class="replay-showcase-layout-frame">
+    <img src="assets/figures/Combat.jpg" alt="V3 Combat layout image" loading="lazy" decoding="async">
+    </div>
+    </div>
+    <div class="replay-showcase-meta">
+    <div class="scenario-info-row replay-showcase-meta-row">
+    <div class="replay-showcase-inline-row">
+    <span class="replay-showcase-inline-label">Unit Count:</span>
+    <div class="replay-showcase-inline-value">
+    <span class="scenario-token scenario-token-friendly">F</span>
+    <span class="scenario-operator">&lt;</span>
+    <span class="scenario-token scenario-token-enemy">E</span>
+    </div>
+    </div>
+    </div>
+    <div class="scenario-info-row replay-showcase-meta-row">
+    <div class="replay-showcase-inline-row">
+    <span class="replay-showcase-inline-label">Objective Proximity:</span>
+    <div class="replay-showcase-inline-value">
+    <span class="scenario-token replay-token-combat-hot">Combat</span>
+    <span class="scenario-operator">&lt;</span>
+    <span class="scenario-token replay-token-beacon-warm">Beacon</span>
+    </div>
+    </div>
+    </div>
+    <div class="scenario-info-row replay-showcase-meta-row replay-showcase-question-row">
+    <div class="replay-showcase-inline-row replay-showcase-question-inline-row">
+    <span class="replay-showcase-inline-label replay-showcase-question-label">Strategic Question:</span>
+    <div class="replay-showcase-question">
+    How does numerical disadvantage bias the agent away from proximal combat in favor of distant navigation?
+    </div>
+    </div>
+    </div>
+    </div>
+    </div>
+    <div class="replay-showcase-videos">
+    <article class="replay-showcase-column">
+    <span class="replay-card-header-badge">MaskablePPO | V3_Combat | Combat Loss</span>
+    <div class="replay-player" data-poster-title="MaskablePPO" data-poster-caption="Navigation Win on V3_Combat" data-tone="green" data-video-src="assets/replays/ARM_v3c_combat_loss_Ep_1.mp4">
+    <video class="replay-video" controls playsinline preload="none" aria-label="MaskablePPO replay video: Navigation Win on V3_Combat"></video>
+    <button class="replay-launch" type="button" aria-label="Play replay video: maskable ppo Navigation Win on V3_Combat">
+    <span class="replay-launch-art" aria-hidden="true">
+    <span class="replay-badge">Maskable PPO</span>
+    <span class="replay-title">Navigation Win</span>
+    <span class="replay-caption">Video player with controls. Loads on play.</span>
+    </span>
+    <span class="replay-cta">Play replay</span>
+    </button>
+    </div>
+    <p>
+    <strong>Policy Behavior:</strong> Sends 4 units to attack and loses due to unfavorable unit counts. It then sends the last remaining unit to attack.</p>
+    </article>
+    </div>
+    </section>
+    <!-- V3_Navigate -->
+    <section id="exp2-v3-navigate" class="replay-showcase" aria-label="Action masking replay showcase for V3_Navigate">
+    <div class="replay-showcase-top">
+    <div class="replay-showcase-layout">
+    <div class="replay-showcase-layout-title">
+    <span class="replay-showcase-layout-badge">
+    <span class="replay-showcase-layout-name">V3_Navigate</span>
+    </span>
+    </div>
+    <div class="replay-showcase-layout-frame">
+    <img src="assets/figures/Navigate.jpg" alt="V3 Navigate layout image" loading="lazy" decoding="async">
+    </div>
+    </div>
+    <div class="replay-showcase-meta">
+    <div class="scenario-info-row replay-showcase-meta-row">
+    <div class="replay-showcase-inline-row">
+    <span class="replay-showcase-inline-label">Unit Count:</span>
+    <div class="replay-showcase-inline-value">
+    <span class="scenario-token scenario-token-friendly">F</span>
+    <span class="scenario-operator">&lt;</span>
+    <span class="scenario-token scenario-token-enemy">E</span>
+    </div>
+    </div>
+    </div>
+    <div class="scenario-info-row replay-showcase-meta-row">
+    <div class="replay-showcase-inline-row">
+    <span class="replay-showcase-inline-label">Objective Proximity:</span>
+    <div class="replay-showcase-inline-value">
+    <span class="scenario-token replay-token-combat-hot">Combat</span>
+    <span class="scenario-operator">&gt;</span>
+    <span class="scenario-token replay-token-beacon-warm">Beacon</span>
+    </div>
+    </div>
+    </div>
+    <div class="scenario-info-row replay-showcase-meta-row replay-showcase-question-row">
+    <div class="replay-showcase-inline-row replay-showcase-question-inline-row">
+    <span class="replay-showcase-inline-label replay-showcase-question-label">Strategic Question:</span>
+    <div class="replay-showcase-question">
+    How does numerical disadvantage reinforce commitment to proximal navigation over distant combat?
+    </div>
+    </div>
+    </div>
+    </div>
+    </div>
+    <div class="replay-showcase-videos">
+    <article class="replay-showcase-column">
+    <span class="replay-card-header-badge">MaskablePPO | V3_Navigate | Navigation Win</span>
+    <div class="replay-player" data-poster-title="MaskablePPO" data-poster-caption="Navigation Win on V3_Navigate" data-tone="green" data-video-src="assets/replays/ARM_v3n_nav_win_Ep_2.mp4">
+    <video class="replay-video" controls playsinline preload="none" aria-label="MaskablePPO replay video: Navigation Win on V3_Navigate"></video>
+    <button class="replay-launch" type="button" aria-label="Play replay video: maskable ppo Navigation Win on V3_Navigate">
+    <span class="replay-launch-art" aria-hidden="true">
+    <span class="replay-badge">MaskablePPO</span>
+    <span class="replay-title">Navigation Win</span>
+    <span class="replay-caption">Video player with controls. Loads on play.</span>
+    </span>
+    <span class="replay-cta">Play replay</span>
+    </button>
+    </div>
+    <p>
+    <strong>Policy Behavior:</strong> Issues a move command over a short distance, moving downward. It then oscillates between attack and move commands toward the bottom. Along this path, it incidentally encounters the beacon and wins.</p>
+    </article>
+    </div>
+    </section>
+    </div>
+    </section>
+  </div>
+</section>

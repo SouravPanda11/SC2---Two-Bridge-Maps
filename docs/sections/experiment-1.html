@@ -1,0 +1,97 @@
+<section class="section">
+  <div class="container">
+    <h2>Experiments and Results</h2>
+    <section id="experiment-1" class="experiment-block">
+    <header class="experiment-header">
+    <h3>Experiment 1: Pilot</h3>
+    </header>
+    <figure class="result-figure">
+    <div class="media-thumb" aria-label="Experiment 1 quantitative results figure">
+    <img src="assets/figures/Exp1_TB.jpg" alt="Experiment 1 quantitative results figure" loading="lazy" decoding="async">
+    <span class="media-fallback">Replace with Exp1_TB.jpg</span>
+    </div>
+    <figcaption>Experiment 1: Terminal outcome distribution and training dynamics for PPO and A2C under NSF and SF observations on V2 Base.</figcaption>
+    </figure>
+    <div class="experiment-media-stack experiment-media-stack-pilot">
+    <section id="exp1-v2-base" class="replay-showcase" aria-label="Pilot replay showcase">
+    <div class="replay-showcase-top">
+    <div class="replay-showcase-layout">
+    <div class="replay-showcase-layout-title">
+    <span class="replay-showcase-layout-badge">
+    <span class="replay-showcase-layout-name">V2_Base</span>
+    </span>
+    </div>
+    <div class="replay-showcase-layout-frame">
+    <img src="assets/figures/Base.jpg" alt="V2 Base layout image" loading="lazy" decoding="async">
+    </div>
+    </div>
+    <div class="replay-showcase-meta">
+    <div class="scenario-info-row replay-showcase-meta-row">
+    <div class="replay-showcase-inline-row">
+    <span class="replay-showcase-inline-label">Unit Count:</span>
+    <div class="replay-showcase-inline-value">
+    <span class="scenario-token scenario-token-friendly">F</span>
+    <span class="scenario-operator">=</span>
+    <span class="scenario-token scenario-token-enemy">E</span>
+    </div>
+    </div>
+    </div>
+    <div class="scenario-info-row replay-showcase-meta-row">
+    <div class="replay-showcase-inline-row">
+    <span class="replay-showcase-inline-label">Objective Proximity:</span>
+    <div class="replay-showcase-inline-value">
+    <span class="scenario-token replay-token-combat-hot">Combat</span>
+    <span class="scenario-operator">=</span>
+    <span class="scenario-token replay-token-beacon-warm">Beacon</span>
+    </div>
+    </div>
+    </div>
+    <div class="scenario-info-row replay-showcase-meta-row replay-showcase-question-row">
+    <div class="replay-showcase-inline-row replay-showcase-question-inline-row">
+    <span class="replay-showcase-inline-label replay-showcase-question-label">Strategic Question:</span>
+    <div class="replay-showcase-question">
+    Can PPO resolve the balanced V2_Base setup without collapsing into piecemeal combat or delayed navigation?
+    </div>
+    </div>
+    </div>
+    </div>
+    </div>
+    <div class="replay-showcase-videos">
+    <article class="replay-showcase-column">
+    <span class="replay-card-header-badge">PPO | V2_Base | Combat Loss</span>
+    <div class="replay-player" data-poster-title="PPO Replay" data-poster-caption="Combat loss on V2_Base" data-tone="amber" data-video-src="assets/replays/PPO_Combat_Loss_Ep_23.mp4">
+    <video class="replay-video" controls playsinline preload="none" aria-label="PPO replay video: combat loss on V2_Base"></video>
+    <button class="replay-launch" type="button" aria-label="Play replay video: PPO combat loss on V2_Base">
+    <span class="replay-launch-art" aria-hidden="true">
+    <span class="replay-badge">PPO Replay</span>
+    <span class="replay-title">Combat Loss</span>
+    <span class="replay-caption">Video player with controls. Loads on play.</span>
+    </span>
+    <span class="replay-cta">Play replay</span>
+    </button>
+    </div>
+    <p>
+    <strong>Policy Behavior:</strong> The agent repeatedly sends single units toward the enemy using move commands. Upon entering enemy firing range, units take damage without retaliating, leading to isolated and unfavorable engagements. This piecemeal strategy continues until all units are lost, resulting in a combat loss.</p>
+    </article>
+    <article class="replay-showcase-column">
+    <span class="replay-card-header-badge">PPO | V2_Base | Navigation Win</span>
+    <div class="replay-player" data-poster-title="PPO Replay" data-poster-caption="Navigation win on V2_Base" data-tone="amber" data-video-src="assets/replays/PPO_Nav_Win_Ep_3.mp4">
+    <video class="replay-video" controls playsinline preload="none" aria-label="PPO replay video: navigation win on V2_Base"></video>
+    <button class="replay-launch" type="button" aria-label="Play replay video: PPO navigation win on V2_Base">
+    <span class="replay-launch-art" aria-hidden="true">
+    <span class="replay-badge">PPO Replay</span>
+    <span class="replay-title">Navigation Win</span>
+    <span class="replay-caption">Video player with controls. Loads on play.</span>
+    </span>
+    <span class="replay-cta">Play replay</span>
+    </button>
+    </div>
+    <p>
+    <strong>Policy Behavior:</strong> The agent sends a single unit to the right, then redirects it toward the upper region where it remains idle for a period. It later issues an attack command, causing the unit to move toward the enemy at the bottom. Along this path, the unit unintentionally enters the beacon capture radius, resulting in an incidental navigation win.</p>
+    </article>
+    </div>
+    </section>
+    </div>
+    </section>
+  </div>
+</section>

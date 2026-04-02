@@ -8,3 +8,6 @@ two_bridge_ppo.zip
 # Exclude Python cache directories
 __pycache__/
 
+# Exclude MaskPPO FAM_CAM replay files
+Replays/MaskPPO/**/SB_MaskPPO_FAM_CAM/**/*.SC2Replay
+
