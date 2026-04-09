@@ -1,12 +1,14 @@
-import argparse
 import atexit
+import json
 import multiprocessing as mp
 import os
 import random
+import re
 import shutil
 import sys
 import tempfile
 import time
+from types import SimpleNamespace
 
 import numpy as np
 import torch
@@ -35,6 +37,33 @@ DEFAULT_N_EPOCHS = 4
 # other map variants without touching the rollout logic below.
 AGENT_NAME = "MaskPPO_NS_AM_RM_mean_parallel"
 MAP_NAME = "V2_Base"
+SEED_DIR_RE = re.compile(r"^seed_(\d+)$")
+CHECKPOINT_NAME_RE = re.compile(
+    rf"^{re.escape(AGENT_NAME)}_(\d+)([KMB]?)\.zip$",
+    re.IGNORECASE,
+)
+
+# ============================================================================
+# Run mode: comment/uncomment exactly one option below.
+# ============================================================================
+RUN_MODE = "fresh_start"
+# RUN_MODE = "load_last_checkpoint"
+
+# Fresh start settings.
+FRESH_START_SEED = None  # Set an int to train one explicit seed from scratch.
+
+# Training settings.
+TOTAL_TIMESTEPS = DEFAULT_TOTAL_TIMESTEPS
+SAVE_INTERVAL = DEFAULT_SAVE_INTERVAL
+NUM_ENVS = DEFAULT_NUM_ENVS
+NUM_SEEDS = DEFAULT_NUM_SEEDS
+N_STEPS = DEFAULT_N_STEPS
+BATCH_SIZE = DEFAULT_BATCH_SIZE
+N_EPOCHS = DEFAULT_N_EPOCHS
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+VISUALIZE = False
+REALTIME = False
+SMOKE_TEST = False
 
 
 class FlattenActionWrapper(Wrapper):
@@ -47,13 +76,11 @@ class FlattenActionWrapper(Wrapper):
         super().__init__(env)
 
         self.action_space = spaces.MultiDiscrete([3] + [2] * N_FRIEND + [9] + [N_ENEMY + 1])
-
-        # Bits beyond the verb-level mask that are always legal.
-        self._mask_template = np.ones(sum(self.action_space.nvec) - 3, dtype=np.int8)
+        self._direction_mask = np.ones(9, dtype=np.int8)
 
         # Advertise the flattened mask directly on the wrapped env so
         # MaskablePPO can query it from SubprocVecEnv workers.
-        flat_len = 3 + len(self._mask_template)
+        flat_len = int(np.sum(self.action_space.nvec))
         obs_spaces = dict(env.observation_space.spaces)
         obs_spaces["action_mask"] = spaces.MultiBinary(flat_len)
         self.observation_space = spaces.Dict(obs_spaces)
@@ -79,7 +106,28 @@ class FlattenActionWrapper(Wrapper):
         return obs, info
 
     def _convert_mask(self, obs):
-        flat_mask = np.concatenate([obs["action_mask"], self._mask_template]).astype(np.int8)
+        am = obs["action_mask"]
+        if not isinstance(am, dict):
+            raise TypeError("Expected dict action_mask from NS env")
+
+        verb_mask = np.asarray(am["verb"], dtype=np.int8).reshape(-1)
+        who_bits = np.asarray(am["who"], dtype=np.int8).reshape(-1)
+        enemy_mask = np.asarray(am["enemy_idx"], dtype=np.int8).reshape(-1)
+
+        if verb_mask.size != 3:
+            raise ValueError(f"verb mask size {verb_mask.size} != 3")
+        if who_bits.size != N_FRIEND:
+            raise ValueError(f"who mask size {who_bits.size} != N_FRIEND={N_FRIEND}")
+        if enemy_mask.size != (N_ENEMY + 1):
+            raise ValueError(f"enemy_idx mask size {enemy_mask.size} != N_ENEMY+1={N_ENEMY+1}")
+
+        who_pairs = np.empty(2 * N_FRIEND, dtype=np.int8)
+        who_pairs[0::2] = 1
+        who_pairs[1::2] = np.clip(who_bits, 0, 1)
+
+        flat_mask = np.concatenate(
+            [verb_mask, who_pairs, self._direction_mask, enemy_mask]
+        ).astype(np.int8)
         obs["action_mask"] = flat_mask
         self._last_mask = flat_mask
         return obs
@@ -203,90 +251,192 @@ def format_step_label(total_steps):
     return str(total_steps)
 
 
+def get_agent_save_root():
+    return os.path.join(project_root, "Agents", "MaskPPO", MAP_NAME, "saved_models", AGENT_NAME)
+
+
+def get_agent_tb_root():
+    return os.path.join(project_root, "tb_logs", "MaskPPO", MAP_NAME, AGENT_NAME)
+
+
 def get_output_dirs(seed):
-    save_dir = os.path.join(
-        project_root,
-        "Agents",
-        "MaskPPO",
-        MAP_NAME,
-        "saved_models",
-        AGENT_NAME,
-        f"seed_{seed}",
-    )
-    tb_log_dir = os.path.join(
-        project_root,
-        "tb_logs",
-        "MaskPPO",
-        MAP_NAME,
-        AGENT_NAME,
-        f"seed_{seed}",
-    )
+    save_dir = os.path.join(get_agent_save_root(), f"seed_{seed}")
+    tb_log_dir = os.path.join(get_agent_tb_root(), f"seed_{seed}")
     os.makedirs(save_dir, exist_ok=True)
     os.makedirs(tb_log_dir, exist_ok=True)
     return save_dir, tb_log_dir
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Train MaskablePPO on V1 Base NS with SubprocVecEnv workers."
+def build_run_config():
+    return SimpleNamespace(
+        run_mode=RUN_MODE,
+        seed=FRESH_START_SEED,
+        num_seeds=NUM_SEEDS,
+        num_envs=NUM_ENVS,
+        total_timesteps=TOTAL_TIMESTEPS,
+        save_interval=SAVE_INTERVAL,
+        n_steps=N_STEPS,
+        batch_size=BATCH_SIZE,
+        n_epochs=N_EPOCHS,
+        device=DEVICE,
+        visualize=VISUALIZE,
+        realtime=REALTIME,
+        smoke_test=SMOKE_TEST,
     )
-    parser.add_argument(
-        "--seed",
-        type=int,
-        default=None,
-        help="Train a single explicit seed. If omitted, random seeds are generated.",
-    )
-    parser.add_argument("--num-seeds", type=int, default=DEFAULT_NUM_SEEDS)
-    parser.add_argument("--num-envs", type=int, default=DEFAULT_NUM_ENVS)
-    parser.add_argument("--total-timesteps", type=int, default=DEFAULT_TOTAL_TIMESTEPS)
-    parser.add_argument("--save-interval", type=int, default=DEFAULT_SAVE_INTERVAL)
-    parser.add_argument("--n-steps", type=int, default=DEFAULT_N_STEPS)
-    parser.add_argument("--batch-size", type=int, default=DEFAULT_BATCH_SIZE)
-    parser.add_argument("--n-epochs", type=int, default=DEFAULT_N_EPOCHS)
-    parser.add_argument(
-        "--device",
-        type=str,
-        default="cuda" if torch.cuda.is_available() else "cpu",
-    )
-    parser.add_argument("--visualize", action="store_true")
-    parser.add_argument("--realtime", action="store_true")
-    parser.add_argument(
-        "--smoke-test",
-        action="store_true",
-        help="Run a tiny training job to validate multiprocessing setup.",
-    )
-    return parser.parse_args()
 
 
-def normalize_args(args):
-    if args.smoke_test:
-        args.total_timesteps = max(args.num_envs * 16, 32)
-        args.save_interval = args.total_timesteps
-        args.n_steps = 16
-        args.batch_size = args.num_envs * args.n_steps
-        args.n_epochs = 1
+def write_seed_manifest(config, seeds):
+    manifest = {
+        "created_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "agent_name": AGENT_NAME,
+        "map_name": MAP_NAME,
+        "run_mode": config.run_mode,
+        "seeds": list(seeds),
+        "num_envs": config.num_envs,
+        "total_timesteps": config.total_timesteps,
+        "save_interval": config.save_interval,
+        "n_steps": config.n_steps,
+        "batch_size": config.batch_size,
+        "n_epochs": config.n_epochs,
+        "device": config.device,
+    }
+    save_root = get_agent_save_root()
+    os.makedirs(save_root, exist_ok=True)
 
-    if args.num_envs < 1:
-        raise ValueError("--num-envs must be at least 1")
-    if args.num_seeds < 1:
-        raise ValueError("--num-seeds must be at least 1")
-    if args.total_timesteps < 1:
-        raise ValueError("--total-timesteps must be at least 1")
-    if args.save_interval < 1:
-        raise ValueError("--save-interval must be at least 1")
-    if args.n_steps < 2:
-        raise ValueError("--n-steps must be at least 2")
-    if args.batch_size < 1:
-        raise ValueError("--batch-size must be at least 1")
-    if args.n_epochs < 1:
-        raise ValueError("--n-epochs must be at least 1")
-    if args.save_interval > args.total_timesteps:
-        raise ValueError("--save-interval cannot exceed --total-timesteps")
+    manifest_name = f"run_manifest_{time.strftime('%Y%m%d_%H%M%S')}.json"
+    latest_manifest_path = os.path.join(save_root, "latest_run_manifest.json")
+    dated_manifest_path = os.path.join(save_root, manifest_name)
+    for path in (latest_manifest_path, dated_manifest_path):
+        with open(path, "w", encoding="utf-8") as handle:
+            json.dump(manifest, handle, indent=2)
+    return latest_manifest_path
 
-    rollout_size = args.num_envs * args.n_steps
-    if args.batch_size > rollout_size:
+
+def iter_seed_dirs():
+    save_root = get_agent_save_root()
+    if not os.path.isdir(save_root):
+        return
+
+    for entry in os.scandir(save_root):
+        if not entry.is_dir():
+            continue
+        match = SEED_DIR_RE.fullmatch(entry.name)
+        if match is None:
+            continue
+        yield int(match.group(1)), entry.path
+
+
+def is_final_checkpoint_name(checkpoint_name):
+    return checkpoint_name.endswith(".zip") and "_final" in os.path.splitext(checkpoint_name)[0]
+
+
+def parse_checkpoint_steps(checkpoint_path):
+    checkpoint_name = os.path.basename(checkpoint_path)
+    if is_final_checkpoint_name(checkpoint_name):
+        return None
+
+    match = CHECKPOINT_NAME_RE.fullmatch(checkpoint_name)
+    if match is None:
+        return None
+
+    value = int(match.group(1))
+    suffix = match.group(2).upper()
+    multipliers = {"": 1, "K": 1_000, "M": 1_000_000, "B": 1_000_000_000}
+    return value * multipliers[suffix]
+
+
+def checkpoint_sort_key(checkpoint_path):
+    parsed_steps = parse_checkpoint_steps(checkpoint_path)
+    if parsed_steps is None:
+        return None
+    return (parsed_steps, os.path.getmtime(checkpoint_path))
+
+
+def collect_seed_checkpoints(seed):
+    save_dir = os.path.join(get_agent_save_root(), f"seed_{seed}")
+    if not os.path.isdir(save_dir):
+        return []
+
+    checkpoint_paths = []
+    for entry in os.scandir(save_dir):
+        if not entry.is_file() or not entry.name.endswith(".zip"):
+            continue
+        if is_final_checkpoint_name(entry.name):
+            continue
+        if checkpoint_sort_key(entry.path) is None:
+            continue
+        checkpoint_paths.append(entry.path)
+    return checkpoint_paths
+
+
+def seed_dir_has_final(seed_dir):
+    for entry in os.scandir(seed_dir):
+        if entry.is_file() and is_final_checkpoint_name(entry.name):
+            return True
+    return False
+
+
+def resolve_unfinished_seed_resume():
+    unfinished_seed_dirs = []
+    for seed, seed_dir in iter_seed_dirs() or ():
+        if seed_dir_has_final(seed_dir):
+            continue
+        unfinished_seed_dirs.append((seed, seed_dir))
+
+    if not unfinished_seed_dirs:
+        raise FileNotFoundError(
+            "No unfinished seed folder found. Every seed folder already has a _final checkpoint."
+        )
+
+    if len(unfinished_seed_dirs) > 1:
+        unfinished_desc = ", ".join(
+            f"seed={seed} ({seed_dir})" for seed, seed_dir in unfinished_seed_dirs
+        )
+        raise RuntimeError(
+            "Expected exactly one unfinished seed folder, "
+            f"but found multiple: {unfinished_desc}"
+        )
+
+    seed, seed_dir = unfinished_seed_dirs[0]
+    checkpoint_paths = collect_seed_checkpoints(seed)
+    checkpoint_path = max(checkpoint_paths, key=checkpoint_sort_key) if checkpoint_paths else None
+    return {"seed": seed, "seed_dir": seed_dir, "checkpoint_path": checkpoint_path}
+
+
+def normalize_config(config):
+    if config.run_mode not in {"fresh_start", "load_last_checkpoint"}:
         raise ValueError(
-            f"--batch-size ({args.batch_size}) cannot exceed rollout size ({rollout_size})"
+            f"Invalid RUN_MODE: {config.run_mode!r}. Use 'fresh_start' or 'load_last_checkpoint'."
+        )
+
+    if config.smoke_test:
+        config.total_timesteps = max(config.num_envs * 16, 32)
+        config.save_interval = config.total_timesteps
+        config.n_steps = 16
+        config.batch_size = config.num_envs * config.n_steps
+        config.n_epochs = 1
+
+    if config.num_envs < 1:
+        raise ValueError("NUM_ENVS must be at least 1")
+    if config.num_seeds < 1:
+        raise ValueError("NUM_SEEDS must be at least 1")
+    if config.total_timesteps < 1:
+        raise ValueError("TOTAL_TIMESTEPS must be at least 1")
+    if config.save_interval < 1:
+        raise ValueError("SAVE_INTERVAL must be at least 1")
+    if config.n_steps < 2:
+        raise ValueError("N_STEPS must be at least 2")
+    if config.batch_size < 1:
+        raise ValueError("BATCH_SIZE must be at least 1")
+    if config.n_epochs < 1:
+        raise ValueError("N_EPOCHS must be at least 1")
+    if config.save_interval > config.total_timesteps:
+        raise ValueError("SAVE_INTERVAL cannot exceed TOTAL_TIMESTEPS")
+
+    rollout_size = config.num_envs * config.n_steps
+    if config.batch_size > rollout_size:
+        raise ValueError(
+            f"BATCH_SIZE ({config.batch_size}) cannot exceed rollout size ({rollout_size})"
         )
     return rollout_size
 
@@ -321,7 +471,7 @@ def resolve_seeds(args):
     return generate_random_seeds(args.num_seeds)
 
 
-def train_for_seed(args, rollout_size, seed):
+def train_for_seed(args, rollout_size, seed, resume_checkpoint=None):
     seed_start_time = time.perf_counter()
     set_global_seeds(seed)
 
@@ -350,6 +500,8 @@ def train_for_seed(args, rollout_size, seed):
     print(f"Single-env validation wall time: {validate_wall_time:.2f}s")
     print(f"Checkpoint dir: {save_dir}")
     print(f"TensorBoard dir: {tb_log_dir}")
+    if resume_checkpoint is not None:
+        print(f"Resume checkpoint: {resume_checkpoint}")
 
     env_create_start_time = time.perf_counter()
     env = create_vec_env(
@@ -380,17 +532,32 @@ def train_for_seed(args, rollout_size, seed):
             f"first_reset={env_reset_wall_time:.2f}s"
         )
 
-        model = MaskablePPO(
-            "MultiInputPolicy",
-            env,
-            device=args.device,
-            verbose=1,
-            tensorboard_log=tb_log_dir,
-            seed=seed,
-            n_steps=args.n_steps,
-            batch_size=args.batch_size,
-            n_epochs=args.n_epochs,
-        )
+        if resume_checkpoint is None:
+            model = MaskablePPO(
+                "MultiInputPolicy",
+                env,
+                device=args.device,
+                verbose=1,
+                tensorboard_log=tb_log_dir,
+                seed=seed,
+                n_steps=args.n_steps,
+                batch_size=args.batch_size,
+                n_epochs=args.n_epochs,
+            )
+        else:
+            model = MaskablePPO.load(
+                resume_checkpoint,
+                env=env,
+                device=args.device,
+                tensorboard_log=tb_log_dir,
+                seed=seed,
+            )
+            print(
+                "Resume state loaded | "
+                f"seed={seed} | "
+                f"checkpoint_steps={model.num_timesteps} | "
+                f"remaining_steps={max(args.total_timesteps - model.num_timesteps, 0)}"
+            )
 
         tb_callback = TBRewardLogger()
         training_start_time = time.perf_counter()
@@ -493,22 +660,41 @@ def train_for_seed(args, rollout_size, seed):
 
 def main():
     overall_start_time = time.perf_counter()
-    args = parse_args()
-    rollout_size = normalize_args(args)
-    seeds = resolve_seeds(args)
+    args = build_run_config()
+    rollout_size = normalize_config(args)
+    resume_state = None
+
+    if args.run_mode == "fresh_start":
+        seeds = resolve_seeds(args)
+        manifest_path = write_seed_manifest(args, seeds)
+        print(f"Seed manifest: {manifest_path}")
+    else:
+        resume_state = resolve_unfinished_seed_resume()
+        seeds = (resume_state["seed"],)
 
     print(
-        "Multi-seed plan | "
+        "Run plan | "
+        f"mode={args.run_mode} | "
         f"num_seeds={len(seeds)} | "
         f"seeds={seeds} | "
         f"num_envs={args.num_envs} | "
         f"total_timesteps={args.total_timesteps} | "
-        f"save_interval={args.save_interval}"
+        f"save_interval={args.save_interval} | "
+        f"resume_checkpoint={resume_state['checkpoint_path'] if resume_state else 'None'}"
     )
+    if resume_state is not None and resume_state["checkpoint_path"] is None:
+        print(
+            "Resume note | "
+            f"seed={resume_state['seed']} | "
+            "unfinished seed folder has no step checkpoint yet, so training will restart from 0."
+        )
 
     seed_results = []
     for seed in seeds:
-        seed_results.append(train_for_seed(args, rollout_size, seed))
+        resume_checkpoint = None
+        if resume_state is not None and resume_state["seed"] == seed:
+            resume_checkpoint = resume_state["checkpoint_path"]
+        seed_results.append(train_for_seed(args, rollout_size, seed, resume_checkpoint))
 
     overall_wall_time = time.perf_counter() - overall_start_time
     total_training_wall = sum(result["training_wall"] for result in seed_results)

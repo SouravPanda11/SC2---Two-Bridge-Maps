@@ -22,7 +22,7 @@ from sb3_contrib import MaskablePPO
 from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.vec_env import SubprocVecEnv
 
-from Environments.NS_AM_RM_mean.V1_Base_NS import TwoBridgeEnv, N_FRIEND, N_ENEMY
+from Environments.NS_AM_RM_mean.V3_Navigate_NS import TwoBridgeEnv, N_FRIEND, N_ENEMY
 
 
 DEFAULT_TOTAL_TIMESTEPS = 2_000_000
@@ -36,7 +36,7 @@ DEFAULT_N_EPOCHS = 4
 # Change the env import above plus these names to reuse the trainer for
 # other map variants without touching the rollout logic below.
 AGENT_NAME = "MaskPPO_NS_AM_RM_mean_parallel"
-MAP_NAME = "V1_Base"
+MAP_NAME = "V3_Navigate"
 SEED_DIR_RE = re.compile(r"^seed_(\d+)$")
 CHECKPOINT_NAME_RE = re.compile(
     rf"^{re.escape(AGENT_NAME)}_(\d+)([KMB]?)\.zip$",

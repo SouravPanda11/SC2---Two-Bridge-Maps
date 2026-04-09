@@ -87,7 +87,13 @@ class TwoBridgeEnv(gym.Env):
     observation_space = spaces.Dict({
         "minimap":     spaces.Box(0, 255, (MINI_CH, SCR_RES, SCR_RES), np.uint8),
         "vector":      spaces.Box(0.0, np.inf, (VEC_SIZE,), np.float32),
-        "action_mask": spaces.MultiBinary(3)          # verb-level only
+        # Branch masks used by the NS trainers. Direction is left unmasked
+        # because move targets are clipped to the playable bounds.
+        "action_mask": spaces.Dict({
+            "verb":      spaces.MultiBinary(3),
+            "who":       spaces.MultiBinary(N_FRIEND),
+            "enemy_idx": spaces.MultiBinary(N_ENEMY + 1),
+        }),
     })
 
     def __init__(self,
@@ -170,6 +176,14 @@ class TwoBridgeEnv(gym.Env):
         self._action_log_fp.write(json.dumps(record) + "\n")
         self._action_log_fp.flush()
 
+    def _serialize_action_mask(self, action_mask):
+        if isinstance(action_mask, dict):
+            return {
+                key: np.asarray(value, dtype=np.int8).tolist()
+                for key, value in action_mask.items()
+            }
+        return np.asarray(action_mask, dtype=np.int8).tolist()
+
     def _friend_units_from_vec(self, vec):
         units = []
         for i in range(N_FRIEND):
@@ -219,7 +233,7 @@ class TwoBridgeEnv(gym.Env):
                 "x": float(obs["vector"][VEC_BXY]),
                 "y": float(obs["vector"][VEC_BXY + 1]),
             },
-            "action_mask_after": obs["action_mask"].astype(int).tolist(),
+            "action_mask_after": self._serialize_action_mask(obs["action_mask"]),
         })
         self._write_action_record({"event": "step", **debug})
         return debug
@@ -263,7 +277,7 @@ class TwoBridgeEnv(gym.Env):
                 "x": float(obs["vector"][VEC_BXY]),
                 "y": float(obs["vector"][VEC_BXY + 1]),
             },
-            "action_mask": obs["action_mask"].astype(int).tolist(),
+            "action_mask": self._serialize_action_mask(obs["action_mask"]),
         })
         return obs, {}
 
@@ -440,16 +454,30 @@ class TwoBridgeEnv(gym.Env):
         vec[VEC_TIME]   = ob.game_loop[0] / 16.0
         vec[VEC_ECOUNT] = float(self._enemy_alive.sum())
 
-        # verb-level mask
-        mask = np.ones(3, np.int8)
-        mask[1] = int((vec[2 : N_FRIEND * FRIEND_STRIDE : FRIEND_STRIDE] > 0).any())  # MOVE
-        mask[2] = int(vec[VEC_ECOUNT] > 0)                  # ATTACK
+        who_mask = (vec[2 : N_FRIEND * FRIEND_STRIDE : FRIEND_STRIDE] > 0).astype(np.int8)
+        any_friend_alive = int(who_mask.any())
+
+        verb_mask = np.zeros(3, np.int8)
+        verb_mask[0] = 1
+        verb_mask[1] = any_friend_alive
+        verb_mask[2] = int(vec[VEC_ECOUNT] > 0)
+
+        enemy_mask = np.zeros(N_ENEMY + 1, np.int8)
+        enemy_mask[0] = 1
+        if verb_mask[2]:
+            enemy_mask[1 : 1 + N_ENEMY] = self._enemy_alive.astype(np.int8)
+
+        action_mask = {
+            "verb": verb_mask,
+            "who": who_mask,
+            "enemy_idx": enemy_mask,
+        }
 
         self._step_ctr += 1
         return {
             "minimap":     np.asarray(ob.feature_minimap, np.uint8),
             "vector":      vec,
-            "action_mask": mask
+            "action_mask": action_mask,
         }
 
     def _shape_reward(self, vec, done, res):

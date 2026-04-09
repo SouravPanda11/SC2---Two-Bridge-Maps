@@ -11,7 +11,7 @@ from absl       import flags
 
 # ────────────────────── configuration ──────────────────────────
 N_FRIEND = 5
-N_ENEMY  = 5
+N_ENEMY  = 8
 
 # index helpers for the compact vector  ─────────────────────────
 FRIEND_STRIDE = 4
@@ -26,14 +26,14 @@ VEC_ECOUNT  = VEC_TIME    + 1                 # 1 × float32
 VEC_SIZE    = VEC_ECOUNT  + 1
 
 # ───────────────────── Map registration ───────────────────────
-class TwoBridgeMap_V2_Base(lib.Map):
-    name      = "TwoBridgeMap_V2_Base"
+class TwoBridgeMap_V3_Navigate(lib.Map):
+    name      = "TwoBridgeMap_V3_Navigate"
     directory = r"C:/Program Files (x86)/StarCraft II/Maps/Strategy Maps/Camera Free"
-    filename  = "TwoBridgeMap_V2_Base.SC2Map"
+    filename  = "TwoBridgeMap_V3_Navigate.SC2Map"
     players   = 2
 
-lib.get_maps().pop("TwoBridgeMap_V2_Base", None)
-lib.get_maps()["TwoBridgeMap_V2_Base"] = TwoBridgeMap_V2_Base()
+lib.get_maps().pop("TwoBridgeMap_V3_Navigate", None)
+lib.get_maps()["TwoBridgeMap_V3_Navigate"] = TwoBridgeMap_V3_Navigate()
 
 # ───────────────────────── constants ───────────────────────────
 FLAGS = flags.FLAGS
@@ -72,7 +72,7 @@ TIE_BONUS           = 0.0
 # ─────────────────────── environment ───────────────────────────
 class TwoBridgeEnv(gym.Env):
     """
-    5 v 5 Two-Bridge – navigation & combat.
+    5 v 8 Two-Bridge – navigation & combat.
     Action space = {verb, who-mask, direction, enemy_idx}
     """
     metadata = {}
@@ -106,7 +106,7 @@ class TwoBridgeEnv(gym.Env):
         super().__init__()
 
         self._env = sc2_env.SC2Env(
-            map_name="TwoBridgeMap_V2_Base",
+            map_name="TwoBridgeMap_V3_Navigate",
             players=[sc2_env.Agent(sc2_env.Race.terran),
                      sc2_env.Bot  (sc2_env.Race.terran,
                                    sc2_env.Difficulty.easy)],
