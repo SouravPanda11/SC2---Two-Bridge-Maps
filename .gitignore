@@ -1,6 +1,7 @@
 # Exclude environment files
 .env
 TBMsc2
+epymarl/
 
 # Exclude specific zip file
 two_bridge_ppo.zip
