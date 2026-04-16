@@ -118,6 +118,10 @@ class TrainConfig:
     save_replay_episodes: int = 0
     resume_checkpoint: str = ""
     summary_window: int = 20
+    save_replay_buffer: bool = True
+    replay_save_max_episodes: int = 256
+    replay_save_max_bytes: int = 128 * 1024 * 1024
+    save_rng_state: bool = True
 
     device: str = field(
         default_factory=lambda: "cuda" if torch.cuda.is_available() else "cpu"
@@ -425,7 +429,48 @@ def normalize_config(config: TrainConfig):
     else:
         config.eval_interval = 0
         config.eval_episodes = 0
+    config.replay_save_max_episodes = max(0, int(config.replay_save_max_episodes))
+    config.replay_save_max_bytes = max(0, int(config.replay_save_max_bytes))
     return config
+
+
+def capture_rng_state():
+    state = {
+        "python_random_state": random.getstate(),
+        "numpy_random_state": np.random.get_state(),
+        "torch_random_state": torch.random.get_rng_state().cpu(),
+    }
+    if torch.cuda.is_available():
+        state["torch_cuda_random_state_all"] = [rng.cpu() for rng in torch.cuda.get_rng_state_all()]
+    return state
+
+
+def restore_rng_state(state):
+    if not state:
+        return
+
+    python_state = state.get("python_random_state")
+    if python_state is not None:
+        random.setstate(python_state)
+
+    numpy_state = state.get("numpy_random_state")
+    if numpy_state is not None:
+        np.random.set_state(tuple(numpy_state))
+
+    torch_state = state.get("torch_random_state")
+    if torch_state is not None:
+        torch.random.set_rng_state(torch_state.cpu())
+
+    cuda_states = state.get("torch_cuda_random_state_all")
+    if cuda_states is not None and torch.cuda.is_available():
+        torch.cuda.set_rng_state_all([rng.cpu() for rng in cuda_states])
+
+
+def safe_torch_load(path, map_location):
+    try:
+        return torch.load(path, map_location=map_location, weights_only=False)
+    except TypeError:
+        return torch.load(path, map_location=map_location)
 
 
 def _make_env_payload(env: TwoBridgeEnv, obs):
@@ -766,6 +811,68 @@ class EpisodeReplayBuffer:
     @property
     def size_gib(self):
         return self.total_bytes / (1024**3)
+
+    def snapshot(
+        self,
+        max_episodes: Optional[int] = None,
+        max_bytes: Optional[int] = None,
+    ):
+        episodes = list(self.episodes)
+        episode_bytes = list(self.episode_bytes)
+        total_available = len(episodes)
+
+        if max_episodes is not None:
+            max_episodes = max(0, int(max_episodes))
+            if max_episodes == 0:
+                return {
+                    "episodes": [],
+                    "saved_episodes": 0,
+                    "available_episodes": total_available,
+                    "total_bytes": 0,
+                    "truncated": total_available > 0,
+                }
+            episodes = episodes[-max_episodes:]
+            episode_bytes = episode_bytes[-max_episodes:]
+
+        if max_bytes is None or int(max_bytes) <= 0:
+            total_bytes = sum(episode_bytes)
+            return {
+                "episodes": episodes,
+                "saved_episodes": len(episodes),
+                "available_episodes": total_available,
+                "total_bytes": total_bytes,
+                "truncated": len(episodes) < total_available,
+            }
+
+        max_bytes = int(max_bytes)
+        selected_episodes = deque()
+        total_bytes = 0
+        skipped_for_size = 0
+
+        for episode, episode_byte_size in zip(reversed(episodes), reversed(episode_bytes)):
+            if episode_byte_size > max_bytes:
+                skipped_for_size += 1
+                continue
+            if total_bytes + episode_byte_size > max_bytes:
+                break
+            selected_episodes.appendleft(episode)
+            total_bytes += episode_byte_size
+
+        saved_episodes = len(selected_episodes)
+        return {
+            "episodes": list(selected_episodes),
+            "saved_episodes": saved_episodes,
+            "available_episodes": total_available,
+            "total_bytes": total_bytes,
+            "truncated": (saved_episodes < total_available) or (skipped_for_size > 0),
+        }
+
+    def load_snapshot(self, episodes):
+        self.episodes = deque()
+        self.episode_bytes = deque()
+        self.total_bytes = 0
+        for episode in episodes or []:
+            self.add(episode)
 
     def sample(self, batch_size: int, device: str):
         sampled = random.sample(self.episodes, batch_size)
@@ -1531,7 +1638,12 @@ class QMixTrainer:
             "mixer_state_dict": self.mixer.state_dict(),
             "target_mixer_state_dict": self.target_mixer.state_dict(),
             "optimizer_state_dict": self.optimizer.state_dict(),
+            "recent_returns": list(self.recent_returns),
+            "recent_lengths": list(self.recent_lengths),
+            "recent_outcomes": list(self.recent_outcomes),
         }
+        if self.config.save_rng_state:
+            checkpoint["rng_state"] = capture_rng_state()
         if self.use_minimap:
             checkpoint["minimap_encoder_state_dict"] = self.minimap_encoder.state_dict()
             checkpoint["target_minimap_encoder_state_dict"] = self.target_minimap_encoder.state_dict()
@@ -1544,6 +1656,7 @@ class QMixTrainer:
 
         checkpoint_path = self.save_dir / f"{self.config.agent_name}_{label}.pt"
         torch.save(checkpoint, checkpoint_path)
+        self._save_replay_buffer_checkpoint(checkpoint_path)
         print(f"Saved checkpoint: {checkpoint_path}")
 
     def _maybe_load_checkpoint(self):
@@ -1554,7 +1667,7 @@ class QMixTrainer:
         if not checkpoint_path.is_file():
             raise FileNotFoundError(f"Checkpoint not found: {checkpoint_path}")
 
-        checkpoint = torch.load(checkpoint_path, map_location=self.device)
+        checkpoint = safe_torch_load(checkpoint_path, map_location=self.device)
         self.agent.load_state_dict(checkpoint["agent_state_dict"])
         self.target_agent.load_state_dict(checkpoint["target_agent_state_dict"])
         if self.use_minimap:
@@ -1575,11 +1688,77 @@ class QMixTrainer:
             self.reward_ms.var.copy_(reward_ms["var"].to(self.device))
             self.reward_ms.count = reward_ms["count"]
 
+        self.recent_returns = deque(
+            checkpoint.get("recent_returns", []),
+            maxlen=self.config.summary_window,
+        )
+        self.recent_lengths = deque(
+            checkpoint.get("recent_lengths", []),
+            maxlen=self.config.summary_window,
+        )
+        self.recent_outcomes = deque(
+            checkpoint.get("recent_outcomes", []),
+            maxlen=self.config.summary_window,
+        )
+
+        self._maybe_load_replay_buffer_checkpoint(checkpoint_path)
+        restore_rng_state(checkpoint.get("rng_state"))
+
         self.next_save_step = next_multiple(self.env_steps, self.config.save_interval)
         self.next_log_step = next_multiple(self.env_steps, self.config.log_interval)
         if self.config.eval_during_training:
             self.next_eval_step = next_multiple(self.env_steps, self.config.eval_interval)
         print(f"Resumed from checkpoint: {checkpoint_path}")
+
+    def _get_replay_checkpoint_path(self, checkpoint_path: Path):
+        return checkpoint_path.with_suffix(".replay.pt")
+
+    def _save_replay_buffer_checkpoint(self, checkpoint_path: Path):
+        replay_path = self._get_replay_checkpoint_path(checkpoint_path)
+        if not self.config.save_replay_buffer:
+            if replay_path.exists():
+                replay_path.unlink(missing_ok=True)
+            return
+
+        snapshot = self.replay_buffer.snapshot(
+            max_episodes=self.config.replay_save_max_episodes,
+            max_bytes=self.config.replay_save_max_bytes,
+        )
+        replay_payload = {
+            "buffer_capacity": self.replay_buffer.capacity,
+            "saved_episodes": snapshot["saved_episodes"],
+            "available_episodes": snapshot["available_episodes"],
+            "total_bytes": snapshot["total_bytes"],
+            "truncated": snapshot["truncated"],
+            "episodes": snapshot["episodes"],
+        }
+        torch.save(replay_payload, replay_path)
+        if replay_payload["available_episodes"] and replay_payload["truncated"]:
+            print(
+                "Replay buffer checkpoint capped | "
+                f"saved_episodes={replay_payload['saved_episodes']} | "
+                f"available_episodes={replay_payload['available_episodes']} | "
+                f"bytes={replay_payload['total_bytes']}"
+            )
+
+    def _maybe_load_replay_buffer_checkpoint(self, checkpoint_path: Path):
+        if not self.config.save_replay_buffer:
+            return
+
+        replay_path = self._get_replay_checkpoint_path(checkpoint_path)
+        if not replay_path.is_file():
+            print(f"Replay buffer checkpoint missing: {replay_path}")
+            return
+
+        replay_payload = safe_torch_load(replay_path, map_location="cpu")
+        replay_episodes = replay_payload.get("episodes", [])
+        self.replay_buffer.load_snapshot(replay_episodes)
+        print(
+            "Replay buffer restored | "
+            f"loaded_episodes={len(self.replay_buffer)} | "
+            f"saved_episodes={replay_payload.get('saved_episodes', len(replay_episodes))} | "
+            f"available_episodes={replay_payload.get('available_episodes', len(replay_episodes))}"
+        )
 
     def _write_run_config(self):
         config_path = self.save_dir / "run_config.json"
