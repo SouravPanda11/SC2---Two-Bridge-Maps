@@ -46,8 +46,8 @@ CHECKPOINT_NAME_RE = re.compile(
 # ============================================================================
 # Run mode: comment/uncomment exactly one option below.
 # ============================================================================
-RUN_MODE = "fresh_start"
-# RUN_MODE = "load_last_checkpoint"
+# RUN_MODE = "fresh_start"
+RUN_MODE = "load_last_checkpoint"
 
 # Fresh start settings.
 FRESH_START_SEED = None  # Set an int to train one explicit seed from scratch.
@@ -376,31 +376,68 @@ def seed_dir_has_final(seed_dir):
     return False
 
 
-def resolve_unfinished_seed_resume():
-    unfinished_seed_dirs = []
-    for seed, seed_dir in iter_seed_dirs() or ():
-        if seed_dir_has_final(seed_dir):
-            continue
-        unfinished_seed_dirs.append((seed, seed_dir))
-
-    if not unfinished_seed_dirs:
+def load_latest_seed_manifest():
+    manifest_path = os.path.join(get_agent_save_root(), "latest_run_manifest.json")
+    if not os.path.isfile(manifest_path):
         raise FileNotFoundError(
-            "No unfinished seed folder found. Every seed folder already has a _final checkpoint."
+            f"No seed manifest found at {manifest_path}. Run fresh_start first to create it."
         )
 
-    if len(unfinished_seed_dirs) > 1:
-        unfinished_desc = ", ".join(
-            f"seed={seed} ({seed_dir})" for seed, seed_dir in unfinished_seed_dirs
-        )
+    with open(manifest_path, "r", encoding="utf-8") as handle:
+        manifest = json.load(handle)
+
+    raw_seeds = manifest.get("seeds")
+    if not isinstance(raw_seeds, list) or not raw_seeds:
         raise RuntimeError(
-            "Expected exactly one unfinished seed folder, "
-            f"but found multiple: {unfinished_desc}"
+            f"Seed manifest {manifest_path} is missing a non-empty 'seeds' list."
         )
 
-    seed, seed_dir = unfinished_seed_dirs[0]
+    seeds = []
+    seen = set()
+    for raw_seed in raw_seeds:
+        try:
+            seed = int(raw_seed)
+        except (TypeError, ValueError) as exc:
+            raise RuntimeError(
+                f"Seed manifest {manifest_path} contains a non-integer seed: {raw_seed!r}"
+            ) from exc
+        if seed in seen:
+            raise RuntimeError(f"Seed manifest {manifest_path} contains duplicate seed {seed}.")
+        seeds.append(seed)
+        seen.add(seed)
+
+    manifest["seeds"] = tuple(seeds)
+    return manifest_path, manifest
+
+
+def describe_seed_progress(seed):
+    save_dir = os.path.join(get_agent_save_root(), f"seed_{seed}")
     checkpoint_paths = collect_seed_checkpoints(seed)
     checkpoint_path = max(checkpoint_paths, key=checkpoint_sort_key) if checkpoint_paths else None
-    return {"seed": seed, "seed_dir": seed_dir, "checkpoint_path": checkpoint_path}
+    return {
+        "seed": seed,
+        "save_dir": save_dir,
+        "has_final": os.path.isdir(save_dir) and seed_dir_has_final(save_dir),
+        "checkpoint_path": checkpoint_path,
+    }
+
+
+def resolve_resume_plan():
+    manifest_path, manifest = load_latest_seed_manifest()
+    seed_states = [describe_seed_progress(seed) for seed in manifest["seeds"]]
+    pending_states = [state for state in seed_states if not state["has_final"]]
+
+    if not pending_states:
+        raise FileNotFoundError(
+            "No unfinished seed found. Every seed from latest_run_manifest.json already has a _final checkpoint."
+        )
+
+    return {
+        "manifest_path": manifest_path,
+        "manifest": manifest,
+        "seed_states": seed_states,
+        "pending_states": pending_states,
+    }
 
 
 def normalize_config(config):
@@ -662,15 +699,29 @@ def main():
     overall_start_time = time.perf_counter()
     args = build_run_config()
     rollout_size = normalize_config(args)
-    resume_state = None
+    resume_plan = None
 
     if args.run_mode == "fresh_start":
         seeds = resolve_seeds(args)
         manifest_path = write_seed_manifest(args, seeds)
         print(f"Seed manifest: {manifest_path}")
     else:
-        resume_state = resolve_unfinished_seed_resume()
-        seeds = (resume_state["seed"],)
+        resume_plan = resolve_resume_plan()
+        seeds = tuple(state["seed"] for state in resume_plan["pending_states"])
+        print(f"Seed manifest: {resume_plan['manifest_path']}")
+
+    resume_checkpoints = {}
+    first_resume_checkpoint = None
+    if resume_plan is not None:
+        resume_checkpoints = {
+            state["seed"]: state["checkpoint_path"] for state in resume_plan["pending_states"]
+        }
+        first_resume_checkpoint = resume_plan["pending_states"][0]["checkpoint_path"]
+        completed_seeds = tuple(
+            state["seed"] for state in resume_plan["seed_states"] if state["has_final"]
+        )
+        if completed_seeds:
+            print(f"Resume skip | completed_seeds={completed_seeds}")
 
     print(
         "Run plan | "
@@ -680,21 +731,20 @@ def main():
         f"num_envs={args.num_envs} | "
         f"total_timesteps={args.total_timesteps} | "
         f"save_interval={args.save_interval} | "
-        f"resume_checkpoint={resume_state['checkpoint_path'] if resume_state else 'None'}"
+        f"resume_checkpoint={first_resume_checkpoint if first_resume_checkpoint else 'None'}"
     )
-    if resume_state is not None and resume_state["checkpoint_path"] is None:
-        print(
-            "Resume note | "
-            f"seed={resume_state['seed']} | "
-            "unfinished seed folder has no step checkpoint yet, so training will restart from 0."
-        )
+    if resume_plan is not None:
+        for state in resume_plan["pending_states"]:
+            if os.path.isdir(state["save_dir"]) and state["checkpoint_path"] is None:
+                print(
+                    "Resume note | "
+                    f"seed={state['seed']} | "
+                    "unfinished seed folder has no step checkpoint yet, so training will restart from 0."
+                )
 
     seed_results = []
     for seed in seeds:
-        resume_checkpoint = None
-        if resume_state is not None and resume_state["seed"] == seed:
-            resume_checkpoint = resume_state["checkpoint_path"]
-        seed_results.append(train_for_seed(args, rollout_size, seed, resume_checkpoint))
+        seed_results.append(train_for_seed(args, rollout_size, seed, resume_checkpoints.get(seed)))
 
     overall_wall_time = time.perf_counter() - overall_start_time
     total_training_wall = sum(result["training_wall"] for result in seed_results)
@@ -730,3 +780,4 @@ def main():
 if __name__ == "__main__":
     mp.freeze_support()
     main()
+    
