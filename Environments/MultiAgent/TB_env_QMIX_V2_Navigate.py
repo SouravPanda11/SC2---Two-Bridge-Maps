@@ -56,15 +56,15 @@ OBS_SIZE = (
 )
 
 
-class TwoBridgeMap_V2_Base(lib.Map):
-    name = "TwoBridgeMap_V2_Base"
+class TwoBridgeMap_V2_Navigate(lib.Map):
+    name = "TwoBridgeMap_V2_Navigate"
     directory = r"C:/Program Files (x86)/StarCraft II/Maps/Strategy Maps/Camera Free"
-    filename = "TwoBridgeMap_V2_Base.SC2Map"
+    filename = "TwoBridgeMap_V2_Navigate.SC2Map"
     players = 2
 
 
-lib.get_maps().pop("TwoBridgeMap_V2_Base", None)
-lib.get_maps()["TwoBridgeMap_V2_Base"] = TwoBridgeMap_V2_Base()
+lib.get_maps().pop("TwoBridgeMap_V2_Navigate", None)
+lib.get_maps()["TwoBridgeMap_V2_Navigate"] = TwoBridgeMap_V2_Navigate()
 
 
 FLAGS = flags.FLAGS
@@ -110,7 +110,7 @@ TIE_BONUS = 0.0
 
 class TwoBridgeQMixEnv:
     """
-    Multi-agent raw-action environment for TwoBridgeMap_V2_Base.
+    Multi-agent raw-action environment for TwoBridgeMap_V2_Navigate.
 
     Per-agent discrete actions:
     0            -> no-op
@@ -120,7 +120,7 @@ class TwoBridgeQMixEnv:
 
     def __init__(
         self,
-        map_name="V2_Base",
+        map_name="V2_Navigate",
         seed=None,
         episode_limit=None,
         visualize=False,
@@ -128,8 +128,8 @@ class TwoBridgeQMixEnv:
         replay_dir="",
         save_replay_episodes=0,
     ):
-        if map_name != "V2_Base":
-            raise ValueError(f"Unsupported map_name={map_name!r}. Only 'V2_Base' is implemented.")
+        if map_name != "V2_Navigate":
+            raise ValueError(f"Unsupported map_name={map_name!r}. Only 'V2_Navigate' is implemented.")
 
         self.map_name = map_name
         self.n_agents = N_FRIEND
@@ -143,7 +143,7 @@ class TwoBridgeQMixEnv:
 
         self._seed = None
         self._env = sc2_env.SC2Env(
-            map_name="TwoBridgeMap_V2_Base",
+            map_name="TwoBridgeMap_V2_Navigate",
             players=[
                 sc2_env.Agent(sc2_env.Race.terran),
                 sc2_env.Bot(sc2_env.Race.terran, sc2_env.Difficulty.easy),

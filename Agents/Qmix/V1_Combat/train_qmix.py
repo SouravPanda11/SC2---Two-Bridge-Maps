@@ -31,7 +31,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 
-from Environments.MultiAgent.TB_env_QMIX_V2_Base import TwoBridgeEnv
+from Environments.MultiAgent.TB_env_QMIX_V1_Combat import TwoBridgeEnv
 
 
 DEFAULT_TOTAL_TIMESTEPS = 2_000_000
@@ -40,7 +40,7 @@ DEFAULT_NUM_SEEDS = 2
 DEFAULT_NUM_ENVS = 3
 
 AGENT_NAME = "QMIX"
-MAP_NAME = "V2_Base"
+MAP_NAME = "V1_Combat"
 
 # ============================================================================
 # Run mode: comment/uncomment exactly one option below.
