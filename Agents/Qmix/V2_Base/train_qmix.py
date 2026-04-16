@@ -1,5 +1,6 @@
 ﻿import atexit
 import copy
+import gc
 import json
 import multiprocessing as mp
 import os
@@ -36,8 +37,9 @@ from Environments.MultiAgent.TB_env_QMIX_V2_Base import TwoBridgeEnv
 
 DEFAULT_TOTAL_TIMESTEPS = 2_000_000
 DEFAULT_SAVE_INTERVAL = 50_000
-DEFAULT_NUM_SEEDS = 2
+DEFAULT_NUM_SEEDS = 3
 DEFAULT_NUM_ENVS = 3
+DEFAULT_BUFFER_MAX_GB = 4.0
 
 AGENT_NAME = "QMIX"
 MAP_NAME = "V2_Base"
@@ -45,8 +47,8 @@ MAP_NAME = "V2_Base"
 # ============================================================================
 # Run mode: comment/uncomment exactly one option below.
 # ============================================================================
-RUN_MODE = "fresh_start"
-# RUN_MODE = "load_last_checkpoint"
+# RUN_MODE = "fresh_start"
+RUN_MODE = "load_last_checkpoint"
 
 # Fresh start settings.
 FRESH_START_SEED = None
@@ -82,6 +84,7 @@ class TrainConfig:
     eval_during_training: bool = EVAL_DURING_TRAINING
 
     buffer_size: int = 5000
+    buffer_max_gb: float = DEFAULT_BUFFER_MAX_GB
     batch_size: int = 32
     learn_start_episodes: int = 32
     train_updates_per_episode: int = 1
@@ -148,6 +151,12 @@ def set_global_seeds(seed: int):
         torch.cuda.manual_seed_all(seed)
 
 
+def release_training_memory():
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
+
 def generate_random_seeds(num_seeds: int):
     rng = random.SystemRandom()
     seeds = []
@@ -183,6 +192,43 @@ def step_label(env_steps: int):
     return str(env_steps)
 
 
+def gib_to_bytes(value_gb: Optional[float]):
+    if value_gb is None:
+        return None
+    value_gb = float(value_gb)
+    if value_gb <= 0.0:
+        return None
+    return int(value_gb * (1024**3))
+
+
+def format_gib(num_bytes: Optional[int]):
+    if num_bytes is None:
+        return "unbounded"
+    return f"{num_bytes / (1024**3):.2f} GiB"
+
+
+def estimate_episode_storage_bytes(
+    *,
+    n_agents: int,
+    n_actions: int,
+    obs_dim: int,
+    state_dim: int,
+    minimap_shape,
+    episode_limit: int,
+):
+    seq_len = int(episode_limit) + 1
+    transition_len = int(episode_limit)
+    total = 0
+    total += seq_len * n_agents * obs_dim * np.dtype(np.float32).itemsize
+    total += seq_len * state_dim * np.dtype(np.float32).itemsize
+    if minimap_shape:
+        total += seq_len * int(np.prod(minimap_shape)) * np.dtype(np.uint8).itemsize
+    total += seq_len * n_agents * n_actions * np.dtype(np.float32).itemsize
+    total += transition_len * n_agents * np.dtype(np.int64).itemsize
+    total += transition_len * np.dtype(np.float32).itemsize * 2
+    return total
+
+
 def get_agent_save_root(config: TrainConfig):
     return PROJECT_ROOT / "Agents" / "Qmix" / config.map_name / "saved_models" / config.agent_name
 
@@ -212,6 +258,7 @@ def write_seed_manifest(config: TrainConfig, seeds):
         "save_interval": config.save_interval,
         "batch_size": config.batch_size,
         "buffer_size": config.buffer_size,
+        "buffer_max_gb": config.buffer_max_gb,
         "device": config.device,
     }
     save_root = get_agent_save_root(config)
@@ -673,15 +720,52 @@ class QMixer(nn.Module):
 
 
 class EpisodeReplayBuffer:
-    def __init__(self, capacity: int):
-        self.capacity = capacity
-        self.episodes = deque(maxlen=capacity)
+    def __init__(self, capacity: int, max_bytes: Optional[int] = None):
+        self.capacity = int(capacity)
+        self.max_bytes = None if max_bytes is None else int(max_bytes)
+        self.episodes = deque()
+        self.episode_bytes = deque()
+        self.total_bytes = 0
 
     def __len__(self):
         return len(self.episodes)
 
+    @staticmethod
+    def estimate_episode_bytes(episode: dict):
+        total = 0
+        for value in episode.values():
+            if isinstance(value, np.ndarray):
+                total += value.nbytes
+        return total
+
+    def trim(self):
+        while len(self.episodes) > self.capacity:
+            removed_bytes = self.episode_bytes.popleft()
+            self.episodes.popleft()
+            self.total_bytes -= removed_bytes
+
+        if self.max_bytes is None:
+            return
+
+        while self.total_bytes > self.max_bytes and len(self.episodes) > 1:
+            removed_bytes = self.episode_bytes.popleft()
+            self.episodes.popleft()
+            self.total_bytes -= removed_bytes
+
     def add(self, episode: dict):
+        episode_bytes = self.estimate_episode_bytes(episode)
         self.episodes.append(episode)
+        self.episode_bytes.append(episode_bytes)
+        self.total_bytes += episode_bytes
+        self.trim()
+
+    @property
+    def size_bytes(self):
+        return self.total_bytes
+
+    @property
+    def size_gib(self):
+        return self.total_bytes / (1024**3)
 
     def sample(self, batch_size: int, device: str):
         sampled = random.sample(self.episodes, batch_size)
@@ -838,7 +922,10 @@ class QMixTrainer:
             lr=config.learning_rate,
         )
         self.reward_ms = RunningMeanStd(shape=(1,), device=self.device) if config.standardise_rewards else None
-        self.replay_buffer = EpisodeReplayBuffer(config.buffer_size)
+        self.replay_buffer = EpisodeReplayBuffer(
+            config.buffer_size,
+            max_bytes=gib_to_bytes(config.buffer_max_gb),
+        )
 
         self.env_steps = 0
         self.episode_count = 0
@@ -869,6 +956,26 @@ class QMixTrainer:
             f"obs_dim={self.obs_dim} | state_dim={self.state_dim} | "
             f"minimap_shape={self.minimap_shape if self.use_minimap else None} | "
             f"episode_limit={self.episode_limit}"
+        )
+        approx_episode_bytes = estimate_episode_storage_bytes(
+            n_agents=self.n_agents,
+            n_actions=self.n_actions,
+            obs_dim=self.obs_dim,
+            state_dim=self.state_dim,
+            minimap_shape=self.minimap_shape if self.use_minimap else (),
+            episode_limit=self.episode_limit,
+        )
+        approx_full_episodes = (
+            "unbounded"
+            if self.replay_buffer.max_bytes is None
+            else max(1, self.replay_buffer.max_bytes // approx_episode_bytes)
+        )
+        print(
+            "Replay buffer | "
+            f"episode_cap={self.replay_buffer.capacity} | "
+            f"memory_cap={format_gib(self.replay_buffer.max_bytes)} | "
+            f"approx_full_episode={approx_episode_bytes / (1024**2):.1f} MiB | "
+            f"approx_full_episodes_under_cap={approx_full_episodes}"
         )
         print(f"Checkpoint dir: {self.save_dir}")
         if self.writer is not None:
@@ -1404,7 +1511,7 @@ class QMixTrainer:
             "Train | "
             f"env_steps={self.env_steps} | "
             f"episodes={self.episode_count} | "
-            f"buffer={len(self.replay_buffer)} | "
+            f"buffer={len(self.replay_buffer)} ({self.replay_buffer.size_gib:.2f} GiB) | "
             f"updates={self.train_updates} | "
             f"epsilon={self.current_epsilon(self.env_steps):.3f} | "
             f"mean_return={mean_return:.3f} | "
@@ -1499,6 +1606,8 @@ def train_for_seed(config: TrainConfig, seed: int):
         }
     finally:
         trainer.close()
+        del trainer
+        release_training_memory()
 
 
 def train(config: Optional[TrainConfig] = None):
@@ -1561,6 +1670,7 @@ def train(config: Optional[TrainConfig] = None):
         seed_config = copy.deepcopy(config)
         seed_config.resume_checkpoint = resume_checkpoints.get(seed, "")
         seed_results.append(train_for_seed(seed_config, seed))
+        release_training_memory()
 
     overall_wall_time = time.perf_counter() - overall_start_time
     if seed_results:
