@@ -1,5 +1,6 @@
 ﻿import atexit
 import copy
+import gc
 import json
 import multiprocessing as mp
 import os
@@ -82,7 +83,7 @@ class TrainConfig:
     eval_during_training: bool = EVAL_DURING_TRAINING
 
     buffer_size: int = 5000
-    batch_size: int = 32
+    batch_size: int = 16
     learn_start_episodes: int = 32
     train_updates_per_episode: int = 1
 
@@ -150,6 +151,22 @@ def set_global_seeds(seed: int):
     torch.manual_seed(seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
+
+
+def release_training_memory():
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
+
+def get_cuda_memory_stats(device: str):
+    if not (torch.cuda.is_available() and str(device).startswith("cuda")):
+        return None
+    return {
+        "allocated_mb": torch.cuda.memory_allocated(device) / (1024**2),
+        "reserved_mb": torch.cuda.memory_reserved(device) / (1024**2),
+        "max_allocated_mb": torch.cuda.max_memory_allocated(device) / (1024**2),
+    }
 
 
 def generate_random_seeds(num_seeds: int):
@@ -976,6 +993,7 @@ class QMixTrainer:
             self.eval_env.close()
         if self.writer is not None:
             self.writer.close()
+        release_training_memory()
 
     def train(self):
         print(f"Using device: {self.device} | SEED={self.seed}")
@@ -1259,37 +1277,37 @@ class QMixTrainer:
                 )
 
         live_minimap_embed = self.encode_minimap_sequence(self.minimap_encoder, minimap)
-        target_minimap_embed = self.encode_minimap_sequence(
-            self.target_minimap_encoder, minimap
-        )
-
         mac_out = self.forward_sequence(self.agent, obs, live_minimap_embed)
         chosen_action_qvals = torch.gather(mac_out[:, :-1], dim=3, index=actions).squeeze(3)
-
-        target_mac_out = self.forward_sequence(
-            self.target_agent, obs, target_minimap_embed
-        )
-        target_mac_out = target_mac_out[:, 1:]
-        target_mac_out[avail_actions[:, 1:] == 0] = -1e9
-
-        if self.config.double_q:
-            live_q = mac_out.detach().clone()
-            live_q[avail_actions == 0] = -1e9
-            cur_max_actions = live_q[:, 1:].max(dim=3, keepdim=True)[1]
-            target_max_qvals = torch.gather(target_mac_out, dim=3, index=cur_max_actions).squeeze(3)
-        else:
-            target_max_qvals = target_mac_out.max(dim=3)[0]
 
         chosen_qtot = self.mixer(
             chosen_action_qvals,
             self.build_mixer_state(state[:, :-1], live_minimap_embed[:, :-1]),
         )
-        target_qtot = self.target_mixer(
-            target_max_qvals,
-            self.build_mixer_state(state[:, 1:], target_minimap_embed[:, 1:]),
-        )
+        with torch.no_grad():
+            target_minimap_embed = self.encode_minimap_sequence(
+                self.target_minimap_encoder, minimap
+            )
+            target_mac_out = self.forward_sequence(
+                self.target_agent, obs, target_minimap_embed
+            )
+            target_mac_out = target_mac_out[:, 1:]
+            target_mac_out[avail_actions[:, 1:] == 0] = -1e9
 
-        targets = rewards + self.config.gamma * (1.0 - terminated) * target_qtot.detach()
+            if self.config.double_q:
+                live_q = mac_out.detach().clone()
+                live_q[avail_actions == 0] = -1e9
+                cur_max_actions = live_q[:, 1:].max(dim=3, keepdim=True)[1]
+                target_max_qvals = torch.gather(target_mac_out, dim=3, index=cur_max_actions).squeeze(3)
+            else:
+                target_max_qvals = target_mac_out.max(dim=3)[0]
+
+            target_qtot = self.target_mixer(
+                target_max_qvals,
+                self.build_mixer_state(state[:, 1:], target_minimap_embed[:, 1:]),
+            )
+
+        targets = rewards + self.config.gamma * (1.0 - terminated) * target_qtot
         td_error = chosen_qtot - targets
         masked_td_error = td_error * filled
         loss = (masked_td_error.pow(2).sum()) / filled.sum().clamp_min(1.0)
@@ -1517,6 +1535,14 @@ class QMixTrainer:
         mean_return = float(np.mean(self.recent_returns)) if self.recent_returns else 0.0
         mean_length = float(np.mean(self.recent_lengths)) if self.recent_lengths else 0.0
         outcome_counts = Counter(self.recent_outcomes)
+        memory_stats = get_cuda_memory_stats(self.device)
+        memory_text = ""
+        if memory_stats is not None:
+            memory_text = (
+                f" | cuda_alloc_mb={memory_stats['allocated_mb']:.0f}"
+                f" | cuda_reserved_mb={memory_stats['reserved_mb']:.0f}"
+                f" | cuda_peak_mb={memory_stats['max_allocated_mb']:.0f}"
+            )
         print(
             "Train | "
             f"env_steps={self.env_steps} | "
@@ -1527,7 +1553,12 @@ class QMixTrainer:
             f"mean_return={mean_return:.3f} | "
             f"mean_length={mean_length:.1f} | "
             f"recent_outcomes={dict(outcome_counts)}"
+            f"{memory_text}"
         )
+        if self.writer is not None and memory_stats is not None:
+            self.writer.add_scalar("system/cuda_alloc_mb", memory_stats["allocated_mb"], self.env_steps)
+            self.writer.add_scalar("system/cuda_reserved_mb", memory_stats["reserved_mb"], self.env_steps)
+            self.writer.add_scalar("system/cuda_peak_mb", memory_stats["max_allocated_mb"], self.env_steps)
 
     def save_checkpoint(self, label: str):
         checkpoint = {
@@ -1561,6 +1592,7 @@ class QMixTrainer:
         torch.save(checkpoint, checkpoint_path)
         self._save_replay_buffer_checkpoint(checkpoint_path)
         print(f"Saved checkpoint: {checkpoint_path}")
+        release_training_memory()
 
     def _maybe_load_checkpoint(self):
         if not self.config.resume_checkpoint:
@@ -1688,6 +1720,8 @@ def train_for_seed(config: TrainConfig, seed: int):
         }
     finally:
         trainer.close()
+        del trainer
+        release_training_memory()
 
 
 def train(config: Optional[TrainConfig] = None):
