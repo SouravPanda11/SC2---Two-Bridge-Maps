@@ -64,6 +64,7 @@ USE_TENSORBOARD = True
 EVAL_DURING_TRAINING = False
 EVAL_INTERVAL = 50_000
 EVAL_EPISODES = 5
+MINIMAP_ENCODE_CHUNK_SIZE = 512
 
 
 @dataclass
@@ -1569,7 +1570,16 @@ class QMixTrainer:
             return None
         batch_size, seq_length, channels, height, width = minimap_seq.shape
         flat = minimap_seq.reshape(batch_size * seq_length, channels, height, width)
-        encoded = encoder(flat)
+        if flat.size(0) <= MINIMAP_ENCODE_CHUNK_SIZE:
+            encoded = encoder(flat)
+        else:
+            encoded = torch.cat(
+                [
+                    encoder(flat[start : start + MINIMAP_ENCODE_CHUNK_SIZE])
+                    for start in range(0, flat.size(0), MINIMAP_ENCODE_CHUNK_SIZE)
+                ],
+                dim=0,
+            )
         return encoded.view(batch_size, seq_length, -1)
 
     def build_mixer_state(
