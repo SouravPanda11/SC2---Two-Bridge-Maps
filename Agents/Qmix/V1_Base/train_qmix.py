@@ -156,7 +156,10 @@ def set_global_seeds(seed: int):
 def release_training_memory():
     gc.collect()
     if torch.cuda.is_available():
-        torch.cuda.empty_cache()
+        try:
+            torch.cuda.empty_cache()
+        except RuntimeError:
+            pass
 
 
 def get_cuda_memory_stats(device: str):
@@ -1276,14 +1279,6 @@ class QMixTrainer:
                     self.reward_ms.var.view(1, 1, 1) + 1e-8
                 )
 
-        live_minimap_embed = self.encode_minimap_sequence(self.minimap_encoder, minimap)
-        mac_out = self.forward_sequence(self.agent, obs, live_minimap_embed)
-        chosen_action_qvals = torch.gather(mac_out[:, :-1], dim=3, index=actions).squeeze(3)
-
-        chosen_qtot = self.mixer(
-            chosen_action_qvals,
-            self.build_mixer_state(state[:, :-1], live_minimap_embed[:, :-1]),
-        )
         with torch.no_grad():
             target_minimap_embed = self.encode_minimap_sequence(
                 self.target_minimap_encoder, minimap
@@ -1294,10 +1289,23 @@ class QMixTrainer:
             target_mac_out = target_mac_out[:, 1:]
             target_mac_out[avail_actions[:, 1:] == 0] = -1e9
 
-            if self.config.double_q:
-                live_q = mac_out.detach().clone()
-                live_q[avail_actions == 0] = -1e9
-                cur_max_actions = live_q[:, 1:].max(dim=3, keepdim=True)[1]
+        live_minimap_embed = self.encode_minimap_sequence(self.minimap_encoder, minimap)
+        mac_out = self.forward_sequence(self.agent, obs, live_minimap_embed)
+        chosen_action_qvals = torch.gather(mac_out[:, :-1], dim=3, index=actions).squeeze(3)
+        chosen_qtot = self.mixer(
+            chosen_action_qvals,
+            self.build_mixer_state(state[:, :-1], live_minimap_embed[:, :-1]),
+        )
+
+        if self.config.double_q:
+            live_q = mac_out.detach().clone()
+            live_q[avail_actions == 0] = -1e9
+            cur_max_actions = live_q[:, 1:].max(dim=3, keepdim=True)[1]
+        else:
+            cur_max_actions = None
+
+        with torch.no_grad():
+            if cur_max_actions is not None:
                 target_max_qvals = torch.gather(target_mac_out, dim=3, index=cur_max_actions).squeeze(3)
             else:
                 target_max_qvals = target_mac_out.max(dim=3)[0]
