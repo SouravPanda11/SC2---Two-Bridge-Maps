@@ -12,3 +12,6 @@ __pycache__/
 # Exclude MaskPPO FAM_CAM replay files
 Replays/MaskPPO/**/SB_MaskPPO_FAM_CAM/**/*.SC2Replay
 
+# Exclude QMIX saved replay checkpoints
+Agents/Qmix/**/saved_models/**/*.replay.pt
+
