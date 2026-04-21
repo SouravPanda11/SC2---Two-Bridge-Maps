@@ -46,8 +46,8 @@ MAP_NAME = "V1_Navigate"
 # ============================================================================
 # Run mode: comment/uncomment exactly one option below.
 # ============================================================================
-RUN_MODE = "fresh_start"
-# RUN_MODE = "load_last_checkpoint"
+# RUN_MODE = "fresh_start"
+RUN_MODE = "load_last_checkpoint"
 
 # Fresh start settings.
 FRESH_START_SEED = None
