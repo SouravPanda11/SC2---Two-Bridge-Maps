@@ -35,7 +35,7 @@ DEFAULT_N_EPOCHS = 4
 
 # Change the env import above plus these names to reuse the trainer for
 # other map variants without touching the rollout logic below.
-AGENT_NAME = "MaskPPO_NS_AM_RM_mean_parallel"
+AGENT_NAME = "MaskPPO_NS"
 MAP_NAME = "V3_Combat"
 SEED_DIR_RE = re.compile(r"^seed_(\d+)$")
 CHECKPOINT_NAME_RE = re.compile(

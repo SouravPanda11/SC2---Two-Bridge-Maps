@@ -35,7 +35,7 @@ DEFAULT_N_EPOCHS = 4
 
 # Change the env import above plus these names to reuse the trainer for
 # other map variants without touching the rollout logic below.
-AGENT_NAME = "MaskPPO_NS_AM_RM_mean_parallel"
+AGENT_NAME = "MaskPPO_NS"
 MAP_NAME = "V2_Base"
 SEED_DIR_RE = re.compile(r"^seed_(\d+)$")
 CHECKPOINT_NAME_RE = re.compile(
@@ -46,8 +46,8 @@ CHECKPOINT_NAME_RE = re.compile(
 # ============================================================================
 # Run mode: comment/uncomment exactly one option below.
 # ============================================================================
-# RUN_MODE = "fresh_start"
-RUN_MODE = "load_last_checkpoint"
+RUN_MODE = "fresh_start"
+# RUN_MODE = "load_last_checkpoint"
 
 # Fresh start settings.
 FRESH_START_SEED = None  # Set an int to train one explicit seed from scratch.
