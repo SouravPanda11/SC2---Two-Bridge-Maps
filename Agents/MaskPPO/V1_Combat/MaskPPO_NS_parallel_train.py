@@ -68,15 +68,24 @@ SMOKE_TEST = False
 
 class FlattenActionWrapper(Wrapper):
     """
-    Dict(verb, who, direction, enemy_idx) ->
-    MultiDiscrete([3, 2xN_FRIEND, 9, N_ENEMY+1])
+    Keeps the NS env's per-friendly MultiDiscrete action space and flattens
+    the 2D action mask so MaskablePPO can consume it.
     """
 
     def __init__(self, env):
         super().__init__(env)
 
-        self.action_space = spaces.MultiDiscrete([3] + [2] * N_FRIEND + [9] + [N_ENEMY + 1])
-        self._direction_mask = np.ones(9, dtype=np.int8)
+        if not isinstance(env.action_space, spaces.MultiDiscrete):
+            raise TypeError("Expected MultiDiscrete action_space from NS env")
+        self.action_space = env.action_space
+        self._n_agents = int(len(self.action_space.nvec))
+        if self._n_agents != N_FRIEND:
+            raise ValueError(
+                f"Unexpected action_space rank {self._n_agents}; expected N_FRIEND={N_FRIEND}"
+            )
+        if np.unique(self.action_space.nvec).size != 1:
+            raise ValueError("Expected identical per-friendly action dimensions")
+        self._n_unit_actions = int(self.action_space.nvec[0])
 
         # Advertise the flattened mask directly on the wrapped env so
         # MaskablePPO can query it from SubprocVecEnv workers.
@@ -86,17 +95,9 @@ class FlattenActionWrapper(Wrapper):
         self.observation_space = spaces.Dict(obs_spaces)
         self._last_mask = np.ones(flat_len, dtype=np.int8)
 
-    @staticmethod
-    def _unflatten(a_vec):
-        return {
-            "verb": int(a_vec[0]),
-            "who": np.asarray(a_vec[1 : 1 + N_FRIEND], np.int8),
-            "direction": int(a_vec[1 + N_FRIEND]),
-            "enemy_idx": int(a_vec[-1]),
-        }
-
     def step(self, action):
-        obs, rew, term, trunc, info = self.env.step(self._unflatten(action))
+        action_arr = np.asarray(action, dtype=np.int64).reshape(-1)
+        obs, rew, term, trunc, info = self.env.step(action_arr)
         obs = self._convert_mask(obs)
         return obs, rew, term, trunc, info
 
@@ -106,28 +107,14 @@ class FlattenActionWrapper(Wrapper):
         return obs, info
 
     def _convert_mask(self, obs):
-        am = obs["action_mask"]
-        if not isinstance(am, dict):
-            raise TypeError("Expected dict action_mask from NS env")
+        am = np.asarray(obs["action_mask"], dtype=np.int8)
+        expected_shape = (self._n_agents, self._n_unit_actions)
+        if am.shape != expected_shape:
+            raise ValueError(
+                f"action_mask shape {am.shape} != expected {expected_shape}"
+            )
 
-        verb_mask = np.asarray(am["verb"], dtype=np.int8).reshape(-1)
-        who_bits = np.asarray(am["who"], dtype=np.int8).reshape(-1)
-        enemy_mask = np.asarray(am["enemy_idx"], dtype=np.int8).reshape(-1)
-
-        if verb_mask.size != 3:
-            raise ValueError(f"verb mask size {verb_mask.size} != 3")
-        if who_bits.size != N_FRIEND:
-            raise ValueError(f"who mask size {who_bits.size} != N_FRIEND={N_FRIEND}")
-        if enemy_mask.size != (N_ENEMY + 1):
-            raise ValueError(f"enemy_idx mask size {enemy_mask.size} != N_ENEMY+1={N_ENEMY+1}")
-
-        who_pairs = np.empty(2 * N_FRIEND, dtype=np.int8)
-        who_pairs[0::2] = 1
-        who_pairs[1::2] = np.clip(who_bits, 0, 1)
-
-        flat_mask = np.concatenate(
-            [verb_mask, who_pairs, self._direction_mask, enemy_mask]
-        ).astype(np.int8)
+        flat_mask = am.reshape(-1).astype(np.int8, copy=True)
         obs["action_mask"] = flat_mask
         self._last_mask = flat_mask
         return obs

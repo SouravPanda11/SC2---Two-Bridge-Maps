@@ -25,6 +25,14 @@ VEC_TIME    = VEC_DIST    + 1                 # 1 × float32
 VEC_ECOUNT  = VEC_TIME    + 1                 # 1 × float32
 VEC_SIZE    = VEC_ECOUNT  + 1
 
+OBS_FRIEND_STRIDE = 2
+OBS_ENEMY_STRIDE  = 2
+OBS_FRIEND  = 0
+OBS_ENEMY   = OBS_FRIEND + N_FRIEND * OBS_FRIEND_STRIDE
+OBS_TIME    = OBS_ENEMY + N_ENEMY * OBS_ENEMY_STRIDE
+OBS_ECOUNT  = OBS_TIME + 1
+OBS_VEC_SIZE = OBS_ECOUNT + 1
+
 # ───────────────────── Map registration ───────────────────────
 class TwoBridgeMap_V2_Base(lib.Map):
     name      = "TwoBridgeMap_V2_Base"
@@ -49,15 +57,20 @@ STEP_MUL         = 8
 FIVE_MIN_LOOPS   = 5 * 60 * 16
 MAX_STEPS        = FIVE_MIN_LOOPS // STEP_MUL
 STEP_PIX         = 2
+ATTACK_RANGE     = 6.0
 
 SCR_RES          = 64
-MINI_CH          = len(features.MINIMAP_FEATURES)   # 7
+MINIMAP_PATHABLE_INDEX = int(features.MINIMAP_FEATURES.pathable.index)
+MINIMAP_PLAYER_RELATIVE_INDEX = int(features.MINIMAP_FEATURES.player_relative.index)
+MINI_CH          = 2
 
 MOVE_DIRS = [
     ( 0, -STEP_PIX), ( 0,  STEP_PIX), (-STEP_PIX, 0), ( STEP_PIX, 0),
     ( STEP_PIX,-STEP_PIX), (-STEP_PIX,-STEP_PIX),
     ( STEP_PIX, STEP_PIX), (-STEP_PIX, STEP_PIX)
 ]
+ATTACK_ACTION_OFFSET = 1 + len(MOVE_DIRS)
+N_UNIT_ACTIONS       = ATTACK_ACTION_OFFSET + N_ENEMY
 
 # ───────────────────── reward constants ────────────────────────
 KILL_BONUS   = 1.0
@@ -73,27 +86,18 @@ TIE_BONUS           = 0.0
 class TwoBridgeEnv(gym.Env):
     """
     5 v 5 Two-Bridge – navigation & combat.
-    Action space = {verb, who-mask, direction, enemy_idx}
+    Action space = per-friendly discrete actions.
     """
     metadata = {}
 
-    action_space = spaces.Dict({
-        "verb":      spaces.Discrete(3),              # 0 noop | 1 move | 2 attack
-        "who":       spaces.MultiBinary(N_FRIEND),    # which friendlies receive the order
-        "direction": spaces.Discrete(9),              # 0 unused | 1-8 compass
-        "enemy_idx": spaces.Discrete(N_ENEMY + 1)     # 0 none | 1..N_ENEMY slots
-    })
+    action_space = spaces.MultiDiscrete([N_UNIT_ACTIONS] * N_FRIEND)
 
     observation_space = spaces.Dict({
-        "minimap":     spaces.Box(0, 255, (MINI_CH, SCR_RES, SCR_RES), np.uint8),
-        "vector":      spaces.Box(0.0, np.inf, (VEC_SIZE,), np.float32),
-        # Branch masks used by the NS trainers. Direction is left unmasked
-        # because move targets are clipped to the playable bounds.
-        "action_mask": spaces.Dict({
-            "verb":      spaces.MultiBinary(3),
-            "who":       spaces.MultiBinary(N_FRIEND),
-            "enemy_idx": spaces.MultiBinary(N_ENEMY + 1),
-        }),
+        "minimap":     spaces.Box(0, 4, (MINI_CH, SCR_RES, SCR_RES), np.uint8),
+        "vector":      spaces.Box(0.0, np.inf, (OBS_VEC_SIZE,), np.float32),
+        # Per-friendly action mask:
+        # 0 noop | 1..8 move | ATTACK_ACTION_OFFSET.. attack enemy slots
+        "action_mask": spaces.MultiBinary((N_FRIEND, N_UNIT_ACTIONS)),
     })
 
     def __init__(self,
@@ -127,8 +131,10 @@ class TwoBridgeEnv(gym.Env):
 
         # caches
         self._my_tags     = np.zeros(N_FRIEND, np.int64)
+        self._friend_alive = np.zeros(N_FRIEND, bool)
         self._enemy_tags  = np.zeros(N_ENEMY,  np.int64)
         self._enemy_alive = np.zeros(N_ENEMY,  bool)
+        self._friend_enemy_attackable = np.zeros((N_FRIEND, N_ENEMY), bool)
         self._fx = np.zeros(N_FRIEND, np.float32)
         self._fy = np.zeros(N_FRIEND, np.float32)
         self._raw_x_max = float(SCR_RES - 1)
@@ -142,7 +148,7 @@ class TwoBridgeEnv(gym.Env):
         self._prev_enemy_hp       = np.zeros(N_ENEMY,  np.float32)
         self._prev_friend_hp      = np.zeros(N_FRIEND, np.float32)
 
-        self._last_act = {"verb": 0, "who_bits": np.zeros(N_FRIEND, bool), "enemy_idx": -1}
+        self._last_act = {"actions": np.zeros(N_FRIEND, np.int64)}
         self._last_action_debug = {}
 
         # instrumentation caches
@@ -152,6 +158,7 @@ class TwoBridgeEnv(gym.Env):
             "nav_dist": 0.0, "combat_dist": 0.0
         }
         self._last_unit_metrics = {"friend": {}, "enemy": {}}
+        self._last_internal_vec = np.zeros(VEC_SIZE, np.float32)
         self._action_log_fp = None
         if action_log_path:
             log_path = Path(action_log_path)
@@ -183,6 +190,21 @@ class TwoBridgeEnv(gym.Env):
                 for key, value in action_mask.items()
             }
         return np.asarray(action_mask, dtype=np.int8).tolist()
+
+    def _populate_slot_tags(self, units, slot_tags):
+        assigned_tags = {int(tag) for tag in slot_tags if int(tag) != 0}
+        next_free = 0
+        for unit in units:
+            tag = int(unit.tag)
+            if tag in assigned_tags:
+                continue
+            while next_free < len(slot_tags) and int(slot_tags[next_free]) != 0:
+                next_free += 1
+            if next_free >= len(slot_tags):
+                break
+            slot_tags[next_free] = tag
+            assigned_tags.add(tag)
+            next_free += 1
 
     def _friend_units_from_vec(self, vec):
         units = []
@@ -219,6 +241,7 @@ class TwoBridgeEnv(gym.Env):
         return units
 
     def _summarize_step_debug(self, obs, ts, reward, done, result):
+        internal_vec = self._last_internal_vec
         debug = dict(self._last_action_debug)
         debug.update({
             "episode": int(self._episode_ctr),
@@ -227,11 +250,11 @@ class TwoBridgeEnv(gym.Env):
             "reward": float(reward),
             "done": bool(done),
             "result": result,
-            "friendly_units_after": self._friend_units_from_vec(obs["vector"]),
-            "enemy_units_after": self._enemy_units_from_vec(obs["vector"]),
+            "friendly_units_after": self._friend_units_from_vec(internal_vec),
+            "enemy_units_after": self._enemy_units_from_vec(internal_vec),
             "beacon_after": {
-                "x": float(obs["vector"][VEC_BXY]),
-                "y": float(obs["vector"][VEC_BXY + 1]),
+                "x": float(internal_vec[VEC_BXY]),
+                "y": float(internal_vec[VEC_BXY + 1]),
             },
             "action_mask_after": self._serialize_action_mask(obs["action_mask"]),
         })
@@ -249,7 +272,7 @@ class TwoBridgeEnv(gym.Env):
         self._prev_enemy_hp[:]    = 0.0
         self._prev_friend_hp[:]   = 0.0
 
-        self._last_act = {"verb": 0, "who_bits": np.zeros(N_FRIEND, bool), "enemy_idx": -1}
+        self._last_act = {"actions": np.zeros(N_FRIEND, np.int64)}
         self._last_action_debug = {}
         self._last_unit_metrics = {"friend": {}, "enemy": {}}
         self._last_reward_components = {
@@ -257,10 +280,19 @@ class TwoBridgeEnv(gym.Env):
             "friend_hp": 0.0, "enemy_hp": 0.0,
             "nav_dist": 0.0, "combat_dist": 0.0
         }
+        self._last_internal_vec.fill(0.0)
+        self._my_tags[:] = 0
+        self._friend_alive[:] = False
+        self._enemy_tags[:] = 0
+        self._enemy_alive[:] = False
+        self._friend_enemy_attackable.fill(False)
+        self._fx[:] = 0.0
+        self._fy[:] = 0.0
 
         ts = self._env.reset()[0]
         self._refresh_raw_bounds()
         obs = self._build_obs(ts)
+        internal_vec = self._last_internal_vec
         self._write_action_record({
             "event": "reset",
             "episode": int(self._episode_ctr),
@@ -271,11 +303,11 @@ class TwoBridgeEnv(gym.Env):
                 "y_min": 0.0,
                 "y_max": float(self._raw_y_max),
             },
-            "friendly_units": self._friend_units_from_vec(obs["vector"]),
-            "enemy_units": self._enemy_units_from_vec(obs["vector"]),
+            "friendly_units": self._friend_units_from_vec(internal_vec),
+            "enemy_units": self._enemy_units_from_vec(internal_vec),
             "beacon": {
-                "x": float(obs["vector"][VEC_BXY]),
-                "y": float(obs["vector"][VEC_BXY + 1]),
+                "x": float(internal_vec[VEC_BXY]),
+                "y": float(internal_vec[VEC_BXY + 1]),
             },
             "action_mask": self._serialize_action_mask(obs["action_mask"]),
         })
@@ -297,10 +329,11 @@ class TwoBridgeEnv(gym.Env):
             return obs, float(ts.reward), True, False, info
 
         # custom termination
-        friend_alive = (obs["vector"][2 : N_FRIEND * FRIEND_STRIDE : FRIEND_STRIDE] > 0).sum()
+        internal_vec = self._last_internal_vec
+        friend_alive = (internal_vec[2 : N_FRIEND * FRIEND_STRIDE : FRIEND_STRIDE] > 0).sum()
         no_friend    = friend_alive == 0
-        no_enemy     = obs["vector"][VEC_ECOUNT] == 0
-        beacon_win   = obs["vector"][VEC_DIST] < BEACON_RADIUS
+        no_enemy     = internal_vec[VEC_ECOUNT] == 0
+        beacon_win   = internal_vec[VEC_DIST] < BEACON_RADIUS
 
         info = {"result": None}
         if beacon_win:               info["result"] = "nav_win"
@@ -312,7 +345,7 @@ class TwoBridgeEnv(gym.Env):
             info["result"] = "timeout_loss"
 
         done   = info["result"] is not None
-        reward = self._shape_reward(obs["vector"], done, info["result"])
+        reward = self._shape_reward(internal_vec, done, info["result"])
         info["rew"] = self.get_reward_components()
         info["action_debug"] = self._summarize_step_debug(
             obs, ts, reward, done, info["result"]
@@ -320,85 +353,93 @@ class TwoBridgeEnv(gym.Env):
         return obs, reward, done, False, info
 
     def _translate_actions(self, act):
-        verb      = int(act["verb"])
-        who_bits  = act["who"].astype(bool)
-        dir_id    = int(act["direction"])
-        enemy_idx = int(act["enemy_idx"]) - 1   # shift => 0..N_ENEMY-1
+        actions_arr = np.asarray(act, dtype=np.int64).reshape(-1)
+        if actions_arr.shape[0] != N_FRIEND:
+            raise ValueError(f"Expected {N_FRIEND} per-unit actions, received {actions_arr.shape[0]}.")
 
-        tags = [int(t) for t, b in zip(self._my_tags, who_bits) if b]
-        self._last_act = {"verb": verb, "who_bits": who_bits.copy(), "enemy_idx": enemy_idx}
+        self._last_act = {"actions": actions_arr.copy()}
         self._last_action_debug = {
-            "requested_action": {
-                "verb": verb,
-                "who_bits": who_bits.astype(int).tolist(),
-                "direction": dir_id,
-                "enemy_idx_input": int(act["enemy_idx"]),
-                "enemy_slot": enemy_idx,
-            },
-            "selected_tags": tags,
-            "selected_units_before": [
-                {
-                    "slot": i,
-                    "tag": int(self._my_tags[i]),
-                    "x": float(self._fx[i]),
-                    "y": float(self._fy[i]),
-                }
-                for i, selected in enumerate(who_bits)
-                if selected and int(self._my_tags[i]) != 0
-            ],
+            "requested_action": {"actions": actions_arr.astype(int).tolist()},
             "raw_bounds": {
                 "x_min": 0.0,
                 "x_max": float(self._raw_x_max),
                 "y_min": 0.0,
                 "y_max": float(self._raw_y_max),
             },
+            "per_unit_actions": [],
         }
 
-        # MOVE
-        if verb == 1 and tags and 1 <= dir_id <= 8:
-            dx, dy = MOVE_DIRS[dir_id-1]
-            cx = np.mean(self._fx[who_bits]) + dx
-            cy = np.mean(self._fy[who_bits]) + dy
-            pt = (float(np.clip(cx, 0.0, self._raw_x_max)),
-                  float(np.clip(cy, 0.0, self._raw_y_max)))
-            self._last_action_debug["translated_action"] = {
-                "command": "Move_pt",
-                "delta": {"x": int(dx), "y": int(dy)},
-                "target_before_clip": {"x": float(cx), "y": float(cy)},
-                "target_after_clip": {"x": pt[0], "y": pt[1]},
+        cmds = []
+        for friend_idx, action_id in enumerate(actions_arr):
+            tag = int(self._my_tags[friend_idx])
+            alive = bool(self._friend_alive[friend_idx])
+            unit_debug = {
+                "slot": int(friend_idx),
+                "tag": tag,
+                "alive": alive,
+                "action_id": int(action_id),
+                "x": float(self._fx[friend_idx]),
+                "y": float(self._fy[friend_idx]),
             }
-            return [RAW.Move_pt("now", tags, pt)]
 
-        # ATTACK
-        if (verb == 2 and tags and
-                0 <= enemy_idx < N_ENEMY and self._enemy_alive[enemy_idx]):
+            if not alive or tag == 0:
+                unit_debug["translated_action"] = {"command": "no_op", "reason": "unit_not_alive"}
+                self._last_action_debug["per_unit_actions"].append(unit_debug)
+                continue
+
+            if action_id == 0:
+                unit_debug["translated_action"] = {"command": "no_op", "reason": "noop_requested"}
+                self._last_action_debug["per_unit_actions"].append(unit_debug)
+                continue
+
+            if 1 <= action_id < ATTACK_ACTION_OFFSET:
+                dx, dy = MOVE_DIRS[int(action_id) - 1]
+                tx = float(np.clip(self._fx[friend_idx] + dx, 0.0, self._raw_x_max))
+                ty = float(np.clip(self._fy[friend_idx] + dy, 0.0, self._raw_y_max))
+                cmds.append(RAW.Move_pt("now", [tag], (tx, ty)))
+                unit_debug["translated_action"] = {
+                    "command": "Move_pt",
+                    "delta": {"x": int(dx), "y": int(dy)},
+                    "target_after_clip": {"x": tx, "y": ty},
+                }
+                self._last_action_debug["per_unit_actions"].append(unit_debug)
+                continue
+
+            enemy_idx = int(action_id) - ATTACK_ACTION_OFFSET
+            if (0 <= enemy_idx < N_ENEMY and self._enemy_alive[enemy_idx]
+                    and self._friend_enemy_attackable[friend_idx, enemy_idx]):
+                cmds.append(RAW.Attack_unit("now", [tag], int(self._enemy_tags[enemy_idx])))
+                unit_debug["translated_action"] = {
+                    "command": "Attack_unit",
+                    "target_enemy_slot": int(enemy_idx),
+                    "target_enemy_tag": int(self._enemy_tags[enemy_idx]),
+                }
+            else:
+                reason = "invalid_or_masked_action"
+                if not (0 <= enemy_idx < N_ENEMY):
+                    reason = "attack_with_invalid_enemy_slot"
+                elif not self._enemy_alive[enemy_idx]:
+                    reason = "attack_target_not_alive"
+                else:
+                    reason = "attack_target_out_of_range"
+                unit_debug["translated_action"] = {"command": "no_op", "reason": reason}
+            self._last_action_debug["per_unit_actions"].append(unit_debug)
+
+        if not cmds:
             self._last_action_debug["translated_action"] = {
-                "command": "Attack_unit",
-                "target_enemy_slot": enemy_idx,
-                "target_enemy_tag": int(self._enemy_tags[enemy_idx]),
+                "command": "no_op",
+                "reason": "no_valid_unit_commands",
             }
-            return [RAW.Attack_unit("now", tags, int(self._enemy_tags[enemy_idx]))]
+            return [RAW.no_op()]
 
-        reason = "invalid_or_masked_action"
-        if verb == 0:
-            reason = "noop_requested"
-        elif verb == 1:
-            if not tags:
-                reason = "move_without_selected_units"
-            elif not (1 <= dir_id <= 8):
-                reason = "move_with_invalid_direction"
-        elif verb == 2:
-            if not tags:
-                reason = "attack_without_selected_units"
-            elif not (0 <= enemy_idx < N_ENEMY):
-                reason = "attack_with_invalid_enemy_slot"
-            elif not self._enemy_alive[enemy_idx]:
-                reason = "attack_target_not_alive"
         self._last_action_debug["translated_action"] = {
-            "command": "no_op",
-            "reason": reason,
+            "command_count": len(cmds),
+            "commands": [
+                entry["translated_action"]["command"]
+                for entry in self._last_action_debug["per_unit_actions"]
+            ],
         }
-        return [RAW.no_op()]
+        return cmds
 
     def _build_obs(self, ts):
         ob   = ts.observation
@@ -409,74 +450,115 @@ class TwoBridgeEnv(gym.Env):
 
         bx, by = (bea.x, bea.y) if bea is not None else (-1.0, -1.0)
 
-        self._my_tags[:]     = 0
-        self._enemy_tags[:]  = 0
+        self._populate_slot_tags(fri[:N_FRIEND], self._my_tags)
+        self._populate_slot_tags(ene[:N_ENEMY], self._enemy_tags)
+
+        self._friend_alive[:] = False
         self._enemy_alive[:] = False
+        self._friend_enemy_attackable.fill(False)
         self._fx[:] = self._fy[:] = 0.0
 
-        for i, u in enumerate(fri[:N_FRIEND]):
-            self._my_tags[i] = u.tag
-            self._fx[i], self._fy[i] = u.x, u.y
+        friend_by_tag = {int(u.tag): u for u in fri}
+        enemy_by_tag = {int(u.tag): u for u in ene}
 
-        for i, u in enumerate(ene[:N_ENEMY]):
-            self._enemy_tags[i]  = u.tag
-            self._enemy_alive[i] = u.health > 0
-
-        vec = np.zeros(VEC_SIZE, np.float32)
+        internal_vec = np.zeros(VEC_SIZE, np.float32)
 
         # friends
-        for i, u in enumerate(fri[:N_FRIEND]):
-            vec[i * FRIEND_STRIDE:(i + 1) * FRIEND_STRIDE] = (u.x, u.y, u.health, 1.0)
+        for i, tag in enumerate(self._my_tags):
+            if int(tag) == 0:
+                continue
+            unit = friend_by_tag.get(int(tag))
+            if unit is None:
+                continue
+            alive = unit.health > 0
+            self._friend_alive[i] = alive
+            self._fx[i], self._fy[i] = unit.x, unit.y
+            internal_vec[i * FRIEND_STRIDE:(i + 1) * FRIEND_STRIDE] = (
+                unit.x, unit.y, unit.health, float(alive)
+            )
 
         # enemies
         base = VEC_ENEMY
-        for i, u in enumerate(ene[:N_ENEMY]):
-            vec[base + i * ENEMY_STRIDE:base + (i + 1) * ENEMY_STRIDE] = (
-                u.x, u.y, u.health, float(u.health > 0)
+        for i, tag in enumerate(self._enemy_tags):
+            if int(tag) == 0:
+                continue
+            unit = enemy_by_tag.get(int(tag))
+            if unit is None:
+                continue
+            alive = unit.health > 0
+            self._enemy_alive[i] = alive
+            internal_vec[base + i * ENEMY_STRIDE:base + (i + 1) * ENEMY_STRIDE] = (
+                unit.x, unit.y, unit.health, float(alive)
             )
 
+        enemy_x = internal_vec[base : base + N_ENEMY * ENEMY_STRIDE : ENEMY_STRIDE]
+        enemy_y = internal_vec[base + 1 : base + N_ENEMY * ENEMY_STRIDE : ENEMY_STRIDE]
+        for friend_idx in range(N_FRIEND):
+            if not self._friend_alive[friend_idx]:
+                continue
+            for enemy_idx in range(N_ENEMY):
+                if not self._enemy_alive[enemy_idx]:
+                    continue
+                dist = np.hypot(self._fx[friend_idx] - enemy_x[enemy_idx],
+                                self._fy[friend_idx] - enemy_y[enemy_idx])
+                self._friend_enemy_attackable[friend_idx, enemy_idx] = dist <= ATTACK_RANGE
+
         # beacon / misc
-        vec[VEC_BXY:VEC_BXY+2] = (bx, by)
+        internal_vec[VEC_BXY:VEC_BXY+2] = (bx, by)
 
         if fri and bea is not None:
-            fx  = vec[0 : N_FRIEND * FRIEND_STRIDE : FRIEND_STRIDE]
-            fy  = vec[1 : N_FRIEND * FRIEND_STRIDE : FRIEND_STRIDE]
-            fhp = vec[2 : N_FRIEND * FRIEND_STRIDE : FRIEND_STRIDE]
+            fx  = internal_vec[0 : N_FRIEND * FRIEND_STRIDE : FRIEND_STRIDE]
+            fy  = internal_vec[1 : N_FRIEND * FRIEND_STRIDE : FRIEND_STRIDE]
+            fhp = internal_vec[2 : N_FRIEND * FRIEND_STRIDE : FRIEND_STRIDE]
             f_alive = fhp > 0
             if f_alive.any() and (bx >= 0) and (by >= 0):
                 dists = np.hypot(fx - bx, fy - by)
-                vec[VEC_DIST] = float(dists[f_alive].min())
+                internal_vec[VEC_DIST] = float(dists[f_alive].min())
             else:
-                vec[VEC_DIST] = 128.0
+                internal_vec[VEC_DIST] = 128.0
         else:
-            vec[VEC_DIST] = 128.0
+            internal_vec[VEC_DIST] = 128.0
 
-        vec[VEC_TIME]   = ob.game_loop[0] / 16.0
-        vec[VEC_ECOUNT] = float(self._enemy_alive.sum())
+        internal_vec[VEC_TIME]   = ob.game_loop[0] / 16.0
+        internal_vec[VEC_ECOUNT] = float(self._enemy_alive.sum())
 
-        who_mask = (vec[2 : N_FRIEND * FRIEND_STRIDE : FRIEND_STRIDE] > 0).astype(np.int8)
-        any_friend_alive = int(who_mask.any())
+        action_mask = np.zeros((N_FRIEND, N_UNIT_ACTIONS), np.int8)
+        action_mask[:, 0] = 1
+        for friend_idx in range(N_FRIEND):
+            if not self._friend_alive[friend_idx]:
+                continue
+            action_mask[friend_idx, 1:ATTACK_ACTION_OFFSET] = 1
+            action_mask[
+                friend_idx,
+                ATTACK_ACTION_OFFSET:ATTACK_ACTION_OFFSET + N_ENEMY
+            ] = self._friend_enemy_attackable[friend_idx].astype(np.int8)
 
-        verb_mask = np.zeros(3, np.int8)
-        verb_mask[0] = 1
-        verb_mask[1] = any_friend_alive
-        verb_mask[2] = int(vec[VEC_ECOUNT] > 0)
+        self._last_internal_vec = internal_vec
+        actor_vec = np.zeros(OBS_VEC_SIZE, np.float32)
+        for i in range(N_FRIEND):
+            src = i * FRIEND_STRIDE
+            dst = OBS_FRIEND + i * OBS_FRIEND_STRIDE
+            actor_vec[dst:dst + OBS_FRIEND_STRIDE] = (
+                internal_vec[src + 2],
+                internal_vec[src + 3],
+            )
+        for i in range(N_ENEMY):
+            src = VEC_ENEMY + i * ENEMY_STRIDE
+            dst = OBS_ENEMY + i * OBS_ENEMY_STRIDE
+            actor_vec[dst:dst + OBS_ENEMY_STRIDE] = (
+                internal_vec[src + 2],
+                internal_vec[src + 3],
+            )
+        actor_vec[OBS_TIME] = internal_vec[VEC_TIME]
+        actor_vec[OBS_ECOUNT] = internal_vec[VEC_ECOUNT]
 
-        enemy_mask = np.zeros(N_ENEMY + 1, np.int8)
-        enemy_mask[0] = 1
-        if verb_mask[2]:
-            enemy_mask[1 : 1 + N_ENEMY] = self._enemy_alive.astype(np.int8)
-
-        action_mask = {
-            "verb": verb_mask,
-            "who": who_mask,
-            "enemy_idx": enemy_mask,
-        }
-
+        minimap = np.asarray(ob.feature_minimap, np.uint8)[
+            [MINIMAP_PATHABLE_INDEX, MINIMAP_PLAYER_RELATIVE_INDEX]
+        ]
         self._step_ctr += 1
         return {
-            "minimap":     np.asarray(ob.feature_minimap, np.uint8),
-            "vector":      vec,
+            "minimap":     minimap,
+            "vector":      actor_vec,
             "action_mask": action_mask,
         }
 
