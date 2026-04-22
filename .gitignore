@@ -1,6 +1,7 @@
 # Exclude environment files
 .env
 TBMsc2
+TBMDreamer
 epymarl/
 
 # Exclude specific zip file
