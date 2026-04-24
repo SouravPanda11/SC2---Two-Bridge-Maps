@@ -41,7 +41,7 @@ DEFAULT_NUM_SEEDS = 3
 DEFAULT_NUM_ENVS = 3
 DEFAULT_BUFFER_MAX_GB = 4.0
 
-AGENT_NAME = "QMIX"
+AGENT_NAME = "QMIX_NS"
 MAP_NAME = "V2_Base"
 
 # ============================================================================
