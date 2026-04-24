@@ -40,14 +40,14 @@ DEFAULT_SAVE_INTERVAL = 50_000
 DEFAULT_NUM_SEEDS = 3
 DEFAULT_NUM_ENVS = 3
 
-AGENT_NAME = "QMIX"
+AGENT_NAME = "QMIX_NS"
 MAP_NAME = "V3_Base"
 
 # ============================================================================
 # Run mode: comment/uncomment exactly one option below.
 # ============================================================================
-RUN_MODE = "fresh_start"
-# RUN_MODE = "load_last_checkpoint"
+# RUN_MODE = "fresh_start"
+RUN_MODE = "load_last_checkpoint"
 
 # Fresh start settings.
 FRESH_START_SEED = None
