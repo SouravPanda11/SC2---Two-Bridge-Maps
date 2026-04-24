@@ -1,0 +1,18 @@
+{
+  "created_at": "2026-04-22T19:47:05",
+  "agent_name": "MaskPPO_NS",
+  "map_name": "V2_Navigate",
+  "run_mode": "fresh_start",
+  "seeds": [
+    2011473353,
+    265271636,
+    721650801
+  ],
+  "num_envs": 3,
+  "total_timesteps": 2000000,
+  "save_interval": 50000,
+  "n_steps": 512,
+  "batch_size": 512,
+  "n_epochs": 4,
+  "device": "cuda"
+}
