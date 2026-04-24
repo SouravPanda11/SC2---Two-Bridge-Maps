@@ -1,0 +1,18 @@
+{
+  "created_at": "2026-04-23T11:01:12",
+  "agent_name": "QMIX_NS",
+  "map_name": "V1_Combat",
+  "run_mode": "fresh_start",
+  "seeds": [
+    291507532,
+    38374756,
+    1794084392
+  ],
+  "num_seeds": 3,
+  "num_envs": 3,
+  "total_timesteps": 2000000,
+  "save_interval": 50000,
+  "batch_size": 16,
+  "buffer_size": 5000,
+  "device": "cuda"
+}
