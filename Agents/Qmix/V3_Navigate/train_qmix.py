@@ -40,7 +40,7 @@ DEFAULT_SAVE_INTERVAL = 50_000
 DEFAULT_NUM_SEEDS = 3
 DEFAULT_NUM_ENVS = 3
 
-AGENT_NAME = "QMIX"
+AGENT_NAME = "QMIX_NS"
 MAP_NAME = "V3_Navigate"
 
 # ============================================================================
