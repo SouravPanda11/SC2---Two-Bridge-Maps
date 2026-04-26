@@ -15,4 +15,4 @@ Replays/MaskPPO/**/SB_MaskPPO_FAM_CAM/**/*.SC2Replay
 
 # Exclude QMIX saved replay checkpoints
 Agents/Qmix/**/saved_models/**/**/*.replay.pt
-
+Agents/Qmix_reduced/**/saved_models/**/**/*.replay.pt
