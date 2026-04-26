@@ -1,0 +1,18 @@
+{
+  "created_at": "2026-04-25T16:46:21",
+  "agent_name": "QMIX_reduced",
+  "map_name": "V1_Base",
+  "run_mode": "fresh_start",
+  "seeds": [
+    297975710,
+    1076891414,
+    125963808
+  ],
+  "num_seeds": 3,
+  "num_envs": 3,
+  "total_timesteps": 2000000,
+  "save_interval": 50000,
+  "batch_size": 16,
+  "buffer_size": 5000,
+  "device": "cuda"
+}
