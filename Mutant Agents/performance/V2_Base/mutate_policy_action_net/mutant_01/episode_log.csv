@@ -1,6 +1,0 @@
-episode,seed,return,length,outcome
-0,4242,-56.25357192575466,599,timeout_loss
-1,4243,-4.445572126284244,426,combat_loss
-2,4244,-14.99685172662139,512,combat_loss
-3,4245,-15.0,599,timeout_loss
-4,4246,5.471555374562737,541,combat_loss

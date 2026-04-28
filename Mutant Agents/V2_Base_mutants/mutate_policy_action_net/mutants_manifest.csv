@@ -1,6 +1,0 @@
-mutant_id,seed,sigma,mode,mutated_param_count,example_param,example_scale,saved_path
-1,1000,10,absolute,6,mlp_extractor.policy_net.0.weight,10,Mutant Agents\V2_Base_mutants\mutate_policy_action_net\mutant_01.zip
-2,1001,10,absolute,6,mlp_extractor.policy_net.0.weight,10,Mutant Agents\V2_Base_mutants\mutate_policy_action_net\mutant_02.zip
-3,1002,10,absolute,6,mlp_extractor.policy_net.0.weight,10,Mutant Agents\V2_Base_mutants\mutate_policy_action_net\mutant_03.zip
-4,1003,10,absolute,6,mlp_extractor.policy_net.0.weight,10,Mutant Agents\V2_Base_mutants\mutate_policy_action_net\mutant_04.zip
-5,1004,10,absolute,6,mlp_extractor.policy_net.0.weight,10,Mutant Agents\V2_Base_mutants\mutate_policy_action_net\mutant_05.zip
