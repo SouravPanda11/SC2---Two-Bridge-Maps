@@ -4,8 +4,8 @@ from typing import Sequence
 
 import numpy as np
 
-import Environments.MultiAgent._qmix_maskppo_base as qmix_base_module
-from Environments.MultiAgent._qmix_maskppo_base import (
+import Environments.QMIX_reduced._qmix_reduced_env_base as qmix_base_module
+from Environments.QMIX_reduced._qmix_reduced_env_base import (
     SCR_RES,
     TwoBridgeMapConfig,
     TwoBridgeQMixMaskPPOEnvBase,
