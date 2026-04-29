@@ -36,8 +36,8 @@ from Agents.MAPPO_reduced._train_mappo_reduced import (
 
 MAP_NAME = "V2_Base"
 AGENT_NAME = "MAPPO_reduced"
-DEFAULT_EVAL_EPISODES = 10
-DEFAULT_NUM_EVAL_ENVS = 5
+DEFAULT_EVAL_EPISODES = 32
+DEFAULT_NUM_EVAL_ENVS = 16
 
 
 def parse_args():
@@ -101,6 +101,45 @@ def get_output_root():
         / AGENT_NAME
         / "checkpoint_sweep"
     )
+
+
+def load_resume_results(output_root, primary_csv_path, episodes, mode_tag, overwrite):
+    if overwrite:
+        return pd.DataFrame()
+
+    csv_paths = [primary_csv_path]
+    pattern = f"checkpoint_metrics_{int(episodes)}ep_{mode_tag}_nenv*.csv"
+    if output_root.is_dir():
+        for csv_path in sorted(output_root.glob(pattern)):
+            if csv_path not in csv_paths:
+                csv_paths.append(csv_path)
+
+    frames = []
+    loaded_paths = []
+    for csv_path in csv_paths:
+        results_df = load_existing_results(csv_path, overwrite=False)
+        if results_df.empty:
+            continue
+        if "episodes" in results_df.columns:
+            results_df = results_df[results_df["episodes"].astype(int) == int(episodes)]
+        if results_df.empty:
+            continue
+        frames.append(results_df)
+        loaded_paths.append(csv_path)
+
+    if not frames:
+        return pd.DataFrame()
+
+    results_df = normalize_results_df(pd.concat(frames, ignore_index=True))
+    results_df = results_df.drop_duplicates(
+        subset=["seed", "checkpoint_steps"],
+        keep="last",
+    )
+    if loaded_paths:
+        print("Resume cache loaded from:")
+        for csv_path in loaded_paths:
+            print(f"  {csv_path}")
+    return normalize_results_df(results_df)
 
 
 def config_from_checkpoint(checkpoint, device):
@@ -276,7 +315,13 @@ def main():
     combined_plot_path = output_root / f"all_seeds_winrate_vs_timesteps_{run_tag}.png"
     best_seed_plot_path = output_root / f"best_seed_win_conditions_vs_timesteps_{run_tag}.png"
 
-    results_df = load_existing_results(csv_path, overwrite=args.overwrite)
+    results_df = load_resume_results(
+        output_root=output_root,
+        primary_csv_path=csv_path,
+        episodes=args.episodes,
+        mode_tag=mode_tag,
+        overwrite=args.overwrite,
+    )
     existing_keys = {
         (int(row.seed), int(row.checkpoint_steps))
         for row in results_df.itertuples(index=False)
@@ -296,10 +341,25 @@ def main():
 
     for seed_idx, seed in enumerate(seeds, start=1):
         checkpoints = collect_seed_checkpoints(save_root, AGENT_NAME, seed)
+        cached_for_seed = {
+            int(checkpoint_steps)
+            for cached_seed, checkpoint_steps in existing_keys
+            if int(cached_seed) == int(seed)
+        }
+        checkpoint_steps_for_seed = {
+            int(checkpoint_steps) for checkpoint_steps, _checkpoint_path in checkpoints
+        }
         print(
             f"\nSeed {seed_idx}/{len(seeds)} | seed_{seed} | "
             f"checkpoint_count={len(checkpoints)}"
         )
+        if checkpoint_steps_for_seed and checkpoint_steps_for_seed.issubset(cached_for_seed):
+            print(
+                f"  seed cached complete | skip env creation | "
+                f"cached_checkpoints={len(checkpoint_steps_for_seed)}"
+            )
+            continue
+
         env = create_eval_env(
             num_envs=args.num_eval_envs,
             seed=int(seed) + 10_000,
