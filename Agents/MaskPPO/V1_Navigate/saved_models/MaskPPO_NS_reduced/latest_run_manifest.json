@@ -1,0 +1,20 @@
+{
+  "created_at": "2026-04-29T15:13:07",
+  "agent_name": "MaskPPO_NS_reduced",
+  "base_agent_name": "MaskPPO_NS_reduced",
+  "map_name": "V1_Navigate",
+  "include_player_relative": true,
+  "run_mode": "fresh_start",
+  "seeds": [
+    1833857558,
+    1173760274,
+    178112637
+  ],
+  "num_envs": 3,
+  "total_timesteps": 2000000,
+  "save_interval": 50000,
+  "n_steps": 512,
+  "batch_size": 512,
+  "n_epochs": 4,
+  "device": "cuda"
+}
