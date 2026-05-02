@@ -11,8 +11,14 @@ from Agents.MAPPO_reduced._train_mappo_reduced import train_with_settings
 
 
 MAP_NAME = "V2_Navigate"
+<<<<<<< Updated upstream
 # RUN_MODE = "fresh_start"
 RUN_MODE = "load_last_checkpoint"
+=======
+AGENT_NAME = "MAPPO_reduced"
+RUN_MODE = "fresh_start"
+# RUN_MODE = "load_last_checkpoint"
+>>>>>>> Stashed changes
 
 FRESH_START_SEED = None
 FRESH_START_SEED_VALUES: tuple[int, ...] = ()
@@ -39,6 +45,7 @@ def main():
         save_interval=SAVE_INTERVAL,
         num_seeds=NUM_SEEDS,
         num_envs=NUM_ENVS,
+        agent_name=(AGENT_NAME if INCLUDE_PLAYER_RELATIVE else f"{AGENT_NAME}_pathable_only"),
         include_player_relative=INCLUDE_PLAYER_RELATIVE,
         append_minimap_to_state=APPEND_MINIMAP_TO_STATE,
         append_minimap_to_obs=APPEND_MINIMAP_TO_OBS,
