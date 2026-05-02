@@ -1,0 +1,18 @@
+{
+  "created_at": "2026-05-01T10:14:50",
+  "agent_name": "QMIX_reduced_pathable_only",
+  "map_name": "V1_Combat",
+  "run_mode": "fresh_start",
+  "seeds": [
+    782739345,
+    1478100472,
+    267091607
+  ],
+  "num_seeds": 3,
+  "num_envs": 3,
+  "total_timesteps": 2000000,
+  "save_interval": 50000,
+  "batch_size": 16,
+  "buffer_size": 5000,
+  "device": "cuda"
+}
