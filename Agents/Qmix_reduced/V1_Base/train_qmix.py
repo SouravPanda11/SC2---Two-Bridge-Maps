@@ -41,7 +41,7 @@ DEFAULT_NUM_SEEDS = 3
 DEFAULT_NUM_ENVS = 3
 
 AGENT_NAME = "QMIX_reduced"
-INCLUDE_PLAYER_RELATIVE = True
+INCLUDE_PLAYER_RELATIVE = False
 MAP_NAME = "V1_Base"
 
 # ============================================================================
