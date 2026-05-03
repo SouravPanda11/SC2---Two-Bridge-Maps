@@ -1,0 +1,8 @@
+group,count,map_width,map_height,map_area,playable_width,playable_height,playable_area,maps
+full-game,1,128.0,128.0,16384.0,128.0,128.0,16384.0,Simple128
+minigame,4,22.0,16.0,352.0,22.0,16.0,352.0,CollectMineralShards;DefeatRoaches;DefeatZerglingsAndBanelings;MoveToBeacon
+minigame,2,26.0,18.0,468.0,26.0,18.0,468.0,BuildMarines;CollectMineralsAndGas
+minigame,1,44.0,32.0,1408.0,44.0,32.0,1408.0,FindAndDefeatZerglings
+smac,23,28.0,28.0,784.0,28.0,28.0,784.0,10m_vs_11m;1c3s5z;25m;27m_vs_30m;2c_vs_64zg;2m_vs_1z;2s3z;2s_vs_1sc;3m;3s5z;3s5z_vs_3s6z;3s_vs_3z;3s_vs_4z;3s_vs_5z;5m_vs_6m;6h_vs_8z;8m;8m_vs_9m;MMM;MMM2;bane_vs_bane;corridor;so_many_baneling
+smacv2,30,28.0,28.0,784.0,28.0,28.0,784.0,10gen_empty;10gen_protoss;10gen_terran;10gen_zerg;10m_vs_11m;1c3s5z;25m;27m_vs_30m;2c_vs_64zg;2m_vs_1z;2s3z;2s_vs_1sc;32x32_flat;32x32_flat_test;32x32_small;3m;3s5z;3s5z_vs_3s6z;3s_vs_3z;3s_vs_4z;3s_vs_5z;5m_vs_6m;6h_vs_8z;8m;8m_vs_9m;MMM;MMM2;bane_vs_bane;corridor;so_many_baneling
+twobridge,1,56.0,62.0,3472.0,56.0,62.0,3472.0,TwoBridgeMap_V2_Base

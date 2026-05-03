@@ -1,0 +1,2387 @@
+{
+  "record_count": 62,
+  "ok_count": 62,
+  "error_count": 0,
+  "colors": {
+    "minigame": "#1f77b4",
+    "smac": "#ff7f0e",
+    "smacv2": "#ff7f0e",
+    "twobridge": "#2ca02c",
+    "full-game": "#d62728"
+  },
+  "records": [
+    {
+      "group": "smac",
+      "group_label": "SMAC",
+      "map_name": "10m_vs_11m",
+      "map_file": "10m_vs_11m.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_Maps\\10m_vs_11m.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smac",
+      "group_label": "SMAC",
+      "map_name": "1c3s5z",
+      "map_file": "1c3s5z.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_Maps\\1c3s5z.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smac",
+      "group_label": "SMAC",
+      "map_name": "25m",
+      "map_file": "25m.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_Maps\\25m.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smac",
+      "group_label": "SMAC",
+      "map_name": "27m_vs_30m",
+      "map_file": "27m_vs_30m.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_Maps\\27m_vs_30m.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smac",
+      "group_label": "SMAC",
+      "map_name": "2c_vs_64zg",
+      "map_file": "2c_vs_64zg.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_Maps\\2c_vs_64zg.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smac",
+      "group_label": "SMAC",
+      "map_name": "2m_vs_1z",
+      "map_file": "2m_vs_1z.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_Maps\\2m_vs_1z.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smac",
+      "group_label": "SMAC",
+      "map_name": "2s3z",
+      "map_file": "2s3z.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_Maps\\2s3z.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smac",
+      "group_label": "SMAC",
+      "map_name": "2s_vs_1sc",
+      "map_file": "2s_vs_1sc.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_Maps\\2s_vs_1sc.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smac",
+      "group_label": "SMAC",
+      "map_name": "3m",
+      "map_file": "3m.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_Maps\\3m.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smac",
+      "group_label": "SMAC",
+      "map_name": "3s5z",
+      "map_file": "3s5z.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_Maps\\3s5z.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smac",
+      "group_label": "SMAC",
+      "map_name": "3s5z_vs_3s6z",
+      "map_file": "3s5z_vs_3s6z.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_Maps\\3s5z_vs_3s6z.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smac",
+      "group_label": "SMAC",
+      "map_name": "3s_vs_3z",
+      "map_file": "3s_vs_3z.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_Maps\\3s_vs_3z.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smac",
+      "group_label": "SMAC",
+      "map_name": "3s_vs_4z",
+      "map_file": "3s_vs_4z.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_Maps\\3s_vs_4z.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smac",
+      "group_label": "SMAC",
+      "map_name": "3s_vs_5z",
+      "map_file": "3s_vs_5z.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_Maps\\3s_vs_5z.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smac",
+      "group_label": "SMAC",
+      "map_name": "5m_vs_6m",
+      "map_file": "5m_vs_6m.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_Maps\\5m_vs_6m.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smac",
+      "group_label": "SMAC",
+      "map_name": "6h_vs_8z",
+      "map_file": "6h_vs_8z.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_Maps\\6h_vs_8z.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smac",
+      "group_label": "SMAC",
+      "map_name": "8m",
+      "map_file": "8m.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_Maps\\8m.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smac",
+      "group_label": "SMAC",
+      "map_name": "8m_vs_9m",
+      "map_file": "8m_vs_9m.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_Maps\\8m_vs_9m.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smac",
+      "group_label": "SMAC",
+      "map_name": "bane_vs_bane",
+      "map_file": "bane_vs_bane.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_Maps\\bane_vs_bane.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smac",
+      "group_label": "SMAC",
+      "map_name": "corridor",
+      "map_file": "corridor.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_Maps\\corridor.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smac",
+      "group_label": "SMAC",
+      "map_name": "MMM",
+      "map_file": "MMM.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_Maps\\MMM.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smac",
+      "group_label": "SMAC",
+      "map_name": "MMM2",
+      "map_file": "MMM2.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_Maps\\MMM2.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smac",
+      "group_label": "SMAC",
+      "map_name": "so_many_baneling",
+      "map_file": "so_many_baneling.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_Maps\\so_many_baneling.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "10gen_empty",
+      "map_file": "10gen_empty.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\10gen_empty.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "10gen_protoss",
+      "map_file": "10gen_protoss.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\10gen_protoss.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "10gen_terran",
+      "map_file": "10gen_terran.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\10gen_terran.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "10gen_zerg",
+      "map_file": "10gen_zerg.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\10gen_zerg.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "10m_vs_11m",
+      "map_file": "10m_vs_11m.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\10m_vs_11m.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "1c3s5z",
+      "map_file": "1c3s5z.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\1c3s5z.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "25m",
+      "map_file": "25m.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\25m.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "27m_vs_30m",
+      "map_file": "27m_vs_30m.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\27m_vs_30m.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "2c_vs_64zg",
+      "map_file": "2c_vs_64zg.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\2c_vs_64zg.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "2m_vs_1z",
+      "map_file": "2m_vs_1z.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\2m_vs_1z.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "2s3z",
+      "map_file": "2s3z.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\2s3z.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "2s_vs_1sc",
+      "map_file": "2s_vs_1sc.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\2s_vs_1sc.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "32x32_flat",
+      "map_file": "32x32_flat.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\32x32_flat.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "32x32_flat_test",
+      "map_file": "32x32_flat_test.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\32x32_flat_test.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "32x32_small",
+      "map_file": "32x32_small.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\32x32_small.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "3m",
+      "map_file": "3m.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\3m.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "3s5z",
+      "map_file": "3s5z.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\3s5z.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "3s5z_vs_3s6z",
+      "map_file": "3s5z_vs_3s6z.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\3s5z_vs_3s6z.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "3s_vs_3z",
+      "map_file": "3s_vs_3z.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\3s_vs_3z.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "3s_vs_4z",
+      "map_file": "3s_vs_4z.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\3s_vs_4z.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "3s_vs_5z",
+      "map_file": "3s_vs_5z.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\3s_vs_5z.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "5m_vs_6m",
+      "map_file": "5m_vs_6m.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\5m_vs_6m.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "6h_vs_8z",
+      "map_file": "6h_vs_8z.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\6h_vs_8z.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "8m",
+      "map_file": "8m.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\8m.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "8m_vs_9m",
+      "map_file": "8m_vs_9m.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\8m_vs_9m.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "bane_vs_bane",
+      "map_file": "bane_vs_bane.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\bane_vs_bane.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "corridor",
+      "map_file": "corridor.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\corridor.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "MMM",
+      "map_file": "MMM.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\MMM.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "MMM2",
+      "map_file": "MMM2.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\MMM2.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "smacv2",
+      "group_label": "SMAC v2",
+      "map_name": "so_many_baneling",
+      "map_file": "so_many_baneling.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\SMAC_V2_Maps\\so_many_baneling.SC2Map",
+      "source": "C:\\VSCode Workspace\\StarCraft II\\SC2 - Two Bridge Maps\\Environments\\Utilities\\outputs\\smac_map_bounds\\smac_map_bounds_summary.json",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 28.0,
+          "y": 28.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 28.0,
+          "y1": 28.0,
+          "width": 28.0,
+          "height": 28.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 28.0,
+      "playable_y1": 28.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "minigame",
+      "group_label": "Mini-games",
+      "map_name": "BuildMarines",
+      "map_file": "BuildMarines.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\mini_games\\BuildMarines.SC2Map",
+      "source": "live",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 26.0,
+          "y": 18.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 26.0,
+          "y1": 18.0,
+          "width": 26.0,
+          "height": 18.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 26.0,
+      "map_height": 18.0,
+      "map_area": 468.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 26.0,
+      "playable_y1": 18.0,
+      "playable_width": 26.0,
+      "playable_height": 18.0,
+      "playable_area": 468.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "minigame",
+      "group_label": "Mini-games",
+      "map_name": "CollectMineralsAndGas",
+      "map_file": "CollectMineralsAndGas.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\mini_games\\CollectMineralsAndGas.SC2Map",
+      "source": "live",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 26.0,
+          "y": 18.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 26.0,
+          "y1": 18.0,
+          "width": 26.0,
+          "height": 18.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 26.0,
+      "map_height": 18.0,
+      "map_area": 468.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 26.0,
+      "playable_y1": 18.0,
+      "playable_width": 26.0,
+      "playable_height": 18.0,
+      "playable_area": 468.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "minigame",
+      "group_label": "Mini-games",
+      "map_name": "CollectMineralShards",
+      "map_file": "CollectMineralShards.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\mini_games\\CollectMineralShards.SC2Map",
+      "source": "live",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 22.0,
+          "y": 16.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 22.0,
+          "y1": 16.0,
+          "width": 22.0,
+          "height": 16.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 22.0,
+      "map_height": 16.0,
+      "map_area": 352.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 22.0,
+      "playable_y1": 16.0,
+      "playable_width": 22.0,
+      "playable_height": 16.0,
+      "playable_area": 352.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "minigame",
+      "group_label": "Mini-games",
+      "map_name": "DefeatRoaches",
+      "map_file": "DefeatRoaches.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\mini_games\\DefeatRoaches.SC2Map",
+      "source": "live",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 22.0,
+          "y": 16.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 22.0,
+          "y1": 16.0,
+          "width": 22.0,
+          "height": 16.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 22.0,
+      "map_height": 16.0,
+      "map_area": 352.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 22.0,
+      "playable_y1": 16.0,
+      "playable_width": 22.0,
+      "playable_height": 16.0,
+      "playable_area": 352.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "minigame",
+      "group_label": "Mini-games",
+      "map_name": "DefeatZerglingsAndBanelings",
+      "map_file": "DefeatZerglingsAndBanelings.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\mini_games\\DefeatZerglingsAndBanelings.SC2Map",
+      "source": "live",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 22.0,
+          "y": 16.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 22.0,
+          "y1": 16.0,
+          "width": 22.0,
+          "height": 16.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 22.0,
+      "map_height": 16.0,
+      "map_area": 352.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 22.0,
+      "playable_y1": 16.0,
+      "playable_width": 22.0,
+      "playable_height": 16.0,
+      "playable_area": 352.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "minigame",
+      "group_label": "Mini-games",
+      "map_name": "FindAndDefeatZerglings",
+      "map_file": "FindAndDefeatZerglings.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\mini_games\\FindAndDefeatZerglings.SC2Map",
+      "source": "live",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 44.0,
+          "y": 32.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 44.0,
+          "y1": 32.0,
+          "width": 44.0,
+          "height": 32.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 44.0,
+      "map_height": 32.0,
+      "map_area": 1408.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 44.0,
+      "playable_y1": 32.0,
+      "playable_width": 44.0,
+      "playable_height": 32.0,
+      "playable_area": 1408.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "minigame",
+      "group_label": "Mini-games",
+      "map_name": "MoveToBeacon",
+      "map_file": "MoveToBeacon.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\mini_games\\MoveToBeacon.SC2Map",
+      "source": "live",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 22.0,
+          "y": 16.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 22.0,
+          "y1": 16.0,
+          "width": 22.0,
+          "height": 16.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 22.0,
+      "map_height": 16.0,
+      "map_area": 352.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 22.0,
+      "playable_y1": 16.0,
+      "playable_width": 22.0,
+      "playable_height": 16.0,
+      "playable_area": 352.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "twobridge",
+      "group_label": "TwoBridge",
+      "map_name": "TwoBridgeMap_V2_Base",
+      "map_file": "TwoBridgeMap_V2_Base.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\Strategy Maps\\Camera Free\\TwoBridgeMap_V2_Base.SC2Map",
+      "source": "live",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 56.0,
+          "y": 62.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 56.0,
+          "y1": 62.0,
+          "width": 56.0,
+          "height": 62.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 56.0,
+      "map_height": 62.0,
+      "map_area": 3472.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 56.0,
+      "playable_y1": 62.0,
+      "playable_width": 56.0,
+      "playable_height": 62.0,
+      "playable_area": 3472.0,
+      "playable_matches_full_map": true
+    },
+    {
+      "group": "full-game",
+      "group_label": "Full game",
+      "map_name": "Simple128",
+      "map_file": "Simple128.SC2Map",
+      "map_path": "C:\\Program Files (x86)\\StarCraft II\\Maps\\Melee\\Simple128.SC2Map",
+      "source": "live",
+      "status": "ok",
+      "error": "",
+      "bounds": {
+        "has_start_raw": true,
+        "map_size": {
+          "x": 128.0,
+          "y": 128.0
+        },
+        "playable_area": {
+          "x0": 0.0,
+          "y0": 0.0,
+          "x1": 128.0,
+          "y1": 128.0,
+          "width": 128.0,
+          "height": 128.0
+        },
+        "playable_matches_full_map": true
+      },
+      "map_width": 128.0,
+      "map_height": 128.0,
+      "map_area": 16384.0,
+      "playable_x0": 0.0,
+      "playable_y0": 0.0,
+      "playable_x1": 128.0,
+      "playable_y1": 128.0,
+      "playable_width": 128.0,
+      "playable_height": 128.0,
+      "playable_area": 16384.0,
+      "playable_matches_full_map": true
+    }
+  ],
+  "distinct_sizes": [
+    {
+      "group": "full-game",
+      "count": 1,
+      "map_width": 128.0,
+      "map_height": 128.0,
+      "map_area": 16384.0,
+      "playable_width": 128.0,
+      "playable_height": 128.0,
+      "playable_area": 16384.0,
+      "maps": "Simple128"
+    },
+    {
+      "group": "minigame",
+      "count": 4,
+      "map_width": 22.0,
+      "map_height": 16.0,
+      "map_area": 352.0,
+      "playable_width": 22.0,
+      "playable_height": 16.0,
+      "playable_area": 352.0,
+      "maps": "CollectMineralShards;DefeatRoaches;DefeatZerglingsAndBanelings;MoveToBeacon"
+    },
+    {
+      "group": "minigame",
+      "count": 2,
+      "map_width": 26.0,
+      "map_height": 18.0,
+      "map_area": 468.0,
+      "playable_width": 26.0,
+      "playable_height": 18.0,
+      "playable_area": 468.0,
+      "maps": "BuildMarines;CollectMineralsAndGas"
+    },
+    {
+      "group": "minigame",
+      "count": 1,
+      "map_width": 44.0,
+      "map_height": 32.0,
+      "map_area": 1408.0,
+      "playable_width": 44.0,
+      "playable_height": 32.0,
+      "playable_area": 1408.0,
+      "maps": "FindAndDefeatZerglings"
+    },
+    {
+      "group": "smac",
+      "count": 23,
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "maps": "10m_vs_11m;1c3s5z;25m;27m_vs_30m;2c_vs_64zg;2m_vs_1z;2s3z;2s_vs_1sc;3m;3s5z;3s5z_vs_3s6z;3s_vs_3z;3s_vs_4z;3s_vs_5z;5m_vs_6m;6h_vs_8z;8m;8m_vs_9m;MMM;MMM2;bane_vs_bane;corridor;so_many_baneling"
+    },
+    {
+      "group": "smacv2",
+      "count": 30,
+      "map_width": 28.0,
+      "map_height": 28.0,
+      "map_area": 784.0,
+      "playable_width": 28.0,
+      "playable_height": 28.0,
+      "playable_area": 784.0,
+      "maps": "10gen_empty;10gen_protoss;10gen_terran;10gen_zerg;10m_vs_11m;1c3s5z;25m;27m_vs_30m;2c_vs_64zg;2m_vs_1z;2s3z;2s_vs_1sc;32x32_flat;32x32_flat_test;32x32_small;3m;3s5z;3s5z_vs_3s6z;3s_vs_3z;3s_vs_4z;3s_vs_5z;5m_vs_6m;6h_vs_8z;8m;8m_vs_9m;MMM;MMM2;bane_vs_bane;corridor;so_many_baneling"
+    },
+    {
+      "group": "twobridge",
+      "count": 1,
+      "map_width": 56.0,
+      "map_height": 62.0,
+      "map_area": 3472.0,
+      "playable_width": 56.0,
+      "playable_height": 62.0,
+      "playable_area": 3472.0,
+      "maps": "TwoBridgeMap_V2_Base"
+    }
+  ]
+}

@@ -48,17 +48,16 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
             "Render the exact two-channel minimap observation used by the "
-            "NS MaskPPO and QMIX V2_Base Two Bridge environments: pathable "
+            "NS MaskPPO V2_Base Two Bridge environment: pathable "
             "and player_relative."
         )
     )
     parser.add_argument(
         "--source",
-        choices=("ns", "qmix", "direct"),
+        choices=("ns", "direct"),
         default="ns",
         help=(
             "Observation source. 'ns' uses Environments.NS_AM_RM_mean.V2_Base_NS, "
-            "'qmix' uses Environments.MultiAgent.TB_env_QMIX_V2_Base, and "
             "'direct' reads PySC2 feature_minimap with the same interface settings. "
             "Default: ns"
         ),
@@ -218,17 +217,6 @@ def noop_steps_ns(env, steps: int):
     return obs, info
 
 
-def noop_steps_qmix(env, steps: int):
-    obs = None
-    info = {}
-    action = np.zeros(env.n_agents, dtype=np.int64)
-    for _ in range(steps):
-        obs, _, done, _, info = env.step(action)
-        if done:
-            break
-    return obs, info
-
-
 def sample_from_ns(args: argparse.Namespace, features_module) -> tuple[np.ndarray, dict[str, object]]:
     from Environments.NS_AM_RM_mean.V2_Base_NS import TwoBridgeEnv
 
@@ -250,29 +238,6 @@ def sample_from_ns(args: argparse.Namespace, features_module) -> tuple[np.ndarra
             "info": make_jsonable(info),
         }
         return np.asarray(obs["minimap"], dtype=np.uint8), metadata
-    finally:
-        env.close()
-
-
-def sample_from_qmix(args: argparse.Namespace, features_module) -> tuple[np.ndarray, dict[str, object]]:
-    from Environments.MultiAgent.TB_env_QMIX_V2_Base import TwoBridgeQMixEnv
-
-    env = TwoBridgeQMixEnv(
-        map_name="V2_Base",
-        visualize=args.visualize,
-        realtime=args.realtime,
-    )
-    try:
-        env.reset()
-        _, info = noop_steps_qmix(env, args.steps)
-        metadata = {
-            "source": "qmix",
-            "environment": "Environments.MultiAgent.TB_env_QMIX_V2_Base.TwoBridgeQMixEnv",
-            "map_name": DEFAULT_MAP_NAME,
-            "steps_after_reset": int(args.steps),
-            "info": make_jsonable(info),
-        }
-        return np.asarray(env.get_minimap(), dtype=np.uint8), metadata
     finally:
         env.close()
 
@@ -329,8 +294,6 @@ def sample_minimap(args: argparse.Namespace) -> tuple[np.ndarray, dict[str, obje
 
     if args.source == "ns":
         minimap, metadata = sample_from_ns(args, features_module)
-    elif args.source == "qmix":
-        minimap, metadata = sample_from_qmix(args, features_module)
     else:
         minimap, metadata = sample_direct(args, sc2_env, actions, features_module, lib_module)
 

@@ -55,7 +55,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--source",
-        choices=("ns", "qmix", "direct", "tensor"),
+        choices=("ns", "direct", "tensor"),
         default="ns",
         help=(
             "Where to get minimap observations. 'tensor' loads --tensor-path. "
@@ -179,16 +179,6 @@ def noop_steps_ns(env, steps: int):
     return obs, info
 
 
-def noop_steps_qmix(env, steps: int) -> dict[str, object]:
-    info = {}
-    action = np.zeros(env.n_agents, dtype=np.int64)
-    for _ in range(steps):
-        _, _, done, _, info = env.step(action)
-        if done:
-            break
-    return info
-
-
 def load_tensor_samples(path: Path) -> np.ndarray:
     tensor = np.load(path)
     if tensor.ndim == 3:
@@ -223,35 +213,6 @@ def sample_ns(args: argparse.Namespace) -> tuple[np.ndarray, dict[str, object]]:
     metadata = {
         "source": "ns",
         "environment": "Environments.NS_AM_RM_mean.V2_Base_NS.TwoBridgeEnv",
-        "map_name": DEFAULT_MAP_NAME,
-        "samples": int(args.samples),
-        "steps_after_reset": int(args.steps_after_reset),
-        "last_info": make_jsonable(last_info),
-    }
-    return np.stack(samples, axis=0), metadata
-
-
-def sample_qmix(args: argparse.Namespace) -> tuple[np.ndarray, dict[str, object]]:
-    from Environments.MultiAgent.TB_env_QMIX_V2_Base import TwoBridgeQMixEnv
-
-    env = TwoBridgeQMixEnv(
-        map_name="V2_Base",
-        visualize=args.visualize,
-        realtime=args.realtime,
-    )
-    samples = []
-    last_info = {}
-    try:
-        for _ in range(args.samples):
-            env.reset()
-            last_info = noop_steps_qmix(env, args.steps_after_reset)
-            samples.append(np.asarray(env.get_minimap(), dtype=np.uint8))
-    finally:
-        env.close()
-
-    metadata = {
-        "source": "qmix",
-        "environment": "Environments.MultiAgent.TB_env_QMIX_V2_Base.TwoBridgeQMixEnv",
         "map_name": DEFAULT_MAP_NAME,
         "samples": int(args.samples),
         "steps_after_reset": int(args.steps_after_reset),
@@ -325,8 +286,6 @@ def collect_samples(args: argparse.Namespace):
         }
     elif args.source == "ns":
         samples, metadata = sample_ns(args)
-    elif args.source == "qmix":
-        samples, metadata = sample_qmix(args)
     else:
         samples, metadata = sample_direct(args, sc2_env, actions, features_module, lib_module)
 
