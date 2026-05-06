@@ -49,8 +49,8 @@ MAP_VARIANTS = (
     "V3_Navigate",
 )
 DEFAULT_AGENT_NAME = "MaskPPO_NS_reduced"
-DEFAULT_EVAL_EPISODES = 10
-DEFAULT_NUM_EVAL_ENVS = 5
+DEFAULT_EVAL_EPISODES = 32
+DEFAULT_NUM_EVAL_ENVS = 16
 
 
 class FlattenActionWrapper(Wrapper):
