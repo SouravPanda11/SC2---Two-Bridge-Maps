@@ -323,7 +323,15 @@ def get_vec_action_masks(vec_env):
 
 
 def evaluate_checkpoint(vec_env, checkpoint_path, eval_episodes, deterministic, device, seed):
-    model = MaskablePPO.load(str(checkpoint_path), env=vec_env, device=device)
+    model = MaskablePPO.load(
+        str(checkpoint_path),
+        env=vec_env,
+        device=device,
+        custom_objects={
+            "lr_schedule": lambda _: 0.0,
+            "clip_range": lambda _: 0.0,
+        },
+    )
     raw_counts = collections.Counter()
     episodes_assigned = 0
     episodes_finished = 0
