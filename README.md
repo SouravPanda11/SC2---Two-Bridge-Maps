@@ -9,19 +9,6 @@ analysis outputs, and the static project page used for the benchmark.
 These scripts are not required to play the maps in StarCraft II. They are for
 reproducing and extending the RL experiments.
 
-## Current scope
-
-- Nine camera-free benchmark maps: `V1` / `V2` / `V3` crossed with `Base`,
-  `Combat`, and `Navigate`.
-- Camera-lock variants of the same maps for full action-masking experiments.
-- Mutant camera-lock maps under `Maps/Camera Lock/Mutants/`.
-- Gymnasium/PySC2 wrappers for SB3 A2C, SB3 PPO, Maskable PPO, reduced
-  Maskable PPO, MAPPO, and QMIX experiments.
-- Training and checkpoint-sweep evaluation scripts for reduced MaskPPO, MAPPO,
-  and QMIX across all nine map variants.
-- Pretrained checkpoints and generated evaluation artifacts.
-- Static paper/project site in `docs/`.
-
 ## Repository layout
 
 ```text
@@ -53,10 +40,6 @@ reproducing and extending the RL experiments.
 |-- requirements.txt
 |-- README.md
 ```
-
-Local working directories such as `TBMsc2/`, `epymarl/`, `smac/`, and `smacv2/`
-are intentionally ignored by git. They may exist in a developer checkout, but
-they are not part of the tracked benchmark source.
 
 ## Prerequisites
 
@@ -291,34 +274,6 @@ python Environments\Utilities\find_v2_base_minimap_crop_bounds.py
 
 Some utility scripts assume local ignored copies of SMAC/SMACv2 or a local
 working virtual environment.
-
-## Static project site
-
-The `docs/` folder is a static GitHub Pages site for the project and paper:
-
-```text
-docs/index.html
-docs/sections/
-docs/assets/figures/
-docs/assets/replays/
-```
-
-See `docs/README.md` for the site-editing checklist. The current site links to
-the arXiv paper and uses the assets committed under `docs/assets/`.
-
-## Paper and citation
-
-- Paper PDF: https://arxiv.org/pdf/2603.06608v1
-- arXiv page: https://arxiv.org/abs/2603.06608v1
-
-```bibtex
-@article{panda2026scaling,
-  title   = {Scaling Strategy, Not Compute: A Stand-Alone, Open-Source StarCraft II Benchmark for Accessible Reinforcement Learning Research},
-  author  = {Panda, Sourav and Kale, Shreyash and Ambadkar, Tanmay and Verma, Abhinav and Dodge, Jonathan},
-  journal = {arXiv preprint arXiv:2603.06608},
-  year    = {2026}
-}
-```
 
 ## Naming guide
 
