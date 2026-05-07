@@ -74,6 +74,15 @@ def parse_args() -> argparse.Namespace:
         help="Number of reset observations to sample. Default: 20",
     )
     parser.add_argument(
+        "--example-index",
+        type=int,
+        default=0,
+        help=(
+            "Sample index to use for the single-episode player_relative plot. "
+            "Negative indexes are supported. Default: 0"
+        ),
+    )
+    parser.add_argument(
         "--steps-after-reset",
         type=int,
         default=0,
@@ -321,6 +330,19 @@ def crop_mask(shape: tuple[int, int], crop: dict[str, int]) -> np.ndarray:
     return mask
 
 
+def normalize_sample_index(index: int, sample_count: int) -> int:
+    if sample_count < 1:
+        raise ValueError("Cannot select an example from zero samples.")
+    normalized = int(index)
+    if normalized < 0:
+        normalized += sample_count
+    if normalized < 0 or normalized >= sample_count:
+        raise ValueError(
+            f"--example-index {index} is outside the sampled range 0..{sample_count - 1}."
+        )
+    return normalized
+
+
 def clamp_square(center_x: float, center_y: float, side: int, width: int, height: int):
     side = int(side)
     if side < 1 or side > min(width, height):
@@ -488,16 +510,16 @@ def plot_bounds(
 
     fig, axes = plt.subplots(1, 3, figsize=(13.5, 4.8))
     fig.subplots_adjust(left=0.05, right=0.99, top=0.84, bottom=0.20, wspace=0.22)
-    fig.suptitle("V2_Base minimap crop candidate bounds", fontsize=13)
+    fig.suptitle("V2_Base minimap crop diagnostic", fontsize=13)
 
     axes[0].imshow(pathable_union, cmap=path_cmap, norm=path_norm, interpolation="nearest", origin=args.origin)
     axes[0].set_title("Pathable union")
 
     axes[1].imshow(pr_display, cmap=pr_cmap, norm=pr_norm, interpolation="nearest", origin=args.origin)
-    axes[1].set_title("player_relative union")
+    axes[1].set_title("player_relative union (all samples)")
 
     axes[2].imshow(composite, interpolation="nearest", origin=args.origin)
-    axes[2].set_title("Composite + recommended crop")
+    axes[2].set_title("Visualization composite + recommended crop")
 
     for axis in axes:
         add_rect(axis, bbox, "#ffffff", "measured bbox", linewidth=1.3, linestyle="--")
@@ -547,6 +569,152 @@ def plot_bounds(
     return fig
 
 
+def plot_pathable(
+    samples: np.ndarray,
+    pathable_union: np.ndarray,
+    recommended: dict[str, object] | None,
+    args: argparse.Namespace,
+):
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.colors import BoundaryNorm, ListedColormap
+    from matplotlib.patches import Patch
+
+    path_cmap = ListedColormap(["#1b1f23", "#f0f0ea"])
+    path_norm = BoundaryNorm([-0.5, 0.5, 1.5], path_cmap.N)
+
+    fig, axis = plt.subplots(1, 1, figsize=(5.8, 5.4))
+    fig.subplots_adjust(left=0.13, right=0.97, top=0.90, bottom=0.14)
+    axis.imshow(pathable_union, cmap=path_cmap, norm=path_norm, interpolation="nearest", origin=args.origin)
+    axis.set_title("Pathable union")
+    if recommended is not None:
+        add_rect(axis, recommended, "#00c853", "recommended crop", linewidth=2.4)
+
+    axis.set_xlabel("minimap x pixel")
+    axis.set_ylabel("minimap y pixel")
+    axis.set_xticks(np.arange(0, samples.shape[3], 8))
+    axis.set_yticks(np.arange(0, samples.shape[2], 8))
+    axis.tick_params(labelsize=8)
+    axis.grid(color="white", alpha=0.08, linewidth=0.3)
+
+    handles = [
+        Patch(facecolor="#f0f0ea", edgecolor="black", label="pathable"),
+        Patch(facecolor="#1b1f23", edgecolor="black", label="blocked"),
+    ]
+    if recommended is not None:
+        handles.append(Patch(facecolor="none", edgecolor="#00c853", linewidth=2, label="recommended"))
+    axis.legend(handles=handles, loc="upper right", frameon=True, fontsize=8)
+    return fig
+
+
+def plot_player_relative_example(
+    samples: np.ndarray,
+    sample_index: int,
+    recommended: dict[str, object] | None,
+    features_module,
+    args: argparse.Namespace,
+):
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.colors import BoundaryNorm, ListedColormap
+    from matplotlib.patches import Patch
+
+    labels = player_relative_labels(features_module)
+    player_relative = samples[sample_index, 1]
+    pr_cmap = ListedColormap(["#161a1d", "#0d5be1", "#2ca25f", "#e0b91a", "#d33f32"])
+    pr_norm = BoundaryNorm([-0.5, 0.5, 1.5, 2.5, 3.5, 4.5], pr_cmap.N)
+
+    fig, axis = plt.subplots(1, 1, figsize=(5.8, 5.4))
+    fig.subplots_adjust(left=0.13, right=0.97, top=0.90, bottom=0.14)
+    axis.imshow(player_relative, cmap=pr_cmap, norm=pr_norm, interpolation="nearest", origin=args.origin)
+    axis.set_title(f"player_relative sample {sample_index}")
+    if recommended is not None:
+        add_rect(axis, recommended, "#00c853", "recommended crop", linewidth=2.4)
+
+    axis.set_xlabel("minimap x pixel")
+    axis.set_ylabel("minimap y pixel")
+    axis.set_xticks(np.arange(0, samples.shape[3], 8))
+    axis.set_yticks(np.arange(0, samples.shape[2], 8))
+    axis.tick_params(labelsize=8)
+    axis.grid(color="white", alpha=0.08, linewidth=0.3)
+
+    handles = []
+    for value in sorted(int(v) for v in np.unique(player_relative.astype(np.uint8))):
+        handles.append(
+            Patch(
+                facecolor=pr_cmap(pr_norm(value)),
+                edgecolor="black",
+                label=f"{value} {labels.get(value, 'unknown')}",
+            )
+        )
+    if recommended is not None:
+        handles.append(Patch(facecolor="none", edgecolor="#00c853", linewidth=2, label="recommended"))
+    axis.legend(handles=handles, loc="upper right", frameon=True, fontsize=8)
+    return fig
+
+
+def plot_composite_example(
+    samples: np.ndarray,
+    sample_index: int,
+    recommended: dict[str, object] | None,
+    features_module,
+    args: argparse.Namespace,
+):
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import Patch
+
+    labels = player_relative_labels(features_module)
+    pathable = samples[sample_index, 0]
+    player_relative = samples[sample_index, 1]
+    composite = build_rgb_composite(pathable, player_relative)
+
+    fig, axis = plt.subplots(1, 1, figsize=(5.8, 5.4))
+    fig.subplots_adjust(left=0.13, right=0.97, top=0.90, bottom=0.14)
+    axis.imshow(composite, interpolation="nearest", origin=args.origin)
+    axis.set_title("Minimap Observation Overlay", fontsize=17)
+    if recommended is not None:
+        add_rect(axis, recommended, "#00c853", "recommended crop", linewidth=2.4)
+
+    axis.set_xlabel("minimap x pixel", fontsize=13)
+    axis.set_ylabel("minimap y pixel", fontsize=13)
+    axis.set_xticks(np.arange(0, samples.shape[3], 8))
+    axis.set_yticks(np.arange(0, samples.shape[2], 8))
+    axis.tick_params(labelsize=10)
+    axis.grid(color="white", alpha=0.08, linewidth=0.3)
+
+    handles = [
+        Patch(facecolor="#f0f0ea", edgecolor="black", label="pathable"),
+        Patch(facecolor="#1b1f23", edgecolor="black", label="blocked"),
+    ]
+    pr_colors = {
+        1: "#0d5be1",
+        2: "#2ca25f",
+        3: "#e0b91a",
+        4: "#d33f32",
+    }
+    for value in sorted(int(v) for v in np.unique(player_relative.astype(np.uint8))):
+        if value == 0:
+            continue
+        handles.append(
+            Patch(
+                facecolor=pr_colors.get(value, "#808080"),
+                edgecolor="black",
+                label=f"{value} {labels.get(value, 'unknown')}",
+            )
+        )
+    if recommended is not None:
+        handles.append(Patch(facecolor="none", edgecolor="#00c853", linewidth=2, label="recommended"))
+    axis.legend(handles=handles, loc="upper right", frameon=True, fontsize=11)
+    return fig
+
+
 def add_rect(axis, crop: dict[str, int], color: str, label: str | None, linewidth=1.0, linestyle="-", alpha=1.0):
     from matplotlib.patches import Rectangle
 
@@ -574,14 +742,19 @@ def write_outputs(samples, metadata, eval_result, features_module, args) -> list
     pathable_union = np.any(samples[:, 0] > 0, axis=0)
     pr_union = np.any(samples[:, 1] > 0, axis=0)
     pr_union_values = np.max(samples[:, 1], axis=0)
+    player_relative_example_index = normalize_sample_index(args.example_index, samples.shape[0])
 
     summary = {
         **metadata,
         "bounds_source": args.bounds_source,
         "require_player_relative": bool(args.require_player_relative),
         "sample_count": int(samples.shape[0]),
+        "player_relative_example_index": int(player_relative_example_index),
         "pathable_union_unique_counts": unique_counts(pathable_union.astype(np.uint8)),
         "player_relative_union_unique_counts": unique_counts(pr_union_values.astype(np.uint8)),
+        "player_relative_example_unique_counts": unique_counts(
+            samples[player_relative_example_index, 1]
+        ),
         "latest_pathable_unique_counts": unique_counts(samples[-1, 0]),
         "latest_player_relative_unique_counts": unique_counts(samples[-1, 1]),
         "player_relative_labels": {
@@ -603,16 +776,45 @@ def write_outputs(samples, metadata, eval_result, features_module, args) -> list
     np.save(npy_path, samples)
     written.append(npy_path)
 
-    fig = plot_bounds(samples, pathable_union, pr_union, eval_result, features_module, args)
     formats = ("png", "pdf") if args.format == "both" else (args.format,)
-    for file_format in formats:
-        figure_path = args.output_dir / f"{args.prefix}.{file_format}"
-        fig.savefig(figure_path, dpi=args.dpi, bbox_inches="tight")
-        written.append(figure_path)
-
     import matplotlib.pyplot as plt
 
-    plt.close(fig)
+    figures = [
+        (
+            "",
+            plot_bounds(samples, pathable_union, pr_union, eval_result, features_module, args),
+        ),
+        (
+            "_pathable",
+            plot_pathable(samples, pathable_union, eval_result["recommended"], args),
+        ),
+        (
+            f"_player_relative_sample_{player_relative_example_index:02d}",
+            plot_player_relative_example(
+                samples,
+                player_relative_example_index,
+                eval_result["recommended"],
+                features_module,
+                args,
+            ),
+        ),
+        (
+            f"_composite_sample_{player_relative_example_index:02d}",
+            plot_composite_example(
+                samples,
+                player_relative_example_index,
+                eval_result["recommended"],
+                features_module,
+                args,
+            ),
+        ),
+    ]
+    for suffix, fig in figures:
+        for file_format in formats:
+            figure_path = args.output_dir / f"{args.prefix}{suffix}.{file_format}"
+            fig.savefig(figure_path, dpi=args.dpi, bbox_inches="tight")
+            written.append(figure_path)
+        plt.close(fig)
     return written
 
 

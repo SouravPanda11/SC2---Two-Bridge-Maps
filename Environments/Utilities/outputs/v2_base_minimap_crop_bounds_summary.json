@@ -1,10 +1,7 @@
 {
-  "source": "ns",
-  "environment": "Environments.NS_AM_RM_mean.V2_Base_NS.TwoBridgeEnv",
-  "map_name": "TwoBridgeMap_V2_Base",
+  "source": "tensor",
+  "tensor_path": "Environments\\Utilities\\outputs\\v2_base_minimap_crop_bounds_sampled_tensors.npy",
   "samples": 20,
-  "steps_after_reset": 0,
-  "last_info": {},
   "tensor_shape_per_sample": [
     2,
     64,
@@ -21,6 +18,7 @@
   "bounds_source": "pathable_or_player_relative",
   "require_player_relative": true,
   "sample_count": 20,
+  "player_relative_example_index": 0,
   "pathable_union_unique_counts": {
     "0": 3339,
     "1": 757
@@ -30,6 +28,12 @@
     "1": 40,
     "3": 14,
     "4": 36
+  },
+  "player_relative_example_unique_counts": {
+    "0": 4083,
+    "1": 4,
+    "3": 4,
+    "4": 5
   },
   "latest_pathable_unique_counts": {
     "0": 3339,
