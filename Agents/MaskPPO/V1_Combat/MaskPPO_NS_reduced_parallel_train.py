@@ -25,7 +25,7 @@ from stable_baselines3.common.vec_env import SubprocVecEnv
 from Environments.NS_AM_RM_mean_reduced.V1_Combat_NS import TwoBridgeEnv, N_FRIEND, N_ENEMY
 
 
-DEFAULT_TOTAL_TIMESTEPS = 2_000_000
+DEFAULT_TOTAL_TIMESTEPS = 10_000_000
 DEFAULT_SAVE_INTERVAL = 50_000
 DEFAULT_NUM_ENVS = 3
 DEFAULT_NUM_SEEDS = 3

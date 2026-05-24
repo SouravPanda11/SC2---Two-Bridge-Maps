@@ -25,7 +25,7 @@ from stable_baselines3.common.vec_env import SubprocVecEnv
 from Environments.NS_AM_RM_mean_reduced.V1_Navigate_NS import TwoBridgeEnv, N_FRIEND, N_ENEMY
 
 
-DEFAULT_TOTAL_TIMESTEPS = 2_000_000
+DEFAULT_TOTAL_TIMESTEPS = 10_000_000
 DEFAULT_SAVE_INTERVAL = 50_000
 DEFAULT_NUM_ENVS = 3
 DEFAULT_NUM_SEEDS = 3
@@ -48,8 +48,8 @@ CHECKPOINT_NAME_RE = re.compile(
 # ============================================================================
 # Run mode: comment/uncomment exactly one option below.
 # ============================================================================
-RUN_MODE = "fresh_start"
-# RUN_MODE = "load_last_checkpoint"
+# RUN_MODE = "fresh_start"
+RUN_MODE = "load_last_checkpoint"
 
 # Fresh start settings.
 FRESH_START_SEED = None  # Set an int to train one explicit seed from scratch.
