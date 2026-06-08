@@ -35,21 +35,21 @@ if str(PROJECT_ROOT) not in sys.path:
 from Environments.QMIX_reduced.TB_env_QMIX_reduced_V2_Base import TwoBridgeEnv
 
 
-DEFAULT_TOTAL_TIMESTEPS = 2_000_000
+DEFAULT_TOTAL_TIMESTEPS = 10_000_000
 DEFAULT_SAVE_INTERVAL = 50_000
 DEFAULT_NUM_SEEDS = 3
 DEFAULT_NUM_ENVS = 3
 DEFAULT_BUFFER_MAX_GB = 4.0
 
 AGENT_NAME = "QMIX_reduced"
-INCLUDE_PLAYER_RELATIVE = False
+INCLUDE_PLAYER_RELATIVE = True
 MAP_NAME = "V2_Base"
 
 # ============================================================================
 # Run mode: comment/uncomment exactly one option below.
 # ============================================================================
-RUN_MODE = "fresh_start"
-# RUN_MODE = "load_last_checkpoint"
+# RUN_MODE = "fresh_start"
+RUN_MODE = "load_last_checkpoint"
 
 # Fresh start settings.
 FRESH_START_SEED = None
