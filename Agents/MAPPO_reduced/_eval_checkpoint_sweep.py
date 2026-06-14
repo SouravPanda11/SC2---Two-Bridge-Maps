@@ -47,7 +47,7 @@ MAP_VARIANTS = (
 )
 DEFAULT_AGENT_NAME = "MAPPO_reduced"
 DEFAULT_EVAL_EPISODES = 32
-DEFAULT_NUM_EVAL_ENVS = 16
+DEFAULT_NUM_EVAL_ENVS = 8
 
 
 def parse_args(default_map_name=None, default_agent_name=DEFAULT_AGENT_NAME):
