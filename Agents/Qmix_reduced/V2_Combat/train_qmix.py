@@ -35,13 +35,13 @@ if str(PROJECT_ROOT) not in sys.path:
 from Environments.QMIX_reduced.TB_env_QMIX_reduced_V2_Combat import TwoBridgeEnv
 
 
-DEFAULT_TOTAL_TIMESTEPS = 2_000_000
+DEFAULT_TOTAL_TIMESTEPS = 10_000_000
 DEFAULT_SAVE_INTERVAL = 50_000
 DEFAULT_NUM_SEEDS = 3
 DEFAULT_NUM_ENVS = 3
 
 AGENT_NAME = "QMIX_reduced"
-INCLUDE_PLAYER_RELATIVE = False
+INCLUDE_PLAYER_RELATIVE = True
 MAP_NAME = "V2_Combat"
 
 # ============================================================================
