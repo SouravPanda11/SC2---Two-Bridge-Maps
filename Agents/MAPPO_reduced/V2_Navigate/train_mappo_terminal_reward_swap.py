@@ -1,0 +1,59 @@
+from pathlib import Path
+import multiprocessing as mp
+import sys
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from Agents.MAPPO_reduced._train_mappo_reduced_reward_swap import (
+    AGENT_NAME,
+    train_with_settings,
+)
+
+
+MAP_NAME = "V2_Navigate"
+RUN_MODE = "fresh_start"
+
+# Matched to two seeds from the established V2_Navigate MAPPO experiment.
+FRESH_START_SEED_VALUES = (631185455, 969072527)
+
+TOTAL_TIMESTEPS = 2_000_000
+SAVE_INTERVAL = 50_000
+NUM_SEEDS = 2
+NUM_ENVS = 3
+
+INCLUDE_PLAYER_RELATIVE = True
+APPEND_MINIMAP_TO_STATE = True
+APPEND_MINIMAP_TO_OBS = True
+USE_TENSORBOARD = True
+SMOKE_TEST = False
+
+
+def main():
+    train_with_settings(
+        map_name=MAP_NAME,
+        run_mode=RUN_MODE,
+        seed=None,
+        seed_values=FRESH_START_SEED_VALUES,
+        total_timesteps=TOTAL_TIMESTEPS,
+        save_interval=SAVE_INTERVAL,
+        num_seeds=NUM_SEEDS,
+        num_envs=NUM_ENVS,
+        agent_name=(
+            AGENT_NAME
+            if INCLUDE_PLAYER_RELATIVE
+            else f"{AGENT_NAME}_pathable_only"
+        ),
+        include_player_relative=INCLUDE_PLAYER_RELATIVE,
+        append_minimap_to_state=APPEND_MINIMAP_TO_STATE,
+        append_minimap_to_obs=APPEND_MINIMAP_TO_OBS,
+        use_tensorboard=USE_TENSORBOARD,
+        smoke_test=SMOKE_TEST,
+    )
+
+
+if __name__ == "__main__":
+    mp.freeze_support()
+    main()
