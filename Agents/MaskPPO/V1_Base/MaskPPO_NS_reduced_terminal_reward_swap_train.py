@@ -14,6 +14,11 @@ from Agents.MaskPPO._train_maskppo_reduced_reward_swap import (
 
 MAP_NAME = "V1_Base"
 
+# Run mode: use fresh_start once, then switch to load_last_checkpoint after
+# an interrupted run.
+RUN_MODE = "fresh_start"
+# RUN_MODE = "load_last_checkpoint"
+
 # Matched to two seeds from the established V1_Base Reduced MaskPPO run.
 FRESH_START_SEED_VALUES = (211825892, 2011173309)
 
@@ -26,7 +31,7 @@ NUM_ENVS = 3
 def main():
     train_with_settings(
         map_name=MAP_NAME,
-        run_mode="fresh_start",
+        run_mode=RUN_MODE,
         seed_values=FRESH_START_SEED_VALUES,
         total_timesteps=TOTAL_TIMESTEPS,
         save_interval=SAVE_INTERVAL,

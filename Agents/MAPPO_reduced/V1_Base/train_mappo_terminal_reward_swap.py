@@ -15,6 +15,7 @@ from Agents.MAPPO_reduced._train_mappo_reduced_reward_swap import (
 
 MAP_NAME = "V1_Base"
 RUN_MODE = "fresh_start"
+# RUN_MODE = "load_last_checkpoint"
 
 # Matched to two seeds from the established V1_Base MAPPO experiment.
 FRESH_START_SEED_VALUES = (712993367, 2008076029)
