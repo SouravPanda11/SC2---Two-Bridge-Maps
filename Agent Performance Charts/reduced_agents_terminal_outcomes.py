@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import argparse
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -14,8 +16,6 @@ import pandas as pd
 
 CHART_ROOT = Path(__file__).resolve().parent
 OUT_DIR = CHART_ROOT / "Reduced Agent Aggregate Plots"
-FINAL_OUTCOME_GRID_BASENAME = "reduced_agents_final_terminal_outcome_grid"
-FINAL_OUTCOME_SOURCE_CSV = "reduced_agents_final_terminal_outcome_source.csv"
 
 VERSIONS = ("V1", "V2", "V3")
 VARIANTS = ("Base", "Combat", "Navigate")
@@ -42,24 +42,120 @@ class AgentSpec:
     model_dir: str
 
 
+@dataclass(frozen=True)
+class GridConfig:
+    key: str
+    label: str
+    output_suffix: str
+    grid_basename: str
+    source_csv: str
+    target_steps: int
+    eval_envs: int
+    target_tolerance_steps: int = 125_000
+
+    @property
+    def max_plot_steps(self) -> int:
+        return self.target_steps + self.target_tolerance_steps
+
+
 AGENTS = (
     AgentSpec("QMIX", "Qmix_reduced", "QMIX_reduced"),
     AgentSpec("MaskPPO", "MaskPPO", "MaskPPO_NS_reduced"),
     AgentSpec("MAPPO", "MAPPO_reduced", "MAPPO_reduced"),
 )
 
+GRID_CONFIGS = (
+    GridConfig(
+        key="2m",
+        label="2M, 16 eval envs",
+        output_suffix="",
+        grid_basename="reduced_agents_final_terminal_outcome_grid",
+        source_csv="reduced_agents_final_terminal_outcome_source.csv",
+        target_steps=2_000_000,
+        eval_envs=16,
+    ),
+    GridConfig(
+        key="10m",
+        label="10M, 8 eval envs",
+        output_suffix="_10m_nenv8",
+        grid_basename="reduced_agents_final_terminal_outcome_grid_10m_nenv8",
+        source_csv="reduced_agents_final_terminal_outcome_10m_nenv8_source.csv",
+        target_steps=10_000_000,
+        eval_envs=8,
+    ),
+)
 
-def latest_checkpoint_csv(agent: AgentSpec, map_name: str) -> Path | None:
+
+def format_timestep_label(value: int | float) -> str:
+    value = float(value)
+    if value >= 1_000_000:
+        return f"{value / 1_000_000:.1f}M"
+    if value >= 1_000:
+        return f"{value / 1_000:.0f}K"
+    return str(int(value))
+
+
+def checkpoint_max_step(csv_path: Path) -> int | None:
+    try:
+        df = pd.read_csv(csv_path, usecols=["checkpoint_steps"])
+    except Exception:
+        return None
+
+    steps = pd.to_numeric(df["checkpoint_steps"], errors="coerce").dropna()
+    if steps.empty:
+        return None
+    return int(steps.max())
+
+
+def eval_env_count(csv_path: Path) -> int | None:
+    match = re.search(r"_nenv(\d+)(?:\D|$)", csv_path.name)
+    return int(match.group(1)) if match else None
+
+
+def select_checkpoint_csv(
+    agent: AgentSpec,
+    map_name: str,
+    config: GridConfig,
+) -> tuple[Path | None, str | None]:
     sweep_dir = CHART_ROOT / agent.root_dir / map_name / agent.model_dir / "checkpoint_sweep"
-    csvs = sorted(
-        sweep_dir.glob("checkpoint_metrics_*.csv"),
-        key=lambda path: path.stat().st_mtime,
-        reverse=True,
-    )
-    return csvs[0] if csvs else None
+    csvs = sorted(sweep_dir.glob("checkpoint_metrics_*.csv"))
+    if not csvs:
+        return None, "no checkpoint metrics CSV found"
+
+    matching_envs = [path for path in csvs if eval_env_count(path) == config.eval_envs]
+    if not matching_envs:
+        available_envs = sorted({env for path in csvs if (env := eval_env_count(path)) is not None})
+        suffix = f"; available nenv values: {available_envs}" if available_envs else ""
+        return None, f"no nenv{config.eval_envs} checkpoint metrics CSV found{suffix}"
+
+    candidates = []
+    for path in matching_envs:
+        max_step = checkpoint_max_step(path)
+        if max_step is None or max_step < config.target_steps:
+            continue
+        candidates.append((max_step, path.stat().st_mtime, path))
+
+    if not candidates:
+        available_steps = [
+            max_step
+            for path in matching_envs
+            if (max_step := checkpoint_max_step(path)) is not None
+        ]
+        max_available = max(available_steps) if available_steps else "none"
+        return None, (
+            f"no nenv{config.eval_envs} CSV reaches {format_timestep_label(config.target_steps)} "
+            f"(max available: {max_available})"
+        )
+
+    candidates.sort(key=lambda item: (abs(item[0] - config.target_steps), item[0], -item[1]))
+    return candidates[0][2], None
 
 
-def load_final_terminal_outcomes(csv_path: Path) -> dict:
+def load_final_terminal_outcomes(
+    csv_path: Path,
+    target_steps: int,
+    max_plot_steps: int,
+) -> dict:
     df = pd.read_csv(csv_path)
     required = {"checkpoint_steps", "seed", "episodes", *OUTCOMES}
     missing = required.difference(df.columns)
@@ -79,6 +175,13 @@ def load_final_terminal_outcomes(csv_path: Path) -> dict:
     df["episodes"] = df["episodes"].astype(int)
     for outcome in OUTCOMES:
         df[outcome] = df[outcome].astype(int)
+
+    seed_max_steps = df.groupby("seed")["checkpoint_steps"].max()
+    eligible_seeds = seed_max_steps[seed_max_steps >= target_steps].index
+    df = df[df["seed"].isin(eligible_seeds)]
+    df = df[df["checkpoint_steps"] <= max_plot_steps]
+    if df.empty:
+        raise ValueError(f"{csv_path} has no seeds reaching {target_steps} steps")
 
     final_rows = (
         df.sort_values(["seed", "checkpoint_steps"])
@@ -102,10 +205,13 @@ def load_final_terminal_outcomes(csv_path: Path) -> dict:
         "total_episodes": total_episodes,
         "final_checkpoint_steps": sorted(final_rows["checkpoint_steps"].unique().tolist()),
         "seeds": sorted(final_rows["seed"].unique().tolist()),
+        "seed_count": int(final_rows["seed"].nunique()),
     }
 
 
-def collect_final_terminal_outcomes() -> tuple[dict[tuple[str, str, str], dict], list[str]]:
+def collect_final_terminal_outcomes(
+    config: GridConfig,
+) -> tuple[dict[tuple[str, str, str], dict], list[str]]:
     outcomes: dict[tuple[str, str, str], dict] = {}
     warnings: list[str] = []
 
@@ -113,12 +219,16 @@ def collect_final_terminal_outcomes() -> tuple[dict[tuple[str, str, str], dict],
         for version in VERSIONS:
             for variant in VARIANTS:
                 map_name = f"{version}_{variant}"
-                csv_path = latest_checkpoint_csv(agent, map_name)
+                csv_path, skip_reason = select_checkpoint_csv(agent, map_name, config)
                 if csv_path is None:
-                    warnings.append(f"{agent.label} {map_name}: no checkpoint metrics CSV found")
+                    warnings.append(f"{agent.label} {map_name}: {skip_reason}")
                     continue
                 try:
-                    payload = load_final_terminal_outcomes(csv_path)
+                    payload = load_final_terminal_outcomes(
+                        csv_path,
+                        config.target_steps,
+                        config.max_plot_steps,
+                    )
                 except Exception as exc:
                     warnings.append(f"{agent.label} {map_name}: skipped {csv_path} ({exc})")
                     continue
@@ -129,6 +239,8 @@ def collect_final_terminal_outcomes() -> tuple[dict[tuple[str, str, str], dict],
                         "version": version,
                         "variant": variant,
                         "csv_path": csv_path,
+                        "eval_envs": eval_env_count(csv_path),
+                        "source_max_step": checkpoint_max_step(csv_path),
                     }
                 )
                 outcomes[(agent.label, version, variant)] = payload
@@ -136,16 +248,24 @@ def collect_final_terminal_outcomes() -> tuple[dict[tuple[str, str, str], dict],
     return outcomes, warnings
 
 
-def save_final_outcome_source(outcomes: dict[tuple[str, str, str], dict]) -> Path:
+def save_final_outcome_source(
+    outcomes: dict[tuple[str, str, str], dict],
+    config: GridConfig,
+) -> Path:
     rows = []
     for (agent_label, version, variant), payload in sorted(outcomes.items()):
         row = {
+            "grid": config.key,
+            "grid_label": config.label,
             "agent": agent_label,
             "version": version,
             "variant": variant,
             "map_name": payload["map_name"],
             "csv_path": str(payload["csv_path"].relative_to(CHART_ROOT)),
+            "eval_envs": payload["eval_envs"],
+            "source_max_checkpoint_steps": payload["source_max_step"],
             "total_episodes": payload["total_episodes"],
+            "seed_count": payload["seed_count"],
             "seeds": ";".join(str(seed) for seed in payload["seeds"]),
             "final_checkpoint_steps": ";".join(
                 str(step) for step in payload["final_checkpoint_steps"]
@@ -157,7 +277,7 @@ def save_final_outcome_source(outcomes: dict[tuple[str, str, str], dict]) -> Pat
         rows.append(row)
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    csv_path = OUT_DIR / FINAL_OUTCOME_SOURCE_CSV
+    csv_path = OUT_DIR / config.source_csv
     pd.DataFrame(rows).to_csv(csv_path, index=False)
     return csv_path
 
@@ -165,6 +285,7 @@ def save_final_outcome_source(outcomes: dict[tuple[str, str, str], dict]) -> Pat
 def plot_terminal_outcomes_for_agent(
     agent: AgentSpec,
     outcomes: dict[tuple[str, str, str], dict],
+    config: GridConfig,
 ) -> Path | None:
     if not any(key[0] == agent.label for key in outcomes):
         return None
@@ -186,6 +307,7 @@ def plot_terminal_outcomes_for_agent(
     for col_idx, variant in enumerate(VARIANTS):
         ax = axes[col_idx]
         plotted = False
+        ax.set_title(variant, fontsize=15, pad=8)
 
         for version_idx, version in enumerate(VERSIONS):
             payload = outcomes.get((agent.label, version, variant))
@@ -239,11 +361,12 @@ def plot_terminal_outcomes_for_agent(
             columnspacing=1.8,
         )
 
-    fig.subplots_adjust(left=0.12, right=0.99, top=0.96, bottom=0.22, wspace=0.10)
+    fig.suptitle(f"{agent.label} final terminal outcomes ({config.label})", fontsize=16, y=0.995)
+    fig.subplots_adjust(left=0.12, right=0.99, top=0.88, bottom=0.22, wspace=0.10)
 
     safe_agent = agent.label.lower().replace(" ", "_")
-    png_path = OUT_DIR / f"{safe_agent}_final_terminal_outcomes.png"
-    pdf_path = OUT_DIR / f"{safe_agent}_final_terminal_outcomes.pdf"
+    png_path = OUT_DIR / f"{safe_agent}_final_terminal_outcomes{config.output_suffix}.png"
+    pdf_path = OUT_DIR / f"{safe_agent}_final_terminal_outcomes{config.output_suffix}.pdf"
     fig.savefig(png_path, dpi=220, bbox_inches="tight")
     fig.savefig(pdf_path, bbox_inches="tight")
     plt.close(fig)
@@ -252,10 +375,11 @@ def plot_terminal_outcomes_for_agent(
 
 def plot_individual_terminal_outcomes(
     outcomes: dict[tuple[str, str, str], dict],
+    config: GridConfig,
 ) -> list[Path]:
     paths = []
     for agent in AGENTS:
-        path = plot_terminal_outcomes_for_agent(agent, outcomes)
+        path = plot_terminal_outcomes_for_agent(agent, outcomes, config)
         if path is not None:
             paths.append(path)
     return paths
@@ -263,6 +387,7 @@ def plot_individual_terminal_outcomes(
 
 def plot_terminal_outcome_grid(
     outcomes: dict[tuple[str, str, str], dict],
+    config: GridConfig,
 ) -> Path | None:
     if not outcomes:
         return None
@@ -355,27 +480,40 @@ def plot_terminal_outcome_grid(
             columnspacing=2.0,
         )
 
-    fig.subplots_adjust(left=0.13, right=0.99, top=0.99, bottom=0.11, wspace=0.08, hspace=0.18)
+    fig.subplots_adjust(left=0.13, right=0.99, top=0.96, bottom=0.11, wspace=0.08, hspace=0.18)
 
-    png_path = OUT_DIR / f"{FINAL_OUTCOME_GRID_BASENAME}.png"
-    pdf_path = OUT_DIR / f"{FINAL_OUTCOME_GRID_BASENAME}.pdf"
+    png_path = OUT_DIR / f"{config.grid_basename}.png"
+    pdf_path = OUT_DIR / f"{config.grid_basename}.pdf"
     fig.savefig(png_path, dpi=220, bbox_inches="tight")
     fig.savefig(pdf_path, bbox_inches="tight")
     plt.close(fig)
     return png_path
 
 
-def main() -> None:
-    outcomes, warnings = collect_final_terminal_outcomes()
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Plot reduced-agent final terminal outcomes.")
+    parser.add_argument(
+        "--grid",
+        choices=[*(config.key for config in GRID_CONFIGS), "all"],
+        default="10m",
+        help="Which terminal-outcome grid to generate. Default: 10m.",
+    )
+    return parser.parse_args()
+
+
+def run_grid(config: GridConfig) -> None:
+    outcomes, warnings = collect_final_terminal_outcomes(config)
     if not outcomes:
         raise RuntimeError(
-            f"No checkpoint_metrics_*.csv files found for terminal outcomes under {CHART_ROOT}"
+            f"No {config.label} checkpoint_metrics_*.csv files found for terminal outcomes "
+            f"under {CHART_ROOT}"
         )
 
-    source_csv = save_final_outcome_source(outcomes)
-    individual_paths = plot_individual_terminal_outcomes(outcomes)
-    grid_path = plot_terminal_outcome_grid(outcomes)
+    source_csv = save_final_outcome_source(outcomes, config)
+    individual_paths = plot_individual_terminal_outcomes(outcomes, config)
+    grid_path = plot_terminal_outcome_grid(outcomes, config)
 
+    print(f"\nGrid: {config.label}")
     print(f"Saved final outcome source: {source_csv}")
     for path in individual_paths:
         print(f"Saved final outcome plot: {path}")
@@ -388,6 +526,15 @@ def main() -> None:
         print("\nWarnings:")
         for warning in warnings:
             print(f"  - {warning}")
+
+
+def main() -> None:
+    args = parse_args()
+    configs = GRID_CONFIGS if args.grid == "all" else tuple(
+        config for config in GRID_CONFIGS if config.key == args.grid
+    )
+    for config in configs:
+        run_grid(config)
 
 
 if __name__ == "__main__":

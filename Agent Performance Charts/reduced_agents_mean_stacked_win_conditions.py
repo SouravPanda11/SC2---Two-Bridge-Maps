@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import argparse
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -16,7 +18,6 @@ from matplotlib.ticker import FuncFormatter, MaxNLocator
 
 CHART_ROOT = Path(__file__).resolve().parent
 OUT_DIR = CHART_ROOT / "Reduced Agent Aggregate Plots"
-SOURCE_CSV = "reduced_agents_mean_stacked_win_conditions_source.csv"
 
 VERSIONS = ("V1", "V2", "V3")
 VARIANTS = ("Base", "Combat", "Navigate")
@@ -45,10 +46,44 @@ class AgentSpec:
     model_dir: str
 
 
+@dataclass(frozen=True)
+class GridConfig:
+    key: str
+    label: str
+    output_suffix: str
+    source_csv: str
+    target_steps: int
+    eval_envs: int
+    target_tolerance_steps: int = 125_000
+
+    @property
+    def max_plot_steps(self) -> int:
+        return self.target_steps + self.target_tolerance_steps
+
+
 AGENTS = (
     AgentSpec("QMIX", "Qmix_reduced", "QMIX_reduced"),
     AgentSpec("MaskPPO", "MaskPPO", "MaskPPO_NS_reduced"),
     AgentSpec("MAPPO", "MAPPO_reduced", "MAPPO_reduced"),
+)
+
+GRID_CONFIGS = (
+    GridConfig(
+        key="2m",
+        label="2M, 16 eval envs",
+        output_suffix="",
+        source_csv="reduced_agents_mean_stacked_win_conditions_source.csv",
+        target_steps=2_000_000,
+        eval_envs=16,
+    ),
+    GridConfig(
+        key="10m",
+        label="10M, 8 eval envs",
+        output_suffix="_10m_nenv8",
+        source_csv="reduced_agents_mean_stacked_win_conditions_10m_nenv8_source.csv",
+        target_steps=10_000_000,
+        eval_envs=8,
+    ),
 )
 
 
@@ -70,17 +105,69 @@ def compute_bar_width(x_values) -> float:
     return max(min_gap * 0.55, 10_000.0)
 
 
-def latest_checkpoint_csv(agent: AgentSpec, map_name: str) -> Path | None:
+def checkpoint_max_step(csv_path: Path) -> int | None:
+    try:
+        df = pd.read_csv(csv_path, usecols=["checkpoint_steps"])
+    except Exception:
+        return None
+
+    steps = pd.to_numeric(df["checkpoint_steps"], errors="coerce").dropna()
+    if steps.empty:
+        return None
+    return int(steps.max())
+
+
+def eval_env_count(csv_path: Path) -> int | None:
+    match = re.search(r"_nenv(\d+)(?:\D|$)", csv_path.name)
+    return int(match.group(1)) if match else None
+
+
+def select_checkpoint_csv(
+    agent: AgentSpec,
+    map_name: str,
+    config: GridConfig,
+) -> tuple[Path | None, str | None]:
     sweep_dir = CHART_ROOT / agent.root_dir / map_name / agent.model_dir / "checkpoint_sweep"
-    csvs = sorted(
-        sweep_dir.glob("checkpoint_metrics_*.csv"),
-        key=lambda path: path.stat().st_mtime,
-        reverse=True,
-    )
-    return csvs[0] if csvs else None
+    csvs = sorted(sweep_dir.glob("checkpoint_metrics_*.csv"))
+    if not csvs:
+        return None, "no checkpoint metrics CSV found"
+
+    matching_envs = [path for path in csvs if eval_env_count(path) == config.eval_envs]
+    if not matching_envs:
+        available_envs = sorted({env for path in csvs if (env := eval_env_count(path)) is not None})
+        suffix = f"; available nenv values: {available_envs}" if available_envs else ""
+        return None, f"no nenv{config.eval_envs} checkpoint metrics CSV found{suffix}"
+
+    candidates = []
+    for path in matching_envs:
+        max_step = checkpoint_max_step(path)
+        if max_step is None:
+            continue
+        if max_step < config.target_steps:
+            continue
+        candidates.append((max_step, path.stat().st_mtime, path))
+
+    if not candidates:
+        available_steps = [
+            checkpoint_max_step(path)
+            for path in matching_envs
+            if checkpoint_max_step(path) is not None
+        ]
+        max_available = max(available_steps) if available_steps else "none"
+        return None, (
+            f"no nenv{config.eval_envs} CSV reaches {format_timestep_label(config.target_steps)} "
+            f"(max available: {max_available})"
+        )
+
+    candidates.sort(key=lambda item: (abs(item[0] - config.target_steps), item[0], -item[1]))
+    return candidates[0][2], None
 
 
-def load_mean_stacked_curve(csv_path: Path) -> pd.DataFrame:
+def load_mean_stacked_curve(
+    csv_path: Path,
+    target_steps: int,
+    max_plot_steps: int,
+) -> pd.DataFrame:
     df = pd.read_csv(csv_path)
     required = {
         "checkpoint_steps",
@@ -103,6 +190,12 @@ def load_mean_stacked_curve(csv_path: Path) -> pd.DataFrame:
 
     df["checkpoint_steps"] = df["checkpoint_steps"].astype(int)
     df["seed"] = df["seed"].astype(int)
+    seed_max_steps = df.groupby("seed")["checkpoint_steps"].max()
+    eligible_seeds = seed_max_steps[seed_max_steps >= target_steps].index
+    df = df[df["seed"].isin(eligible_seeds)]
+    df = df[df["checkpoint_steps"] <= max_plot_steps]
+    if df.empty:
+        return pd.DataFrame()
     df = df.drop_duplicates(subset=["seed", "checkpoint_steps"], keep="last")
 
     grouped = (
@@ -119,7 +212,7 @@ def load_mean_stacked_curve(csv_path: Path) -> pd.DataFrame:
     return grouped
 
 
-def collect_curves() -> tuple[dict[tuple[str, str, str], dict], list[str]]:
+def collect_curves(config: GridConfig) -> tuple[dict[tuple[str, str, str], dict], list[str]]:
     curves: dict[tuple[str, str, str], dict] = {}
     warnings: list[str] = []
 
@@ -127,12 +220,16 @@ def collect_curves() -> tuple[dict[tuple[str, str, str], dict], list[str]]:
         for version in VERSIONS:
             for variant in VARIANTS:
                 map_name = f"{version}_{variant}"
-                csv_path = latest_checkpoint_csv(agent, map_name)
+                csv_path, skip_reason = select_checkpoint_csv(agent, map_name, config)
                 if csv_path is None:
-                    warnings.append(f"{agent.label} {map_name}: no checkpoint metrics CSV found")
+                    warnings.append(f"{agent.label} {map_name}: {skip_reason}")
                     continue
                 try:
-                    mean_df = load_mean_stacked_curve(csv_path)
+                    mean_df = load_mean_stacked_curve(
+                        csv_path,
+                        config.target_steps,
+                        config.max_plot_steps,
+                    )
                 except Exception as exc:
                     warnings.append(f"{agent.label} {map_name}: skipped {csv_path} ({exc})")
                     continue
@@ -145,24 +242,30 @@ def collect_curves() -> tuple[dict[tuple[str, str, str], dict], list[str]]:
                     "variant": variant,
                     "map_name": map_name,
                     "csv_path": csv_path,
+                    "eval_envs": eval_env_count(csv_path),
+                    "source_max_step": checkpoint_max_step(csv_path),
                     "mean_df": mean_df,
                 }
 
     return curves, warnings
 
 
-def save_source_csv(curves: dict[tuple[str, str, str], dict]) -> Path:
+def save_source_csv(curves: dict[tuple[str, str, str], dict], config: GridConfig) -> Path:
     rows = []
     for (agent_label, version, variant), payload in sorted(curves.items()):
         mean_df = payload["mean_df"]
         for row in mean_df.itertuples(index=False):
             rows.append(
                 {
+                    "grid": config.key,
+                    "grid_label": config.label,
                     "agent": agent_label,
                     "version": version,
                     "variant": variant,
                     "map_name": payload["map_name"],
                     "csv_path": str(payload["csv_path"].relative_to(CHART_ROOT)),
+                    "eval_envs": payload["eval_envs"],
+                    "source_max_checkpoint_steps": payload["source_max_step"],
                     "checkpoint_steps": int(row.checkpoint_steps),
                     "mean_nav_win_rate_percent": round(float(row.mean_nav_win_rate_percent), 6),
                     "mean_combat_win_rate_percent": round(float(row.mean_combat_win_rate_percent), 6),
@@ -173,12 +276,16 @@ def save_source_csv(curves: dict[tuple[str, str, str], dict]) -> Path:
             )
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    csv_path = OUT_DIR / SOURCE_CSV
+    csv_path = OUT_DIR / config.source_csv
     pd.DataFrame(rows).to_csv(csv_path, index=False)
     return csv_path
 
 
-def plot_agent_grid(agent: AgentSpec, curves: dict[tuple[str, str, str], dict]) -> Path | None:
+def plot_agent_grid(
+    agent: AgentSpec,
+    curves: dict[tuple[str, str, str], dict],
+    config: GridConfig,
+) -> Path | None:
     if not any(key[0] == agent.label for key in curves):
         return None
 
@@ -304,38 +411,57 @@ def plot_agent_grid(agent: AgentSpec, curves: dict[tuple[str, str, str], dict]) 
             columnspacing=1.8,
         )
 
-    fig.suptitle(f"{agent.label} mean stacked win conditions by map variant", fontsize=18, y=0.992)
+    fig.suptitle(
+        f"{agent.label} mean stacked win conditions by map variant",
+        fontsize=18,
+        y=0.992,
+    )
     fig.subplots_adjust(left=0.065, right=0.995, top=0.955, bottom=0.11, wspace=0.07, hspace=0.14)
 
     safe_agent = agent.label.lower().replace(" ", "_")
-    png_path = OUT_DIR / f"{safe_agent}_mean_stacked_win_conditions_grid.png"
-    pdf_path = OUT_DIR / f"{safe_agent}_mean_stacked_win_conditions_grid.pdf"
+    png_path = OUT_DIR / f"{safe_agent}_mean_stacked_win_conditions_grid{config.output_suffix}.png"
+    pdf_path = OUT_DIR / f"{safe_agent}_mean_stacked_win_conditions_grid{config.output_suffix}.pdf"
     fig.savefig(png_path, dpi=220, bbox_inches="tight")
     fig.savefig(pdf_path, bbox_inches="tight")
     plt.close(fig)
     return png_path
 
 
-def plot_all_agent_grids(curves: dict[tuple[str, str, str], dict]) -> list[Path]:
+def plot_all_agent_grids(
+    curves: dict[tuple[str, str, str], dict],
+    config: GridConfig,
+) -> list[Path]:
     paths = []
     for agent in AGENTS:
-        path = plot_agent_grid(agent, curves)
+        path = plot_agent_grid(agent, curves, config)
         if path is not None:
             paths.append(path)
     return paths
 
 
-def main() -> None:
-    curves, warnings = collect_curves()
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Plot reduced-agent stacked win-condition grids.")
+    parser.add_argument(
+        "--grid",
+        choices=[*(config.key for config in GRID_CONFIGS), "all"],
+        default="10m",
+        help="Which grid to generate. Default: 10m.",
+    )
+    return parser.parse_args()
+
+
+def run_grid(config: GridConfig) -> None:
+    curves, warnings = collect_curves(config)
     if not curves:
         raise RuntimeError(
-            f"No checkpoint_metrics_*.csv files found for {', '.join(a.label for a in AGENTS)} "
-            f"under {CHART_ROOT}"
+            f"No {config.label} checkpoint_metrics_*.csv files found for "
+            f"{', '.join(a.label for a in AGENTS)} under {CHART_ROOT}"
         )
 
-    source_csv = save_source_csv(curves)
-    plot_paths = plot_all_agent_grids(curves)
+    source_csv = save_source_csv(curves, config)
+    plot_paths = plot_all_agent_grids(curves, config)
 
+    print(f"\nGrid: {config.label}")
     print(f"Saved mean stacked source: {source_csv}")
     for path in plot_paths:
         print(f"Saved mean stacked plot: {path}")
@@ -346,6 +472,15 @@ def main() -> None:
         print("\nWarnings:")
         for warning in warnings:
             print(f"  - {warning}")
+
+
+def main() -> None:
+    args = parse_args()
+    configs = GRID_CONFIGS if args.grid == "all" else tuple(
+        config for config in GRID_CONFIGS if config.key == args.grid
+    )
+    for config in configs:
+        run_grid(config)
 
 
 if __name__ == "__main__":
