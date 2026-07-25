@@ -16,8 +16,8 @@ MAP_NAME = "V1_Base"
 
 # Run mode: use fresh_start once, then switch to load_last_checkpoint after
 # an interrupted run.
-RUN_MODE = "fresh_start"
-# RUN_MODE = "load_last_checkpoint"
+# RUN_MODE = "fresh_start"
+RUN_MODE = "load_last_checkpoint"
 
 # Matched to two seeds from the established V1_Base QMIX experiment.
 FRESH_START_SEED_VALUES = (297975710, 1076891414)
