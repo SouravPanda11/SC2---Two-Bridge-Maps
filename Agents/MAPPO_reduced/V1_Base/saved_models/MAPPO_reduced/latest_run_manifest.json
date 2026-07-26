@@ -3,7 +3,7 @@
   "run_mode": "fresh_start",
   "seed": null,
   "seed_values": [],
-  "num_seeds": 3,
+  "num_seeds": 8,
   "num_envs": 3,
   "agent_name": "MAPPO_reduced",
   "total_timesteps": 2000000,
@@ -43,7 +43,12 @@
   "seeds": [
     712993367,
     2008076029,
-    754446756
+    754446756,
+    1914693465,
+    373724351,
+    1141046936,
+    158608218,
+    1651085534
   ],
   "save_root": "C:/Users/sbp5911/Visual Studio Code Workspace/SC2---Two-Bridge-Maps/Agents/MAPPO_reduced/V1_Base/saved_models/MAPPO_reduced",
   "tensorboard_root": "C:/Users/sbp5911/Visual Studio Code Workspace/SC2---Two-Bridge-Maps/tb_logs/MAPPO_reduced/V1_Base/MAPPO_reduced"
