@@ -6,9 +6,11 @@
   "seeds": [
     1911126628,
     84485844,
-    552267253
+    552267253,
+    708389186,
+    1819752936
   ],
-  "num_seeds": 3,
+  "num_seeds": 5,
   "num_envs": 3,
   "total_timesteps": 2000000,
   "save_interval": 50000,
