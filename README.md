@@ -14,6 +14,7 @@ reproducing and extending the RL experiments.
 ```text
 .
 |-- Agents/
+|   |-- scripted/            # Lower-bridge state-oracle scripted baseline
 |   |-- A2C/                 # Original Stable-Baselines3 A2C scripts
 |   |-- PPO/                 # Original Stable-Baselines3 PPO scripts
 |   |-- MaskPPO/             # Maskable PPO variants and checkpoint sweeps
@@ -228,6 +229,23 @@ Useful options:
 ```
 
 QMIX also supports `--epsilon` during evaluation.
+
+### Scripted lower-bridge combat baseline
+
+The scripted baseline commands all five Marines through the visual lower bridge
+and then uses grouped target focus fire with cooldown-based kiting. Its default
+joint actions match the benchmark branches, but it reads privileged raw state,
+so report it as a state-oracle baseline rather than an observation-matched policy.
+
+```powershell
+TBMsc2\Scripts\python.exe Agents\scripted\V1_Base\run_scripted.py --episodes 10
+TBMsc2\Scripts\python.exe Agents\scripted\run_all_variants.py --episodes 100
+```
+
+It writes per-episode CSV, aggregate CSV (with Wilson intervals), and JSON under
+`Agent Performance Charts/Scripted/`, and can save replays with
+`--save-replays`. See [Agents/scripted/README.md](Agents/scripted/README.md) for
+the policy, coordinate convention, scientific caveats, and all options.
 
 ## Outputs
 
