@@ -5,13 +5,13 @@
   "num_eval_envs": 8,
   "deterministic": true,
   "device": "cuda",
-  "manifest_path": "C:\\Users\\sbp5911\\Visual Studio Code Workspace\\SC2---Two-Bridge-Maps\\Agents\\MAPPO_reduced\\V1_Combat\\saved_models\\MAPPO_reduced\\latest_run_manifest.json",
+  "manifest_path": "C:\\Users\\sbp5911\\Visual Studio Code\\SC2---Two-Bridge-Maps\\Agents\\MAPPO_reduced\\V1_Combat\\saved_models\\MAPPO_reduced\\latest_run_manifest.json",
   "manifest": {
     "map_name": "V1_Combat",
     "run_mode": "fresh_start",
     "seed": null,
     "seed_values": [],
-    "num_seeds": 3,
+    "num_seeds": 5,
     "num_envs": 3,
     "agent_name": "MAPPO_reduced",
     "total_timesteps": 2000000,
@@ -51,20 +51,24 @@
     "seeds": [
       454950384,
       220256808,
-      1495914392
+      1495914392,
+      1505141409,
+      1729334869
     ],
     "save_root": "C:/Users/sbp5911/Visual Studio Code Workspace/SC2---Two-Bridge-Maps/Agents/MAPPO_reduced/V1_Combat/saved_models/MAPPO_reduced",
     "tensorboard_root": "C:/Users/sbp5911/Visual Studio Code Workspace/SC2---Two-Bridge-Maps/tb_logs/MAPPO_reduced/V1_Combat/MAPPO_reduced"
   },
-  "results_csv": "C:\\Users\\sbp5911\\Visual Studio Code Workspace\\SC2---Two-Bridge-Maps\\Agent Performance Charts\\MAPPO_reduced\\V1_Combat\\MAPPO_reduced\\checkpoint_sweep\\checkpoint_metrics_32ep_greedy_nenv8.csv",
-  "combined_plot": "C:\\Users\\sbp5911\\Visual Studio Code Workspace\\SC2---Two-Bridge-Maps\\Agent Performance Charts\\MAPPO_reduced\\V1_Combat\\MAPPO_reduced\\checkpoint_sweep\\all_seeds_winrate_vs_timesteps_32ep_greedy_nenv8.png",
-  "best_seed_stacked_plot": "C:\\Users\\sbp5911\\Visual Studio Code Workspace\\SC2---Two-Bridge-Maps\\Agent Performance Charts\\MAPPO_reduced\\V1_Combat\\MAPPO_reduced\\checkpoint_sweep\\best_seed_win_conditions_vs_timesteps_32ep_greedy_nenv8.png",
+  "results_csv": "C:\\Users\\sbp5911\\Visual Studio Code\\SC2---Two-Bridge-Maps\\Agent Performance Charts\\MAPPO_reduced\\V1_Combat\\MAPPO_reduced\\checkpoint_sweep\\checkpoint_metrics_32ep_greedy_nenv8.csv",
+  "combined_plot": "C:\\Users\\sbp5911\\Visual Studio Code\\SC2---Two-Bridge-Maps\\Agent Performance Charts\\MAPPO_reduced\\V1_Combat\\MAPPO_reduced\\checkpoint_sweep\\all_seeds_winrate_vs_timesteps_32ep_greedy_nenv8.png",
+  "best_seed_stacked_plot": "C:\\Users\\sbp5911\\Visual Studio Code\\SC2---Two-Bridge-Maps\\Agent Performance Charts\\MAPPO_reduced\\V1_Combat\\MAPPO_reduced\\checkpoint_sweep\\best_seed_win_conditions_vs_timesteps_32ep_greedy_nenv8.png",
   "best_seed": 1495914392,
-  "rows": 600,
+  "rows": 680,
   "seeds": [
     220256808,
     454950384,
-    1495914392
+    1495914392,
+    1505141409,
+    1729334869
   ],
   "checkpoint_steps": [
     50688,
