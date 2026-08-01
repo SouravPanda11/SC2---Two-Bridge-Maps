@@ -11,7 +11,7 @@
     "run_mode": "fresh_start",
     "seed": null,
     "seed_values": [],
-    "num_seeds": 3,
+    "num_seeds": 5,
     "num_envs": 3,
     "agent_name": "MAPPO_reduced",
     "total_timesteps": 2000000,
@@ -51,7 +51,9 @@
     "seeds": [
       631185455,
       969072527,
-      540310214
+      540310214,
+      37233611,
+      834071005
     ],
     "save_root": "C:/Users/sbp5911/Visual Studio Code/SC2---Two-Bridge-Maps/Agents/MAPPO_reduced/V2_Navigate/saved_models/MAPPO_reduced",
     "tensorboard_root": "C:/Users/sbp5911/Visual Studio Code/SC2---Two-Bridge-Maps/tb_logs/MAPPO_reduced/V2_Navigate/MAPPO_reduced"
@@ -60,10 +62,12 @@
   "combined_plot": "C:\\Users\\sbp5911\\Visual Studio Code Workspace\\SC2---Two-Bridge-Maps\\Agent Performance Charts\\MAPPO_reduced\\V2_Navigate\\MAPPO_reduced\\checkpoint_sweep\\all_seeds_winrate_vs_timesteps_32ep_greedy_nenv8.png",
   "best_seed_stacked_plot": "C:\\Users\\sbp5911\\Visual Studio Code Workspace\\SC2---Two-Bridge-Maps\\Agent Performance Charts\\MAPPO_reduced\\V2_Navigate\\MAPPO_reduced\\checkpoint_sweep\\best_seed_win_conditions_vs_timesteps_32ep_greedy_nenv8.png",
   "best_seed": 631185455,
-  "rows": 600,
+  "rows": 680,
   "seeds": [
+    37233611,
     540310214,
     631185455,
+    834071005,
     969072527
   ],
   "checkpoint_steps": [
