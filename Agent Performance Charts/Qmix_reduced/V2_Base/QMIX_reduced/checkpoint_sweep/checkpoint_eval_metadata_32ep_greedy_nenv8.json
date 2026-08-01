@@ -5,7 +5,7 @@
   "num_eval_envs": 8,
   "deterministic": true,
   "device": "cuda",
-  "manifest_path": "C:\\Users\\sbp5911\\Visual Studio Code Workspace\\StarCraft II\\SC2---Two-Bridge-Maps\\Agents\\Qmix_reduced\\V2_Base\\saved_models\\QMIX_reduced\\latest_run_manifest.json",
+  "manifest_path": "C:\\Users\\sbp5911\\Visual Studio Code Workspace\\SC2---Two-Bridge-Maps\\Agents\\Qmix_reduced\\V2_Base\\saved_models\\QMIX_reduced\\latest_run_manifest.json",
   "manifest": {
     "created_at": "2026-04-25T16:57:08",
     "agent_name": "QMIX_reduced",
@@ -14,9 +14,11 @@
     "seeds": [
       1911126628,
       84485844,
-      552267253
+      552267253,
+      708389186,
+      1819752936
     ],
-    "num_seeds": 3,
+    "num_seeds": 5,
     "num_envs": 3,
     "total_timesteps": 2000000,
     "save_interval": 50000,
@@ -25,14 +27,16 @@
     "buffer_max_gb": 4.0,
     "device": "cuda"
   },
-  "results_csv": "C:\\Users\\sbp5911\\Visual Studio Code Workspace\\StarCraft II\\SC2---Two-Bridge-Maps\\Agent Performance Charts\\Qmix_reduced\\V2_Base\\QMIX_reduced\\checkpoint_sweep\\checkpoint_metrics_32ep_greedy_nenv8.csv",
-  "combined_plot": "C:\\Users\\sbp5911\\Visual Studio Code Workspace\\StarCraft II\\SC2---Two-Bridge-Maps\\Agent Performance Charts\\Qmix_reduced\\V2_Base\\QMIX_reduced\\checkpoint_sweep\\all_seeds_winrate_vs_timesteps_32ep_greedy_nenv8.png",
-  "best_seed_stacked_plot": "C:\\Users\\sbp5911\\Visual Studio Code Workspace\\StarCraft II\\SC2---Two-Bridge-Maps\\Agent Performance Charts\\Qmix_reduced\\V2_Base\\QMIX_reduced\\checkpoint_sweep\\best_seed_win_conditions_vs_timesteps_32ep_greedy_nenv8.png",
+  "results_csv": "C:\\Users\\sbp5911\\Visual Studio Code Workspace\\SC2---Two-Bridge-Maps\\Agent Performance Charts\\Qmix_reduced\\V2_Base\\QMIX_reduced\\checkpoint_sweep\\checkpoint_metrics_32ep_greedy_nenv8.csv",
+  "combined_plot": "C:\\Users\\sbp5911\\Visual Studio Code Workspace\\SC2---Two-Bridge-Maps\\Agent Performance Charts\\Qmix_reduced\\V2_Base\\QMIX_reduced\\checkpoint_sweep\\all_seeds_winrate_vs_timesteps_32ep_greedy_nenv8.png",
+  "best_seed_stacked_plot": "C:\\Users\\sbp5911\\Visual Studio Code Workspace\\SC2---Two-Bridge-Maps\\Agent Performance Charts\\Qmix_reduced\\V2_Base\\QMIX_reduced\\checkpoint_sweep\\best_seed_win_conditions_vs_timesteps_32ep_greedy_nenv8.png",
   "best_seed": 1911126628,
-  "rows": 600,
+  "rows": 680,
   "seeds": [
     84485844,
     552267253,
+    708389186,
+    1819752936,
     1911126628
   ],
   "checkpoint_steps": [
