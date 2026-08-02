@@ -8,6 +8,7 @@ scripted-oracle results, and writes to a separate output directory.
 from __future__ import annotations
 
 import argparse
+from dataclasses import replace
 import importlib.util
 import json
 import math
@@ -27,6 +28,7 @@ from matplotlib.ticker import FuncFormatter, MaxNLocator
 
 
 CHART_ROOT = Path(__file__).resolve().parent
+AGENT_ROOT = CHART_ROOT.parent / "Agents"
 DEFAULT_SCRIPTED_DIR = (
     CHART_ROOT / "Scripted" / "scripted_32ep_seed0_20260731"
 )
@@ -56,6 +58,8 @@ SCRIPTED_LABEL = "Scripted oracle (32 ep)"
 SCRIPTED_ROW_LABEL = "Scripted oracle"
 SCRIPTED_COLOR = "#111111"
 SCRIPTED_LINESTYLE = (0, (6, 3))
+EXPECTED_2M_TRAINING_SEEDS = 5
+TWO_MILLION_CHECKPOINT_TOLERANCE = 2_000
 
 
 def load_local_module(name: str, path: Path) -> ModuleType:
@@ -531,6 +535,23 @@ def plot_terminal_grid(
     output_dir: Path,
 ) -> tuple[Path, Path]:
     output_dir.mkdir(parents=True, exist_ok=True)
+    learned_seed_counts = sorted(
+        {int(payload["seed_count"]) for payload in learned.values()}
+    )
+    learned_episode_counts = sorted(
+        {int(payload["total_episodes"]) for payload in learned.values()}
+    )
+    if len(learned_seed_counts) == len(learned_episode_counts) == 1:
+        learned_summary = (
+            f"{learned_seed_counts[0]} training seeds "
+            f"({learned_episode_counts[0]} episodes/map)"
+        )
+    else:
+        learned_summary = (
+            f"the available training seeds ({learned_seed_counts[0]}-"
+            f"{learned_seed_counts[-1]} seeds; {learned_episode_counts[0]}-"
+            f"{learned_episode_counts[-1]} episodes/map)"
+        )
     agent_rows = [agent.label for agent in terminal_module.AGENTS] + [
         SCRIPTED_ROW_LABEL
     ]
@@ -608,8 +629,8 @@ def plot_terminal_grid(
         0.5,
         0.972,
         (
-            "Learned rows pool final checkpoints across 3 training seeds "
-            "(96 episodes/map); Scripted oracle is one fixed 32-episode evaluation/map."
+            f"Learned rows pool final checkpoints across {learned_summary}; "
+            "Scripted oracle is one fixed 32-episode evaluation/map."
         ),
         ha="center",
         va="top",
@@ -662,6 +683,188 @@ def find_config(module: ModuleType, key: str):
     return next(config for config in module.GRID_CONFIGS if config.key == key)
 
 
+def active_training_seed_ids(agent, map_name: str) -> list[int]:
+    model_dir = (
+        AGENT_ROOT
+        / agent.root_dir
+        / map_name
+        / "saved_models"
+        / agent.model_dir
+    )
+    if not model_dir.is_dir():
+        raise FileNotFoundError(f"Missing trained-model directory: {model_dir}")
+
+    seeds: list[int] = []
+    for path in model_dir.glob("seed_*"):
+        if not path.is_dir():
+            continue
+        try:
+            seeds.append(int(path.name.removeprefix("seed_")))
+        except ValueError:
+            continue
+    seeds.sort()
+    if len(seeds) != EXPECTED_2M_TRAINING_SEEDS:
+        raise ValueError(
+            f"Expected {EXPECTED_2M_TRAINING_SEEDS} active training seeds for "
+            f"{agent.label} {map_name}, found {len(seeds)} in {model_dir}: {seeds}"
+        )
+    return seeds
+
+
+def filter_win_curves_to_active_seeds(
+    curves: dict[tuple[str, str, str], dict],
+    config,
+) -> None:
+    for payload in curves.values():
+        seeds = active_training_seed_ids(payload["agent"], payload["map_name"])
+        df = pd.read_csv(payload["csv_path"])
+        required = {"checkpoint_steps", "seed", "win_rate_percent"}
+        missing = required.difference(df.columns)
+        if missing:
+            raise ValueError(
+                f"{payload['csv_path']} is missing required columns: "
+                f"{sorted(missing)}"
+            )
+
+        df = df.copy()
+        for column in required:
+            df[column] = pd.to_numeric(df[column], errors="coerce")
+        df = df.dropna(subset=list(required))
+        df["checkpoint_steps"] = df["checkpoint_steps"].astype(int)
+        df["seed"] = df["seed"].astype(int)
+        df = df[df["seed"].isin(seeds)]
+
+        found_seeds = sorted(df["seed"].unique().tolist())
+        if found_seeds != seeds:
+            raise ValueError(
+                f"The 8-env metrics for {payload['agent'].label} "
+                f"{payload['map_name']} contain active seeds {found_seeds}; "
+                f"expected {seeds}."
+            )
+        seed_max_steps = df.groupby("seed")["checkpoint_steps"].max()
+        short_seeds = seed_max_steps[seed_max_steps < config.target_steps]
+        if not short_seeds.empty:
+            raise ValueError(
+                f"Active seeds do not reach {config.target_steps} for "
+                f"{payload['agent'].label} {payload['map_name']}: "
+                f"{short_seeds.to_dict()}"
+            )
+
+        common_max_step = min(
+            int(seed_max_steps.min()),
+            int(config.max_plot_steps),
+        )
+        df = df[df["checkpoint_steps"] <= common_max_step]
+        df = df.drop_duplicates(
+            subset=["seed", "checkpoint_steps"], keep="last"
+        )
+        mean_df = (
+            df.groupby("checkpoint_steps", as_index=False)
+            .agg(
+                mean_win_rate_percent=("win_rate_percent", "mean"),
+                min_win_rate_percent=("win_rate_percent", "min"),
+                max_win_rate_percent=("win_rate_percent", "max"),
+                std_win_rate_percent=("win_rate_percent", "std"),
+                seed_count=("seed", "nunique"),
+            )
+            .sort_values("checkpoint_steps")
+        )
+        incomplete = mean_df[
+            mean_df["seed_count"] != EXPECTED_2M_TRAINING_SEEDS
+        ]
+        if not incomplete.empty:
+            raise ValueError(
+                f"Incomplete checkpoints for {payload['agent'].label} "
+                f"{payload['map_name']}: "
+                f"{incomplete[['checkpoint_steps', 'seed_count']].to_dict('records')}"
+            )
+        payload["mean_df"] = mean_df
+        payload["training_seeds"] = seeds
+
+
+def filter_terminal_outcomes_to_active_seeds(
+    learned: dict[tuple[str, str, str], dict],
+    config,
+    terminal_module: ModuleType,
+) -> None:
+    for payload in learned.values():
+        seeds = active_training_seed_ids(payload["agent"], payload["map_name"])
+        df = pd.read_csv(payload["csv_path"])
+        required = {
+            "checkpoint_steps",
+            "seed",
+            "episodes",
+            *terminal_module.OUTCOMES,
+        }
+        missing = required.difference(df.columns)
+        if missing:
+            raise ValueError(
+                f"{payload['csv_path']} is missing required columns: "
+                f"{sorted(missing)}"
+            )
+
+        df = df.copy()
+        for column in required:
+            df[column] = pd.to_numeric(df[column], errors="coerce")
+        df = df.dropna(subset=list(required))
+        for column in required:
+            df[column] = df[column].astype(int)
+        df = df[df["seed"].isin(seeds)]
+
+        found_seeds = sorted(df["seed"].unique().tolist())
+        if found_seeds != seeds:
+            raise ValueError(
+                f"The 8-env terminal metrics for {payload['agent'].label} "
+                f"{payload['map_name']} contain active seeds {found_seeds}; "
+                f"expected {seeds}."
+            )
+        seed_max_steps = df.groupby("seed")["checkpoint_steps"].max()
+        short_seeds = seed_max_steps[seed_max_steps < config.target_steps]
+        if not short_seeds.empty:
+            raise ValueError(
+                f"Active seeds do not reach {config.target_steps} for "
+                f"{payload['agent'].label} {payload['map_name']}: "
+                f"{short_seeds.to_dict()}"
+            )
+
+        common_max_step = min(
+            int(seed_max_steps.min()),
+            int(config.max_plot_steps),
+        )
+        final_rows = (
+            df[df["checkpoint_steps"] <= common_max_step]
+            .sort_values(["seed", "checkpoint_steps"])
+            .drop_duplicates(subset=["seed"], keep="last")
+            .reset_index(drop=True)
+        )
+        if sorted(final_rows["seed"].tolist()) != seeds:
+            raise ValueError(
+                f"Could not select one final 2M checkpoint for every active "
+                f"seed of {payload['agent'].label} {payload['map_name']}."
+            )
+        total_episodes = int(final_rows["episodes"].sum())
+        counts = {
+            outcome: int(final_rows[outcome].sum())
+            for outcome in terminal_module.OUTCOMES
+        }
+        payload.update(
+            {
+                "final_rows": final_rows,
+                "counts": counts,
+                "percentages": {
+                    outcome: 100.0 * count / total_episodes
+                    for outcome, count in counts.items()
+                },
+                "total_episodes": total_episodes,
+                "final_checkpoint_steps": sorted(
+                    final_rows["checkpoint_steps"].unique().tolist()
+                ),
+                "seeds": seeds,
+                "seed_count": len(seeds),
+            }
+        )
+
+
 def run_grid(
     key: str,
     scripted: dict[tuple[str, str], dict[str, Any]],
@@ -671,6 +874,19 @@ def run_grid(
 ) -> list[Path]:
     win_config = find_config(win_module, key)
     terminal_config = find_config(terminal_module, key)
+    if key == "2m":
+        win_config = replace(
+            win_config,
+            label="2M, 8 eval envs, 5 training seeds",
+            eval_envs=8,
+            target_tolerance_steps=TWO_MILLION_CHECKPOINT_TOLERANCE,
+        )
+        terminal_config = replace(
+            terminal_config,
+            label="2M, 8 eval envs, 5 training seeds",
+            eval_envs=8,
+            target_tolerance_steps=TWO_MILLION_CHECKPOINT_TOLERANCE,
+        )
 
     curves, win_warnings = win_module.collect_curves(win_config)
     if not curves:
@@ -680,6 +896,13 @@ def run_grid(
     )
     if not learned_outcomes:
         raise RuntimeError(f"No learned terminal outcomes found for grid {key}.")
+    if key == "2m":
+        filter_win_curves_to_active_seeds(curves, win_config)
+        filter_terminal_outcomes_to_active_seeds(
+            learned_outcomes,
+            terminal_config,
+            terminal_module,
+        )
 
     win_source = save_win_source(curves, scripted, win_config, output_dir)
     win_png, win_pdf = plot_win_grid(
