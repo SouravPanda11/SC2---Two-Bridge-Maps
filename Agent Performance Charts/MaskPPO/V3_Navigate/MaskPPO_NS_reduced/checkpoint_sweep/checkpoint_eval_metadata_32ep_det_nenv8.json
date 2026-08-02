@@ -16,7 +16,9 @@
     "seeds": [
       1366468300,
       1058436934,
-      813114563
+      813114563,
+      1810085978,
+      478298399
     ],
     "num_envs": 3,
     "total_timesteps": 2000000,
@@ -29,12 +31,14 @@
   "results_csv": "C:\\Users\\sbp5911\\Visual Studio Code Workspace\\SC2---Two-Bridge-Maps\\Agent Performance Charts\\MaskPPO\\V3_Navigate\\MaskPPO_NS_reduced\\checkpoint_sweep\\checkpoint_metrics_32ep_det_nenv8.csv",
   "combined_plot": "C:\\Users\\sbp5911\\Visual Studio Code Workspace\\SC2---Two-Bridge-Maps\\Agent Performance Charts\\MaskPPO\\V3_Navigate\\MaskPPO_NS_reduced\\checkpoint_sweep\\all_seeds_winrate_vs_timesteps_32ep_det_nenv8.png",
   "best_seed_stacked_plot": "C:\\Users\\sbp5911\\Visual Studio Code Workspace\\SC2---Two-Bridge-Maps\\Agent Performance Charts\\MaskPPO\\V3_Navigate\\MaskPPO_NS_reduced\\checkpoint_sweep\\best_seed_win_conditions_vs_timesteps_32ep_det_nenv8.png",
-  "best_seed": 1366468300,
-  "rows": 600,
+  "best_seed": 1810085978,
+  "rows": 680,
   "seeds": [
+    478298399,
     813114563,
     1058436934,
-    1366468300
+    1366468300,
+    1810085978
   ],
   "checkpoint_steps": [
     50688,
