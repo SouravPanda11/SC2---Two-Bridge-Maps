@@ -14,6 +14,12 @@ training seeds (160 evaluation episodes per map). The scripted row contains
 one fixed-policy evaluation of 32 episodes per map. The source CSV records
 those different sample sizes and the input paths.
 
+The final-performance Markdown table is formatted for direct use in a
+text-only rebuttal. It reports the learned-agent mean and seed range at the
+final checkpoint, followed by pooled terminal-outcome percentages. The
+scripted-oracle rows report their fixed win rate and use an em dash for the
+inapplicable training-seed range.
+
 Regenerate the 2M/16-evaluation-environment comparison from the repository
 root with:
 

@@ -229,6 +229,12 @@ def terminal_output_basename(config) -> str:
     return f"reduced_agents_final_terminal_outcome_grid{suffix}_with_scripted"
 
 
+def table_output_basename(config) -> str:
+    if config.key == "2m":
+        return "reduced_agents_final_performance_table_2m_nenv8_5seed_with_scripted"
+    return "reduced_agents_final_performance_table_10m_nenv8_with_scripted"
+
+
 def save_win_source(
     curves: dict[tuple[str, str, str], dict],
     scripted: dict[tuple[str, str], dict[str, Any]],
@@ -679,6 +685,208 @@ def plot_terminal_grid(
     return png_path, pdf_path
 
 
+def save_final_performance_table(
+    curves: dict[tuple[str, str, str], dict],
+    learned: dict[tuple[str, str, str], dict],
+    scripted: dict[tuple[str, str], dict[str, Any]],
+    config,
+    win_module: ModuleType,
+    output_dir: Path,
+) -> tuple[Path, Path]:
+    rows: list[dict[str, Any]] = []
+    for version in VERSIONS:
+        for variant in VARIANTS:
+            map_name = f"{version}_{variant}"
+            for agent in win_module.AGENTS:
+                curve = curves[(version, variant, agent.label)]
+                terminal = learned[(agent.label, version, variant)]
+                final_curve = curve["mean_df"].sort_values(
+                    "checkpoint_steps"
+                ).iloc[-1]
+                final_steps = int(final_curve["checkpoint_steps"])
+                terminal_steps = terminal["final_checkpoint_steps"]
+                if terminal_steps != [final_steps]:
+                    raise ValueError(
+                        f"Final win-rate and terminal checkpoints differ for "
+                        f"{agent.label} {map_name}: {final_steps} vs "
+                        f"{terminal_steps}"
+                    )
+
+                mean_win = float(final_curve["mean_win_rate_percent"])
+                pooled_win = (
+                    float(terminal["percentages"]["nav_win"])
+                    + float(terminal["percentages"]["combat_win"])
+                )
+                if not math.isclose(mean_win, pooled_win, abs_tol=1e-9):
+                    raise ValueError(
+                        f"Final win-rate mismatch for {agent.label} "
+                        f"{map_name}: seed mean={mean_win}, "
+                        f"pooled outcomes={pooled_win}"
+                    )
+
+                rows.append(
+                    {
+                        "grid": config.key,
+                        "grid_label": config.label,
+                        "map_variant": map_name,
+                        "agent": agent.label,
+                        "agent_type": "learned",
+                        "training_seed_count": int(final_curve["seed_count"]),
+                        "training_seeds": ";".join(
+                            str(seed) for seed in terminal["seeds"]
+                        ),
+                        "evaluation_episodes": terminal["total_episodes"],
+                        "final_checkpoint_steps": final_steps,
+                        "final_mean_win_rate_percent": mean_win,
+                        "min_seed_win_rate_percent": float(
+                            final_curve["min_win_rate_percent"]
+                        ),
+                        "max_seed_win_rate_percent": float(
+                            final_curve["max_win_rate_percent"]
+                        ),
+                        "nav_win_percent": float(
+                            terminal["percentages"]["nav_win"]
+                        ),
+                        "combat_win_percent": float(
+                            terminal["percentages"]["combat_win"]
+                        ),
+                        "combat_loss_percent": float(
+                            terminal["percentages"]["combat_loss"]
+                        ),
+                        "timeout_loss_percent": float(
+                            terminal["percentages"]["nav_loss"]
+                        ),
+                        "source_path": relative_source(curve["csv_path"]),
+                    }
+                )
+
+            baseline = scripted[(version, variant)]
+            rows.append(
+                {
+                    "grid": config.key,
+                    "grid_label": config.label,
+                    "map_variant": map_name,
+                    "agent": SCRIPTED_ROW_LABEL,
+                    "agent_type": "fixed_non_learning_policy",
+                    "training_seed_count": 0,
+                    "training_seeds": "",
+                    "evaluation_episodes": baseline["episodes"],
+                    "final_checkpoint_steps": "",
+                    "final_mean_win_rate_percent": baseline[
+                        "win_rate_percent"
+                    ],
+                    "min_seed_win_rate_percent": "",
+                    "max_seed_win_rate_percent": "",
+                    "nav_win_percent": baseline["percentages"]["nav_win"],
+                    "combat_win_percent": baseline["percentages"][
+                        "combat_win"
+                    ],
+                    "combat_loss_percent": baseline["percentages"][
+                        "combat_loss"
+                    ],
+                    "timeout_loss_percent": baseline["percentages"][
+                        "timeout_loss"
+                    ],
+                    "source_path": relative_source(baseline["summary_path"]),
+                }
+            )
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    basename = table_output_basename(config)
+    csv_path = output_dir / f"{basename}.csv"
+    pd.DataFrame(rows).to_csv(csv_path, index=False, float_format="%.6f")
+
+    def percentage_value(value: float) -> str:
+        return f"{float(value):.1f}"
+
+    best_learned_win_rate = {
+        map_name: max(
+            float(row["final_mean_win_rate_percent"])
+            for row in rows
+            if row["map_variant"] == map_name
+            and row["agent_type"] == "learned"
+        )
+        for map_name in (f"{v}_{variant}" for v in VERSIONS for variant in VARIANTS)
+    }
+
+    markdown_lines = [
+        f"# Final agent performance - {config.label}",
+        "",
+        (
+            "| Map variant | Agent | Final mean win rate [seed range] | "
+            "Nav win (%) | Combat win (%) | Combat loss (%) | "
+            "Timeout loss (%) |"
+        ),
+        "|---|---|---:|---:|---:|---:|---:|",
+    ]
+    for row in rows:
+        if row["agent_type"] == "learned":
+            win_cell = (
+                f"{percentage_value(row['final_mean_win_rate_percent'])} "
+                f"[{percentage_value(row['min_seed_win_rate_percent'])}, "
+                f"{percentage_value(row['max_seed_win_rate_percent'])}]"
+            )
+        else:
+            win_cell = (
+                f"{percentage_value(row['final_mean_win_rate_percent'])} "
+                "[N/A, N/A]"
+            )
+        agent_cell = str(row["agent"])
+        is_best_learned = (
+            row["agent_type"] == "learned"
+            and math.isclose(
+                float(row["final_mean_win_rate_percent"]),
+                best_learned_win_rate[str(row["map_variant"])],
+                abs_tol=1e-9,
+            )
+        )
+        if is_best_learned:
+            agent_cell = f"**{agent_cell}**"
+            win_cell = f"**{win_cell}**"
+        markdown_lines.append(
+            "| "
+            + " | ".join(
+                [
+                    f"`{row['map_variant']}`",
+                    agent_cell,
+                    win_cell,
+                    percentage_value(row["nav_win_percent"]),
+                    percentage_value(row["combat_win_percent"]),
+                    percentage_value(row["combat_loss_percent"]),
+                    percentage_value(row["timeout_loss_percent"]),
+                ]
+            )
+            + " |"
+        )
+    markdown_lines.extend(
+        [
+            "",
+            (
+                "Learned-agent win rates are the mean [minimum, maximum] "
+                "across training seeds at the final checkpoint. Terminal "
+                "outcomes are pooled across the same seed evaluations."
+            ),
+            "",
+            (
+                f"Each learned row uses {learned[next(iter(learned))]['seed_count']} "
+                "training seeds with 32 evaluation episodes per seed. The "
+                "scripted oracle is one fixed 32-episode evaluation and has "
+                "no training-seed range (N/A). All reported values are "
+                "percentages. Bold marks the best learned agent per map; the "
+                "privileged scripted oracle is excluded from that ranking."
+            ),
+            "",
+            (
+                "Win rate is Nav win + Combat win. Reaching a terminal "
+                "Combat loss is not counted as a win."
+            ),
+        ]
+    )
+    md_path = output_dir / f"{basename}.md"
+    md_path.write_text("\n".join(markdown_lines) + "\n", encoding="utf-8")
+    return md_path, csv_path
+
+
 def find_config(module: ModuleType, key: str):
     return next(config for config in module.GRID_CONFIGS if config.key == key)
 
@@ -925,6 +1133,14 @@ def run_grid(
         terminal_module,
         output_dir,
     )
+    table_md, table_csv = save_final_performance_table(
+        curves,
+        learned_outcomes,
+        scripted,
+        win_config,
+        win_module,
+        output_dir,
+    )
 
     print(f"\nGrid: {key}")
     for path in (
@@ -934,6 +1150,8 @@ def run_grid(
         terminal_source,
         terminal_png,
         terminal_pdf,
+        table_md,
+        table_csv,
     ):
         print(f"Saved: {path}")
     for warning in (*win_warnings, *terminal_warnings):
@@ -945,6 +1163,8 @@ def run_grid(
         terminal_source,
         terminal_png,
         terminal_pdf,
+        table_md,
+        table_csv,
     ]
 
 
